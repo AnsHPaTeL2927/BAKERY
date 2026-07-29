@@ -1,0 +1,256 @@
+// Mock data — swap this file out once the admin panel + backend are wired up.
+// Shapes here mirror the planned MongoDB collections (Products, Gallery,
+// FestivalOffers, Reviews, Settings) so the eventual API integration is a drop-in.
+
+export const siteConfig = {
+  name: "Cakes by Tulsi",
+  tagline: "Homemade Cakes, Crafted with Love",
+  description:
+    "Freshly baked cakes, brownies, chocolates and desserts made for every celebration.",
+  phone: "+91 87806 52597",
+  whatsapp: "918780652597",
+  email: "hello@cakesbytulsi.in",
+  address: "Vadodara, Gujarat, India",
+  hours: "Tue–Sun, 10:00 AM – 8:00 PM (Closed Mondays)",
+  social: {
+    instagram: "https://instagram.com",
+    facebook: "https://facebook.com",
+  },
+};
+
+export function waLink(message) {
+  return `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(message)}`;
+}
+
+export const categories = [
+  { slug: "cakes", name: "Cakes", emoji: "🎂", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80" },
+  { slug: "brownies", name: "Brownies", emoji: "🍫", image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&q=80" },
+  { slug: "cupcakes", name: "Cupcakes", emoji: "🧁", image: "https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=600&q=80" },
+  { slug: "muffins", name: "Muffins", emoji: "🥐", image: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=600&q=80" },
+  { slug: "cookies", name: "Cookies", emoji: "🍪", image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80" },
+  { slug: "chocolates", name: "Chocolates", emoji: "🍬", image: "https://images.unsplash.com/photo-1548907040-4baa419e3af8?w=600&q=80" },
+];
+
+export const products = [
+  {
+    id: "p1",
+    name: "Choco Truffle Cake",
+    slug: "choco-truffle-cake",
+    category: "cakes",
+    description: "Rich Belgian dark chocolate sponge layered with velvety truffle ganache.",
+    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=700&q=80",
+    weights: ["500g", "1kg", "1.5kg"],
+    priceByWeight: { "500g": 549, "1kg": 999, "1.5kg": 1449 },
+    flavours: ["Dark Chocolate", "Chocolate Chip"],
+    featured: true,
+    available: true,
+  },
+  {
+    id: "p2",
+    name: "Rose Pistachio Cake",
+    slug: "rose-pistachio-cake",
+    category: "cakes",
+    description: "Delicate rose-cardamom sponge finished with crushed pistachio and edible petals.",
+    image: "https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=700&q=80",
+    weights: ["500g", "1kg"],
+    priceByWeight: { "500g": 649, "1kg": 1199 },
+    flavours: ["Rose Cardamom"],
+    featured: true,
+    available: true,
+  },
+  {
+    id: "p3",
+    name: "Red Velvet Cake",
+    slug: "red-velvet-cake",
+    category: "cakes",
+    description: "Classic red velvet with a tangy cream-cheese frosting, made the slow way.",
+    image: "https://images.unsplash.com/photo-1586985289906-406988974504?w=700&q=80",
+    weights: ["500g", "1kg", "1.5kg"],
+    priceByWeight: { "500g": 599, "1kg": 1099, "1.5kg": 1599 },
+    flavours: ["Red Velvet"],
+    featured: true,
+    available: true,
+  },
+  {
+    id: "p4",
+    name: "Fudge Walnut Brownies",
+    slug: "fudge-walnut-brownies",
+    category: "brownies",
+    description: "Dense, fudgy brownies studded with toasted walnuts. Sold by the box of 6.",
+    image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=700&q=80",
+    weights: ["Box of 6", "Box of 12"],
+    priceByWeight: { "Box of 6": 349, "Box of 12": 649 },
+    flavours: ["Classic Fudge", "Walnut"],
+    featured: true,
+    available: true,
+  },
+  {
+    id: "p5",
+    name: "Salted Caramel Cupcakes",
+    slug: "salted-caramel-cupcakes",
+    category: "cupcakes",
+    description: "Soft vanilla cupcakes topped with hand-piped salted caramel buttercream.",
+    image: "https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=700&q=80",
+    weights: ["Box of 4", "Box of 6"],
+    priceByWeight: { "Box of 4": 299, "Box of 6": 429 },
+    flavours: ["Salted Caramel", "Vanilla"],
+    featured: true,
+    available: true,
+  },
+  {
+    id: "p6",
+    name: "Blueberry Muffins",
+    slug: "blueberry-muffins",
+    category: "muffins",
+    description: "Bakery-style muffins loaded with real blueberries and a crackly sugar top.",
+    image: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=700&q=80",
+    weights: ["Box of 4", "Box of 6"],
+    priceByWeight: { "Box of 4": 259, "Box of 6": 369 },
+    flavours: ["Blueberry"],
+    featured: false,
+    available: true,
+  },
+  {
+    id: "p7",
+    name: "Assorted Butter Cookies",
+    slug: "assorted-butter-cookies",
+    category: "cookies",
+    description: "A tin of five hand-shaped butter cookie varieties, perfect for gifting.",
+    image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=700&q=80",
+    weights: ["250g Tin", "500g Tin"],
+    priceByWeight: { "250g Tin": 299, "500g Tin": 549 },
+    flavours: ["Butter", "Almond", "Chocolate Chip"],
+    featured: false,
+    available: true,
+  },
+  {
+    id: "p8",
+    name: "Handmade Chocolate Box",
+    slug: "handmade-chocolate-box",
+    category: "chocolates",
+    description: "A curated box of hand-tempered chocolates — dark, milk and filled varieties.",
+    image: "https://images.unsplash.com/photo-1548907040-4baa419e3af8?w=700&q=80",
+    weights: ["9 pcs", "16 pcs"],
+    priceByWeight: { "9 pcs": 399, "16 pcs": 699 },
+    flavours: ["Assorted"],
+    featured: true,
+    available: true,
+  },
+];
+
+// Only one offer should ever be "active" at a time — mirrors the admin rule.
+export const festivalOffers = [
+  {
+    id: "f1",
+    festival: "Raksha Bandhan",
+    title: "Raksha Bandhan is Here!",
+    description: "Celebrate the bond of love with homemade treats made with love.",
+    banner: "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=1200&q=80",
+    discount: "10% OFF",
+    ctaText: "Pre-Order Now",
+    startDate: "2026-08-01",
+    endDate: "2026-08-09",
+    active: true,
+    priority: 1,
+  },
+  {
+    id: "f2",
+    festival: "Diwali",
+    title: "A Diwali Full of Sweetness",
+    description: "Light up celebrations with festive hampers of chocolates and cookies.",
+    banner: "https://images.unsplash.com/photo-1605196560547-b2f7281b7355?w=1200&q=80",
+    discount: "15% OFF",
+    ctaText: "Order for Diwali",
+    startDate: "2026-11-01",
+    endDate: "2026-11-12",
+    active: false,
+    priority: 2,
+  },
+];
+
+export const galleryCategories = [
+  "Birthday Cakes",
+  "Wedding Cakes",
+  "Anniversary Cakes",
+  "Kids Theme Cakes",
+  "Cupcakes",
+  "Brownies",
+  "Cookies",
+  "Chocolates",
+  "Festival Collection",
+  "Customer Celebrations",
+  "Behind the Scenes",
+];
+
+export const galleryImages = [
+  { id: "g1", category: "Birthday Cakes", image: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=700&q=80", alt: "Pastel birthday cake with sprinkles" },
+  { id: "g2", category: "Wedding Cakes", image: "https://images.unsplash.com/photo-1519340333755-c1aa5571fd46?w=700&q=80", alt: "Three-tier white wedding cake" },
+  { id: "g3", category: "Kids Theme Cakes", image: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=700&q=80", alt: "Colourful kids theme cake" },
+  { id: "g4", category: "Cupcakes", image: "https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=700&q=80", alt: "Frosted cupcakes on a stand" },
+  { id: "g5", category: "Brownies", image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=700&q=80", alt: "Stacked fudge brownies" },
+  { id: "g6", category: "Anniversary Cakes", image: "https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=700&q=80", alt: "Rose-decorated anniversary cake" },
+  { id: "g7", category: "Festival Collection", image: "https://images.unsplash.com/photo-1605196560547-b2f7281b7355?w=700&q=80", alt: "Festive dessert platter" },
+  { id: "g8", category: "Behind the Scenes", image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=700&q=80", alt: "Baker icing a cake in the kitchen" },
+  { id: "g9", category: "Customer Celebrations", image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=700&q=80", alt: "Friends celebrating with cake" },
+  { id: "g10", category: "Chocolates", image: "https://images.unsplash.com/photo-1548907040-4baa419e3af8?w=700&q=80", alt: "Handmade chocolate assortment" },
+  { id: "g11", category: "Cookies", image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=700&q=80", alt: "Butter cookies on a rack" },
+  { id: "g12", category: "Wedding Cakes", image: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=700&q=80", alt: "Floral wedding cake detail" },
+];
+
+export const reviews = [
+  {
+    id: "r1",
+    name: "Priya Sharma",
+    rating: 5,
+    review: "The rose pistachio cake was the highlight of my sister's Rakhi celebration. Every slice disappeared in minutes!",
+    photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&q=80",
+    featured: true,
+    approved: true,
+  },
+  {
+    id: "r2",
+    name: "Karan Mehta",
+    rating: 5,
+    review: "Ordered a custom anniversary cake with almost no notice and Tulsi still delivered something beautiful and delicious.",
+    photo: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&q=80",
+    featured: true,
+    approved: true,
+  },
+  {
+    id: "r3",
+    name: "Ananya Desai",
+    rating: 5,
+    review: "Genuinely tastes homemade — not overly sweet, generous with the good ingredients. Our new go-to for every birthday.",
+    photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80",
+    featured: true,
+    approved: true,
+  },
+  {
+    id: "r4",
+    name: "Rohan Iyer",
+    rating: 4,
+    review: "Loved the brownies — fudgy in the middle, exactly how I like them. WhatsApp ordering made it so easy.",
+    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
+    featured: false,
+    approved: true,
+  },
+];
+
+export const whyChooseUs = [
+  { title: "Homemade", detail: "Every order baked in a real home kitchen, not a factory line." },
+  { title: "Fresh Ingredients", detail: "Sourced in small batches, never stocked for weeks." },
+  { title: "Premium Quality", detail: "Belgian chocolate, real butter, no shortcuts." },
+  { title: "Custom Designs", detail: "Your theme, your colours, your occasion." },
+  { title: "Affordable Pricing", detail: "Celebration-worthy desserts without the markup." },
+  { title: "Fresh Daily", detail: "Baked to order, never sitting in a display case." },
+  { title: "Hygienic Kitchen", detail: "Clean process from mixing bowl to delivery box." },
+];
+
+export const customCakeOccasions = [
+  "Birthday",
+  "Anniversary",
+  "Wedding",
+  "Baby Shower",
+  "Corporate Event",
+  "Other",
+];

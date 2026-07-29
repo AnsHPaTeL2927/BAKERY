@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Caveat:wght@500;600;700&family=Nunito+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FBF1E6;
+  --color-cream-deep: #F5E5D6;
+  --color-blush: #F7D6DF;
+  --color-blush-soft: #FCE9EE;
+  --color-rose: #C6567A;
+  --color-rose-deep: #A83E60;
+  --color-cocoa: #4A2A20;
+  --color-cocoa-soft: #6E4436;
+  --color-gold: #C79A3E;
+  --color-ivory: #FFFCF7;
+
+  --font-display: "Fraunces", serif;
+  --font-script: "Caveat", cursive;
+  --font-body: "Nunito Sans", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-cocoa);
+  font-family: var(--font-body);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+/* Signature scalloped edge - echoes the badge shapes from the bakery ad */
+.scallop-edge {
+  --scallop-size: 14px;
+  -webkit-mask-image: radial-gradient(circle at var(--scallop-size) var(--scallop-size), transparent calc(var(--scallop-size) - 1px), black var(--scallop-size));
+  -webkit-mask-size: calc(var(--scallop-size) * 2) calc(var(--scallop-size) * 2);
+  mask-image: radial-gradient(circle at var(--scallop-size) var(--scallop-size), transparent calc(var(--scallop-size) - 1px), black var(--scallop-size));
+  mask-size: calc(var(--scallop-size) * 2) calc(var(--scallop-size) * 2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--color-blush);
+  background-color: var(--color-cream);
+  border-radius: 0.9rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  color: var(--color-cocoa);
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--color-rose);
+  outline: none;
+}
+
+::selection {
+  background-color: var(--color-blush);
+  color: var(--color-cocoa);
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--color-rose);
+  outline-offset: 2px;
+}
