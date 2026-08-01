@@ -1,11 +1,22 @@
-import { useState } from "react";
-import { waLink } from "../data/mockData";
+import { useState, useEffect } from "react";
+import { getPublicContent, trackEvent } from "../services/api";
 
 export default function ProductCard({ product }) {
-  const [weight, setWeight] = useState(product.weights[0]);
-  const price = product.priceByWeight[weight];
+  const [settings, setSettings] = useState({});
+  const [weight, setWeight] = useState(product.weights?.[0] || "");
+  const price = product.priceByWeight?.[weight] || product.price || 0;
+
+  useEffect(() => {
+    getPublicContent().then((data) => setSettings(data.settings || {})).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    trackEvent("PRODUCT_VIEW", product.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const orderMessage = `Hi! I'd like to order:\n${product.name} (${weight}) - ₹${price}`;
+  const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
 
   return (
     <div className="bg-ivory rounded-3xl overflow-hidden shadow-sm border border-blush/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
@@ -50,6 +61,7 @@ export default function ProductCard({ product }) {
           href={waLink(orderMessage)}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackEvent("ORDER_CLICK", product.id)}
           aria-disabled={!product.available}
           className={`mt-2 text-center rounded-full py-2.5 font-semibold text-sm transition-colors ${
             product.available

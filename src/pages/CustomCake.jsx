@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { CheckCircle2 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
-import { customCakeOccasions, waLink } from "../data/mockData";
+import { getPublicContent } from "../services/api";
 
 export default function CustomCake() {
   const {
@@ -13,6 +13,14 @@ export default function CustomCake() {
   } = useForm();
   const [submitted, setSubmitted] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [settings, setSettings] = useState({});
+  const [customCakeOccasions] = useState(["Birthday", "Anniversary", "Wedding", "Baby Shower", "Corporate Event", "Other"]);
+
+  useEffect(() => {
+    getPublicContent().then((data) => setSettings(data.settings || {})).catch(() => {});
+  }, []);
+
+  const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
 
   function onSubmit(data) {
     // No backend yet — compose the request as a pre-filled WhatsApp message.

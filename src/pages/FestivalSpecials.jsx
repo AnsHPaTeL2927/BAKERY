@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
-import { festivalOffers, products, waLink } from "../data/mockData";
+import { getPublicContent } from "../services/api";
 
 function useCountdown(endDate) {
   const [remaining, setRemaining] = useState(getRemaining());
@@ -23,6 +23,15 @@ function useCountdown(endDate) {
 }
 
 export default function FestivalSpecials() {
+  const [content, setContent] = useState({ offers: [], products: [], settings: {} });
+
+  useEffect(() => {
+    getPublicContent().then(setContent).catch(() => {});
+  }, []);
+
+  const festivalOffers = content.offers || [];
+  const products = content.products || [];
+  const settings = content.settings || {};
   const active = festivalOffers.filter((o) => o.active);
 
   return (
@@ -40,16 +49,17 @@ export default function FestivalSpecials() {
         {active
           .sort((a, b) => a.priority - b.priority)
           .map((offer) => (
-            <FestivalBlock key={offer.id} offer={offer} />
+            <FestivalBlock key={offer.id} offer={offer} products={products} whatsapp={settings.whatsapp} />
           ))}
       </section>
     </>
   );
 }
 
-function FestivalBlock({ offer }) {
+function FestivalBlock({ offer, products, whatsapp }) {
   const countdown = useCountdown(offer.endDate);
   const relatedProducts = products.filter((p) => p.featured).slice(0, 3);
+  const waLink = (message) => `https://wa.me/${whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
 
   return (
     <div>

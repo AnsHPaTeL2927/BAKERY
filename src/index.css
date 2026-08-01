@@ -16,6 +16,19 @@
   --font-display: "Fraunces", serif;
   --font-script: "Caveat", cursive;
   --font-body: "Nunito Sans", sans-serif;
+
+  /* Admin panel design system — separate from the public site palette above */
+  --color-admin-primary: #D94C7B;
+  --color-admin-primary-hover: #C93A69;
+  --color-admin-bg: #FFF7F8;
+  --color-admin-card: #FFFFFF;
+  --color-admin-border: #F2D7E1;
+  --color-admin-text: #2F2F2F;
+  --color-admin-muted: #7B7B7B;
+  --color-admin-success: #22C55E;
+  --color-admin-warning: #F59E0B;
+  --color-admin-danger: #EF4444;
+  --radius-admin: 20px;
 }
 
 html {

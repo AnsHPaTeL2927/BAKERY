@@ -2,12 +2,20 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import ProductCard from "../components/ProductCard";
-import { categories, products } from "../data/mockData";
+import { getPublicContent } from "../services/api";
 
 export default function Menu() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get("category") || "all";
   const [active, setActive] = useState(initialCategory);
+  const [content, setContent] = useState({ categories: [], products: [] });
+
+  useEffect(() => {
+    getPublicContent().then(setContent).catch(() => {});
+  }, []);
+
+  const categories = content.categories || [];
+  const products = content.products || [];
 
   useEffect(() => {
     setActive(searchParams.get("category") || "all");
@@ -48,13 +56,13 @@ export default function Menu() {
           </button>
           {categories.map((c) => (
             <button
-              key={c.slug}
-              onClick={() => selectCategory(c.slug)}
+              key={c.slug || c.id}
+              onClick={() => selectCategory(c.slug || c.id)}
               className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-                active === c.slug ? "bg-rose text-ivory border-rose" : "border-blush text-cocoa-soft hover:border-rose"
+                active === (c.slug || c.id) ? "bg-rose text-ivory border-rose" : "border-blush text-cocoa-soft hover:border-rose"
               }`}
             >
-              {c.emoji} {c.name}
+              {c.name}
             </button>
           ))}
         </div>

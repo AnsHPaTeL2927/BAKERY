@@ -1,16 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, Sparkles, Heart, Leaf, ChefHat, ShieldCheck, Clock } from "lucide-react";
-import {
-  siteConfig,
-  categories,
-  products,
-  festivalOffers,
-  galleryImages,
-  reviews,
-  whyChooseUs,
-  waLink,
-} from "../data/mockData";
+import { getPublicContent } from "../services/api";
 import IcingDivider from "../components/IcingDivider";
 import ProductCard from "../components/ProductCard";
 
@@ -22,8 +14,31 @@ const fadeUp = {
 };
 
 export default function Home() {
+  const [content, setContent] = useState({ settings: {}, categories: [], products: [], gallery: [], offers: [], testimonials: [] });
+
+  useEffect(() => {
+    getPublicContent().then(setContent).catch(() => {});
+  }, []);
+
+  const settings = content.settings || {};
+  const categories = content.categories || [];
+  const products = content.products || [];
+  const galleryImages = content.gallery || [];
+  const festivalOffers = content.offers || [];
+  const reviews = content.testimonials || [];
+  const heroImage = content.heroBanners?.[0]?.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=900&q=80";
+  const whyChooseUs = [
+    { title: "Homemade", detail: "Every order baked in a real home kitchen, not a factory line." },
+    { title: "Fresh Ingredients", detail: "Sourced in small batches, never stocked for weeks." },
+    { title: "Premium Quality", detail: "Belgian chocolate, real butter, no shortcuts." },
+    { title: "Custom Designs", detail: "Your theme, your colours, your occasion." },
+    { title: "Affordable Pricing", detail: "Celebration-worthy desserts without the markup." },
+    { title: "Fresh Daily", detail: "Baked to order, never sitting in a display case." },
+    { title: "Hygienic Kitchen", detail: "Clean process from mixing bowl to delivery box." },
+  ];
   const activeOffer = festivalOffers.find((o) => o.active);
   const bestSellers = products.filter((p) => p.featured).slice(0, 6);
+  const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
 
   return (
     <>
@@ -32,7 +47,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-5 md:px-8 pt-14 pb-20 md:pt-20 md:pb-28 grid md:grid-cols-2 gap-10 items-center">
           <motion.div initial="hidden" animate="show" variants={fadeUp}>
             <p className="font-script text-2xl md:text-3xl text-rose-deep mb-2">
-              {siteConfig.tagline}
+              {settings.tagline || 'Homemade Cakes, Crafted with Love'}
             </p>
             <h1 className="font-display font-semibold text-4xl md:text-6xl leading-[1.05] text-cocoa">
               Homemade Cakes
@@ -50,7 +65,7 @@ export default function Home() {
               </span>
             </h1>
             <p className="mt-6 text-cocoa-soft/90 text-lg max-w-md">
-              {siteConfig.description}
+              {settings.description || 'Freshly baked cakes, brownies, chocolates and desserts made for every celebration.'}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <a
@@ -78,7 +93,7 @@ export default function Home() {
           >
             <div className="absolute -inset-4 bg-blush rounded-[3rem] -rotate-3" aria-hidden="true" />
             <img
-              src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=900&q=80"
+              src={heroImage}
               alt="Premium homemade chocolate truffle cake"
               className="relative rounded-[3rem] shadow-xl w-full aspect-[4/3] object-cover"
             />
@@ -123,14 +138,14 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
           {categories.map((c) => (
             <Link
-              key={c.slug}
-              to={`/menu?category=${c.slug}`}
+              key={c.slug || c.id}
+              to={`/menu?category=${c.slug || c.id}`}
               className="group bg-ivory rounded-2xl border border-blush/60 p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all"
             >
               <div className="w-full aspect-square rounded-xl overflow-hidden mb-3">
-                <img src={c.image} alt={c.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                <img src={c.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80'} alt={c.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
               </div>
-              <p className="font-display font-semibold text-cocoa text-sm">{c.emoji} {c.name}</p>
+              <p className="font-display font-semibold text-cocoa text-sm">{c.name}</p>
             </Link>
           ))}
         </div>
@@ -204,7 +219,7 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
           {galleryImages.slice(0, 8).map((g) => (
             <div key={g.id} className="rounded-2xl overflow-hidden aspect-square">
-              <img src={g.image} alt={g.alt} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              <img src={g.image} alt={g.alt || g.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
             </div>
           ))}
         </div>
@@ -220,7 +235,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-5 md:px-8">
           <SectionTitle eyebrow="Kind Words" title="What Our Customers Say" />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-10">
-            {reviews.filter((r) => r.approved).map((r) => (
+            {reviews.filter((r) => r.approved !== false).map((r) => (
               <div key={r.id} className="bg-ivory rounded-2xl border border-blush/60 p-6">
                 <div className="flex gap-1 text-gold mb-3">
                   {Array.from({ length: r.rating }).map((_, i) => (

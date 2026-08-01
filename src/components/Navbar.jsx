@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import { siteConfig } from "../data/mockData";
+import { getPublicContent } from "../services/api";
 
 const links = [
   { to: "/", label: "Home" },
@@ -15,6 +15,11 @@ const links = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [siteConfig, setSiteConfig] = useState({ name: 'Cakes by Tulsi' });
+
+  useEffect(() => {
+    getPublicContent().then((data) => setSiteConfig(data.settings || {})).catch(() => {});
+  }, []);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {

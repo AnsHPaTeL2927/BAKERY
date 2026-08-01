@@ -1,12 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import PageHeader from "../components/PageHeader";
-import { galleryCategories, galleryImages } from "../data/mockData";
+import { getPublicContent, trackEvent } from "../services/api";
 
 export default function Gallery() {
   const [active, setActive] = useState("All");
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [content, setContent] = useState({ gallery: [] });
 
+  useEffect(() => {
+    getPublicContent().then(setContent).catch(() => {});
+    trackEvent("GALLERY_VIEW");
+  }, []);
+
+  const galleryImages = content.gallery || [];
+  const galleryCategories = Array.from(new Set(galleryImages.map((g) => g.category).filter(Boolean)));
   const filtered = active === "All" ? galleryImages : galleryImages.filter((g) => g.category === active);
 
   function openLightbox(id) {

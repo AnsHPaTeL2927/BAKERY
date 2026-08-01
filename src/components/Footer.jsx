@@ -1,9 +1,19 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { InstagramIcon, FacebookIcon } from "./SocialIcons";
-import { siteConfig, categories } from "../data/mockData";
+import { getPublicContent } from "../services/api";
 
 export default function Footer() {
+  const [content, setContent] = useState({ settings: {}, categories: [] });
+
+  useEffect(() => {
+    getPublicContent().then(setContent).catch(() => {});
+  }, []);
+
+  const siteConfig = content.settings || {};
+  const categories = content.categories || [];
+
   return (
     <footer className="bg-cocoa text-cream/90 mt-24">
       <div className="max-w-6xl mx-auto px-5 md:px-8 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
@@ -11,10 +21,10 @@ export default function Footer() {
           <p className="font-script text-3xl text-blush mb-3">{siteConfig.name}</p>
           <p className="text-sm text-cream/70 leading-relaxed">{siteConfig.description}</p>
           <div className="flex gap-3 mt-4">
-            <a href={siteConfig.social.instagram} aria-label="Instagram" className="p-2 rounded-full bg-cream/10 hover:bg-rose transition-colors">
+            <a href={siteConfig.instagram} aria-label="Instagram" className="p-2 rounded-full bg-cream/10 hover:bg-rose transition-colors">
               <InstagramIcon className="w-4 h-4" />
             </a>
-            <a href={siteConfig.social.facebook} aria-label="Facebook" className="p-2 rounded-full bg-cream/10 hover:bg-rose transition-colors">
+            <a href={siteConfig.facebook} aria-label="Facebook" className="p-2 rounded-full bg-cream/10 hover:bg-rose transition-colors">
               <FacebookIcon className="w-4 h-4" />
             </a>
           </div>

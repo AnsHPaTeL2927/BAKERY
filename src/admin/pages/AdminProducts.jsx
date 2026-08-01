@@ -1,0 +1,409 @@
+import { useEffect, useState } from 'react';
+import { Plus, Pencil, Trash2, X, Star } from 'lucide-react';
+import { productsApi, categoriesApi } from '../services/adminApi';
+import DataTable from '../components/DataTable';
+import Thumbnail from '../components/Thumbnail';
+import StatusBadge from '../components/StatusBadge';
+import Modal from '../components/Modal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import Pagination from '../components/Pagination';
+import SearchInput from '../components/SearchInput';
+import { TextField, TextAreaField, SelectField, CheckboxField } from '../components/FormField';
+
+const EMPTY_FORM = {
+  name: '',
+  slug: '',
+  categoryId: '',
+  description: '',
+  featured: false,
+  available: true,
+  status: 'LIVE',
+  sortOrder: 0,
+};
+
+export default function AdminProducts() {
+  const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [categories, setCategories] = useState([]);
+
+  const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [weightRows, setWeightRows] = useState([{ weight: '', price: '' }]);
+  const [flavoursInput, setFlavoursInput] = useState('');
+  const [existingImages, setExistingImages] = useState([]);
+  const [removeImageIds, setRemoveImageIds] = useState([]);
+  const [primaryImageId, setPrimaryImageId] = useState(null);
+  const [newFiles, setNewFiles] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
+  const pageSize = 10;
+
+  async function load() {
+    setLoading(true);
+    try {
+      const data = await productsApi.list({ page, pageSize, search });
+      setItems(data.items);
+      setTotal(data.total);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, search]);
+
+  useEffect(() => {
+    categoriesApi.list({ page: 1, pageSize: 100 }).then((data) => setCategories(data.items)).catch(() => {});
+  }, []);
+
+  function resetImageState() {
+    setExistingImages([]);
+    setRemoveImageIds([]);
+    setPrimaryImageId(null);
+    setNewFiles([]);
+  }
+
+  function openCreate() {
+    setForm(EMPTY_FORM);
+    setWeightRows([{ weight: '', price: '' }]);
+    setFlavoursInput('');
+    resetImageState();
+    setModal({ open: true, mode: 'create', id: null });
+  }
+
+  function openEdit(item) {
+    setForm({
+      name: item.name,
+      slug: item.slug,
+      categoryId: item.category?.id || item.categoryId || '',
+      description: item.description,
+      featured: item.featured,
+      available: item.available,
+      status: item.status,
+      sortOrder: item.sortOrder,
+    });
+    const weights = Array.isArray(item.weights) ? item.weights : [];
+    const priceByWeight = item.priceByWeight || {};
+    setWeightRows(weights.length ? weights.map((w) => ({ weight: w, price: priceByWeight[w] ?? '' })) : [{ weight: '', price: '' }]);
+    setFlavoursInput(Array.isArray(item.flavours) ? item.flavours.join(', ') : '');
+    setExistingImages(item.images || []);
+    setRemoveImageIds([]);
+    setPrimaryImageId(item.images?.find((img) => img.isPrimary)?.id || null);
+    setNewFiles([]);
+    setModal({ open: true, mode: 'edit', id: item.id });
+  }
+
+  function addWeightRow() {
+    setWeightRows([...weightRows, { weight: '', price: '' }]);
+  }
+
+  function updateWeightRow(index, field, value) {
+    setWeightRows(weightRows.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+  }
+
+  function removeWeightRow(index) {
+    setWeightRows(weightRows.filter((_, i) => i !== index));
+  }
+
+  function handleNewFiles(e) {
+    setNewFiles([...newFiles, ...Array.from(e.target.files || [])]);
+    e.target.value = '';
+  }
+
+  function removeNewFile(index) {
+    setNewFiles(newFiles.filter((_, i) => i !== index));
+  }
+
+  function toggleRemoveExisting(id) {
+    setRemoveImageIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const validRows = weightRows.filter((row) => row.weight.trim());
+    if (validRows.length === 0) {
+      setError('Add at least one weight/size option with a price');
+      return;
+    }
+
+    const remainingExisting = existingImages.filter((img) => !removeImageIds.includes(img.id));
+    if (modal.mode === 'create' && newFiles.length === 0) {
+      setError('At least one product image is required');
+      return;
+    }
+    if (modal.mode === 'edit' && remainingExisting.length === 0 && newFiles.length === 0) {
+      setError('A product needs at least one image');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    try {
+      const weights = validRows.map((row) => row.weight.trim());
+      const priceByWeight = Object.fromEntries(validRows.map((row) => [row.weight.trim(), Number(row.price) || 0]));
+      const flavours = flavoursInput
+        .split(',')
+        .map((f) => f.trim())
+        .filter(Boolean);
+
+      const fd = new FormData();
+      fd.append('name', form.name);
+      fd.append('slug', form.slug);
+      if (form.categoryId) fd.append('categoryId', form.categoryId);
+      fd.append('description', form.description);
+      fd.append('weights', JSON.stringify(weights));
+      fd.append('priceByWeight', JSON.stringify(priceByWeight));
+      fd.append('flavours', JSON.stringify(flavours));
+      fd.append('featured', form.featured);
+      fd.append('available', form.available);
+      fd.append('status', form.status);
+      fd.append('sortOrder', form.sortOrder);
+      newFiles.forEach((file) => fd.append('images', file));
+
+      if (modal.mode === 'create') {
+        await productsApi.create(fd);
+      } else {
+        if (removeImageIds.length) fd.append('removeImageIds', JSON.stringify(removeImageIds));
+        if (primaryImageId) fd.append('newPrimaryImageId', primaryImageId);
+        await productsApi.update(modal.id, fd);
+      }
+      setModal({ open: false, mode: 'create', id: null });
+      load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      await productsApi.remove(confirmDelete);
+      setConfirmDelete(null);
+      load();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleStatusToggle(item) {
+    const next = item.status === 'LIVE' ? 'HIDDEN' : 'LIVE';
+    await productsApi.setStatus(item.id, next);
+    load();
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Menu Management</p>
+          <h1 className="font-display text-3xl font-semibold text-cocoa">Products</h1>
+        </div>
+        <button
+          type="button"
+          onClick={openCreate}
+          className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
+        >
+          <Plus className="h-4 w-4" /> New Product
+        </button>
+      </div>
+
+      {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
+
+      <SearchInput value={search} onChange={setSearch} placeholder="Search products…" />
+
+      <DataTable
+        loading={loading}
+        items={items}
+        columns={[
+          { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.name} /> },
+          { key: 'name', label: 'Name' },
+          { key: 'category', label: 'Category', render: (i) => i.category?.name || '—' },
+          { key: 'featured', label: 'Featured', render: (i) => (i.featured ? 'Yes' : 'No') },
+          { key: 'available', label: 'Available', render: (i) => (i.available ? 'Yes' : 'No') },
+          { key: 'status', label: 'Status', render: (i) => <StatusBadge status={i.status} /> },
+        ]}
+        renderActions={(item) => (
+          <>
+            <button
+              type="button"
+              onClick={() => handleStatusToggle(item)}
+              className="rounded-full border border-blush px-3 py-1 text-xs font-semibold text-cocoa hover:bg-blush-soft"
+            >
+              {item.status === 'LIVE' ? 'Hide' : 'Publish'}
+            </button>
+            <button type="button" onClick={() => openEdit(item)} className="rounded-full border border-blush p-1.5 text-cocoa hover:bg-blush-soft">
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(item.id)}
+              className="rounded-full border border-red-200 p-1.5 text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </>
+        )}
+      />
+
+      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+
+      <Modal open={modal.open} title={modal.mode === 'create' ? 'New Product' : 'Edit Product'} onClose={() => setModal({ ...modal, open: false })} wide>
+        <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+          <TextField label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <TextField label="Slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+          <SelectField
+            label="Category"
+            value={form.categoryId}
+            onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+          >
+            <option value="">Uncategorised</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </SelectField>
+          <TextField
+            label="Sort Order"
+            type="number"
+            value={form.sortOrder}
+            onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+          />
+          <TextAreaField
+            label="Description"
+            required
+            containerClassName="md:col-span-2"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+
+          <div className="md:col-span-2">
+            <span className="mb-1.5 block text-sm font-semibold text-cocoa">
+              Weights / Sizes &amp; Prices <span className="text-rose-deep">*</span>
+            </span>
+            <div className="space-y-2">
+              {weightRows.map((row, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    className="w-full rounded-2xl border border-blush p-2.5 text-sm"
+                    placeholder="e.g. 500g"
+                    value={row.weight}
+                    onChange={(e) => updateWeightRow(index, 'weight', e.target.value)}
+                  />
+                  <input
+                    className="w-32 rounded-2xl border border-blush p-2.5 text-sm"
+                    type="number"
+                    placeholder="Price"
+                    value={row.price}
+                    onChange={(e) => updateWeightRow(index, 'price', e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeWeightRow(index)}
+                    className="rounded-full border border-red-200 px-3 text-red-600 hover:bg-red-50"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={addWeightRow} className="mt-2 text-sm font-semibold text-rose-deep hover:underline">
+              + Add another size
+            </button>
+          </div>
+
+          <TextField
+            label="Flavours (comma separated)"
+            containerClassName="md:col-span-2"
+            value={flavoursInput}
+            onChange={(e) => setFlavoursInput(e.target.value)}
+          />
+
+          <div className="md:col-span-2">
+            <span className="mb-1.5 block text-sm font-semibold text-cocoa">
+              Product Images <span className="text-rose-deep">*</span>
+            </span>
+            <div className="flex flex-wrap gap-3">
+              {existingImages.map((img) => {
+                const marked = removeImageIds.includes(img.id);
+                return (
+                  <div key={img.id} className={`relative h-20 w-20 rounded-xl border ${marked ? 'opacity-30' : 'border-blush'}`}>
+                    <img src={img.url} alt="" className="h-full w-full rounded-xl object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setPrimaryImageId(img.id)}
+                      className={`absolute -top-2 -left-2 rounded-full p-1 ${
+                        primaryImageId === img.id ? 'bg-gold text-cocoa' : 'bg-white text-cocoa-soft'
+                      }`}
+                      title="Set as primary"
+                    >
+                      <Star className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleRemoveExisting(img.id)}
+                      className="absolute -top-2 -right-2 rounded-full bg-white p-1 text-red-600"
+                      title={marked ? 'Undo remove' : 'Remove'}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+              {newFiles.map((file, index) => (
+                <div key={index} className="relative h-20 w-20 rounded-xl border border-blush">
+                  <img src={URL.createObjectURL(file)} alt="" className="h-full w-full rounded-xl object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeNewFile(index)}
+                    className="absolute -top-2 -right-2 rounded-full bg-white p-1 text-red-600"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+              <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-xl border border-dashed border-blush text-xs text-cocoa-soft">
+                + Add
+                <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleNewFiles} className="hidden" />
+              </label>
+            </div>
+            <p className="mt-1 text-xs text-cocoa-soft/70">Recommended: 1200x1200 · JPG, PNG, or WEBP</p>
+          </div>
+
+          <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            <option value="LIVE">Live</option>
+            <option value="DRAFT">Draft</option>
+            <option value="HIDDEN">Hidden</option>
+          </SelectField>
+          <div className="flex items-end gap-6">
+            <CheckboxField label="Featured" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
+            <CheckboxField label="Available" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} />
+          </div>
+
+          <button type="submit" disabled={saving} className="rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60 md:col-span-2">
+            {saving ? 'Saving…' : 'Save Product'}
+          </button>
+        </form>
+      </Modal>
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        title="Delete Product"
+        message="This will permanently delete this product and its images."
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
+    </div>
+  );
+}
