@@ -1,0 +1,22 @@
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Image unavailable">
+  <defs>
+    <linearGradient id="fbBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCE9EE" />
+      <stop offset="100%" stop-color="#F5E5D6" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#fbBg)" />
+  <rect x="24" y="24" width="752" height="752" rx="32" fill="none" stroke="#C6567A" stroke-opacity="0.25" stroke-width="3" stroke-dasharray="14 12" />
+
+  <!-- cupcake icon -->
+  <g transform="translate(400 380)">
+    <path d="M-110 -10 L110 -10 L86 130 Q80 158 50 158 L-50 158 Q-80 158 -86 130 Z" fill="#C6567A" opacity="0.85" />
+    <path d="M-110 -10 L110 -10 L102 30 L-102 30 Z" fill="#A83E60" opacity="0.9" />
+    <path d="M-96 -14 Q-70 -80 -30 -46 Q-6 -96 22 -50 Q60 -84 84 -20 Q40 -50 0 -18 Q-40 -54 -96 -14 Z" fill="#FFFCF7" />
+    <circle cx="-6" cy="-70" r="12" fill="#C79A3E" />
+  </g>
+
+  <text x="400" y="620" text-anchor="middle" font-family="'Nunito Sans', Arial, sans-serif" font-size="28" fill="#6E4436" opacity="0.7">
+    Image unavailable
+  </text>
+</svg>

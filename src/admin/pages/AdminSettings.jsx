@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getSettings, updateSettings } from '../services/adminApi';
 import ImageUploader from '../components/ImageUploader';
 import { TextField, TextAreaField } from '../components/FormField';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 
 const EMPTY_FORM = {
   siteName: '',
@@ -114,7 +115,7 @@ export default function AdminSettings() {
           disabled={saving}
           className="rounded-2xl bg-cocoa py-3 font-semibold text-white disabled:opacity-60 md:col-span-2"
         >
-          {saving ? 'Saving…' : 'Save Settings'}
+          {saving ? <ButtonLoader /> : 'Save Settings'}
         </button>
       </form>
     </div>

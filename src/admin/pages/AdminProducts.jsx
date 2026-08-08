@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Star, Cake } from 'lucide-react';
 import { productsApi, categoriesApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import Thumbnail from '../components/Thumbnail';
@@ -8,7 +8,25 @@ import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
+import EmptyState from '../components/EmptyState';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, TextAreaField, SelectField, CheckboxField } from '../components/FormField';
+import imageFallback from '../../assets/image-fallback.svg';
+import ThemedSelect from '../../components/ThemedSelect';
+
+const EMPTY_FILTERS = { categoryId: '', status: '', featured: '', available: '', minPrice: '', maxPrice: '', sort: '' };
+
+function ExistingImageThumb({ url }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <img
+      src={failed ? imageFallback : url}
+      alt=""
+      className="h-full w-full rounded-xl object-cover"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 const EMPTY_FORM = {
   name: '',
@@ -41,12 +59,24 @@ export default function AdminProducts() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
 
   async function load() {
     setLoading(true);
     try {
-      const data = await productsApi.list({ page, pageSize, search });
+      const data = await productsApi.list({
+        page,
+        pageSize,
+        search,
+        categoryId: filters.categoryId || undefined,
+        status: filters.status || undefined,
+        featured: filters.featured || undefined,
+        available: filters.available || undefined,
+        minPrice: filters.minPrice || undefined,
+        maxPrice: filters.maxPrice || undefined,
+        sort: filters.sort || undefined,
+      });
       setItems(data.items);
       setTotal(data.total);
     } catch (err) {
@@ -59,7 +89,17 @@ export default function AdminProducts() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+  }, [page, pageSize, search, filters]);
+
+  function handlePageSizeChange(size) {
+    setPageSize(size);
+    setPage(1);
+  }
+
+  function updateFilter(key, value) {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
+  }
 
   useEffect(() => {
     categoriesApi.list({ page: 1, pageSize: 100 }).then((data) => setCategories(data.items)).catch(() => {});
@@ -77,6 +117,7 @@ export default function AdminProducts() {
     setWeightRows([{ weight: '', price: '' }]);
     setFlavoursInput('');
     resetImageState();
+    setError('');
     setModal({ open: true, mode: 'create', id: null });
   }
 
@@ -99,6 +140,7 @@ export default function AdminProducts() {
     setRemoveImageIds([]);
     setPrimaryImageId(item.images?.find((img) => img.isPrimary)?.id || null);
     setNewFiles([]);
+    setError('');
     setModal({ open: true, mode: 'edit', id: item.id });
   }
 
@@ -222,9 +264,99 @@ export default function AdminProducts() {
 
       <SearchInput value={search} onChange={setSearch} placeholder="Search products…" />
 
+      <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-blush/60 bg-white p-4">
+        <ThemedSelect
+          className="w-40"
+          value={filters.categoryId}
+          onChange={(v) => updateFilter('categoryId', v)}
+          options={[{ value: '', label: 'All Categories' }, ...categories.map((c) => ({ value: String(c.id), label: c.name }))]}
+        />
+        <ThemedSelect
+          className="w-36"
+          value={filters.status}
+          onChange={(v) => updateFilter('status', v)}
+          options={[
+            { value: '', label: 'All Statuses' },
+            { value: 'LIVE', label: 'Live' },
+            { value: 'DRAFT', label: 'Draft' },
+            { value: 'HIDDEN', label: 'Hidden' },
+          ]}
+        />
+        <ThemedSelect
+          className="w-40"
+          value={filters.featured}
+          onChange={(v) => updateFilter('featured', v)}
+          options={[
+            { value: '', label: 'Featured: Any' },
+            { value: 'true', label: 'Featured' },
+            { value: 'false', label: 'Not Featured' },
+          ]}
+        />
+        <ThemedSelect
+          className="w-44"
+          value={filters.available}
+          onChange={(v) => updateFilter('available', v)}
+          options={[
+            { value: '', label: 'Availability: Any' },
+            { value: 'true', label: 'Available' },
+            { value: 'false', label: 'Unavailable' },
+          ]}
+        />
+        <div className="flex items-center gap-1.5">
+          <input
+            type="number"
+            min="0"
+            value={filters.minPrice}
+            onChange={(e) => updateFilter('minPrice', e.target.value)}
+            placeholder="Min ₹"
+            className="w-20 rounded-2xl border border-blush px-3 py-2 text-xs text-cocoa"
+          />
+          <span className="text-xs text-cocoa-soft/60">–</span>
+          <input
+            type="number"
+            min="0"
+            value={filters.maxPrice}
+            onChange={(e) => updateFilter('maxPrice', e.target.value)}
+            placeholder="Max ₹"
+            className="w-20 rounded-2xl border border-blush px-3 py-2 text-xs text-cocoa"
+          />
+        </div>
+        <ThemedSelect
+          className="w-40"
+          value={filters.sort}
+          onChange={(v) => updateFilter('sort', v)}
+          options={[
+            { value: '', label: 'Sort: Default' },
+            { value: 'newest', label: 'Newest First' },
+            { value: 'oldest', label: 'Oldest First' },
+          ]}
+        />
+        {(filters.categoryId || filters.status || filters.featured || filters.available || filters.minPrice || filters.maxPrice || filters.sort) && (
+          <button
+            type="button"
+            onClick={() => {
+              setFilters(EMPTY_FILTERS);
+              setPage(1);
+            }}
+            className="text-xs font-semibold text-rose-deep hover:underline"
+          >
+            Clear Filters
+          </button>
+        )}
+      </div>
+
       <DataTable
         loading={loading}
         items={items}
+        renderEmpty={
+          <EmptyState
+            icon={Cake}
+            title="No products yet"
+            message="Add your first product to start building the menu."
+            actionLabel="New Product"
+            onAction={openCreate}
+          />
+        }
         columns={[
           { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.name} /> },
           { key: 'name', label: 'Name' },
@@ -256,10 +388,11 @@ export default function AdminProducts() {
         )}
       />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Product' : 'Edit Product'} onClose={() => setModal({ ...modal, open: false })} wide>
         <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+          {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa md:col-span-2">{error}</p>}
           <TextField label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <TextField label="Slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
           <SelectField
@@ -339,7 +472,7 @@ export default function AdminProducts() {
                 const marked = removeImageIds.includes(img.id);
                 return (
                   <div key={img.id} className={`relative h-20 w-20 rounded-xl border ${marked ? 'opacity-30' : 'border-blush'}`}>
-                    <img src={img.url} alt="" className="h-full w-full rounded-xl object-cover" />
+                    <ExistingImageThumb url={img.url} />
                     <button
                       type="button"
                       onClick={() => setPrimaryImageId(img.id)}
@@ -378,7 +511,8 @@ export default function AdminProducts() {
                 <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleNewFiles} className="hidden" />
               </label>
             </div>
-            <p className="mt-1 text-xs text-cocoa-soft/70">Recommended: 1200x1200 · JPG, PNG, or WEBP</p>
+            <p className="mt-1 text-xs text-cocoa-soft/70">Recommended Size: 800 × 800 px</p>
+            <p className="text-xs text-cocoa-soft/70">Formats: JPG, PNG, WEBP · Max Size: 5 MB</p>
           </div>
 
           <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
@@ -392,7 +526,7 @@ export default function AdminProducts() {
           </div>
 
           <button type="submit" disabled={saving} className="rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60 md:col-span-2">
-            {saving ? 'Saving…' : 'Save Product'}
+            {saving ? <ButtonLoader /> : 'Save Product'}
           </button>
         </form>
       </Modal>

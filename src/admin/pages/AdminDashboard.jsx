@@ -43,15 +43,18 @@ import {
   Truck,
   Store,
   AlertTriangle,
+  Globe,
 } from 'lucide-react';
 import { getDashboard, productsApi, messagesApi } from '../services/adminApi';
 import { useToast } from '../components/ToastProvider';
 import KpiCard from '../components/KpiCard';
+import StatCard from '../components/StatCard';
 import AnimatedNumber from '../components/AnimatedNumber';
-import SkeletonBlock from '../components/SkeletonBlock';
+import Skeleton from '../../components/loading/Skeleton';
 import ActivityTimeline from '../components/ActivityTimeline';
 import StatusBadge from '../components/StatusBadge';
 import Thumbnail from '../components/Thumbnail';
+import EmptyState from '../components/EmptyState';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -164,19 +167,47 @@ export default function AdminDashboard() {
   if (!stats) {
     return (
       <div className="space-y-6">
-        <SkeletonBlock className="h-36" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonBlock key={i} className="h-36" />
+        <Skeleton theme="admin" className="h-44" />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton theme="admin" key={i} className="h-24" />
           ))}
         </div>
-        <SkeletonBlock className="h-80" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton theme="admin" key={i} className="h-36" />
+          ))}
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Skeleton theme="admin" className="h-80 lg:col-span-2" />
+          <Skeleton theme="admin" className="h-80" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Skeleton theme="admin" className="h-80" />
+          <Skeleton theme="admin" className="h-80" />
+        </div>
       </div>
     );
   }
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
+      {/* Title */}
+      <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Overview</p>
+          <h1 className="font-display text-3xl font-semibold text-admin-text">Dashboard</h1>
+        </div>
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-xl border border-admin-border bg-admin-card px-4 py-2.5 text-sm font-semibold text-admin-text transition-colors hover:bg-admin-bg"
+        >
+          <Globe className="h-4 w-4 text-admin-primary" /> View Website
+        </a>
+      </motion.div>
+
       {/* Hero: Today's Snapshot */}
       <motion.div
         variants={itemVariants}
@@ -234,19 +265,19 @@ export default function AdminDashboard() {
       <motion.div variants={itemVariants}>
         <h2 className="mb-3 font-display text-lg font-semibold text-admin-text">Order Overview</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <CompactStat icon={ClipboardList} label="Total Orders" value={stats.orders.total} />
-          <CompactStat icon={Clock} label="Pending" value={stats.orders.pending} />
-          <CompactStat icon={ChefHat} label="Preparing" value={stats.orders.preparing} />
-          <CompactStat icon={PackageCheck} label="Ready" value={stats.orders.ready} />
-          <CompactStat icon={CheckCircle2} label="Delivered" value={stats.orders.delivered} />
-          <CompactStat icon={XCircle} label="Cancelled" value={stats.orders.cancelled} />
-          <CompactStat icon={IndianRupee} label="Today's Revenue" value={stats.orders.todayRevenue} format={currency} />
-          <CompactStat icon={IndianRupee} label="Monthly Revenue" value={stats.orders.monthlyRevenue} format={currency} />
+          <StatCard icon={ClipboardList} label="Total Orders" value={stats.orders.total} />
+          <StatCard icon={Clock} label="Pending" value={stats.orders.pending} />
+          <StatCard icon={ChefHat} label="Preparing" value={stats.orders.preparing} />
+          <StatCard icon={PackageCheck} label="Ready" value={stats.orders.ready} />
+          <StatCard icon={CheckCircle2} label="Delivered" value={stats.orders.delivered} />
+          <StatCard icon={XCircle} label="Cancelled" value={stats.orders.cancelled} />
+          <StatCard icon={IndianRupee} label="Today's Revenue" value={stats.orders.todayRevenue} format={currency} />
+          <StatCard icon={IndianRupee} label="Monthly Revenue" value={stats.orders.monthlyRevenue} format={currency} />
         </div>
       </motion.div>
 
       {/* Order reminders */}
-      <motion.div variants={itemVariants} className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm">
+      <motion.div variants={itemVariants} className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
         <div className="flex items-center gap-2">
           <CalendarClock className="h-5 w-5 text-admin-primary" />
           <h2 className="font-display text-lg font-semibold text-admin-text">Order Reminders</h2>
@@ -289,7 +320,7 @@ export default function AdminDashboard() {
 
       {/* Large area chart + summary */}
       <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm lg:col-span-2">
+        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md lg:col-span-2">
           <h2 className="font-display text-lg font-semibold text-admin-text">Visitor Traffic — Last 30 Days</h2>
           <div className="mt-4 h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -310,14 +341,25 @@ export default function AdminDashboard() {
                   tickLine={false}
                 />
                 <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1' }} />
-                <Area type="monotone" dataKey="count" name="Visitors" stroke="#D94C7B" strokeWidth={2.5} fill="url(#visitorsFill)" />
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
+                  cursor={{ stroke: '#D94C7B', strokeWidth: 1, strokeDasharray: '4 4' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="count"
+                  name="Visitors"
+                  stroke="#D94C7B"
+                  strokeWidth={2.5}
+                  fill="url(#visitorsFill)"
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm">
+        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
           <h2 className="font-display text-lg font-semibold text-admin-text">Visitor Summary</h2>
           <div className="mt-4 space-y-4">
             {[
@@ -345,7 +387,7 @@ export default function AdminDashboard() {
 
       {/* Engagement trend + Top viewed products */}
       <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm">
+        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
           <h2 className="font-display text-lg font-semibold text-admin-text">Engagement Trend</h2>
           <p className="text-xs text-admin-muted">Order, WhatsApp &amp; call clicks — last 30 days</p>
           <div className="mt-4 h-72">
@@ -361,17 +403,20 @@ export default function AdminDashboard() {
                   tickLine={false}
                 />
                 <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1' }} />
-                <Legend iconType="circle" />
-                <Line type="monotone" dataKey="orderClicks" name="Order Clicks" stroke="#D94C7B" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="whatsappClicks" name="WhatsApp" stroke="#22C55E" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="callClicks" name="Calls" stroke="#3B82F6" strokeWidth={2.5} dot={false} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
+                  cursor={{ stroke: '#D94C7B', strokeWidth: 1, strokeDasharray: '4 4' }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Line type="monotone" dataKey="orderClicks" name="Order Clicks" stroke="#D94C7B" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
+                <Line type="monotone" dataKey="whatsappClicks" name="WhatsApp" stroke="#22C55E" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
+                <Line type="monotone" dataKey="callClicks" name="Calls" stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm">
+        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
           <h2 className="font-display text-lg font-semibold text-admin-text">Top Viewed Products</h2>
           <p className="text-xs text-admin-muted">By product page views</p>
           <div className="mt-4 h-72">
@@ -383,8 +428,11 @@ export default function AdminDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} />
                   <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#2F2F2F' }} width={110} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1' }} />
-                  <Bar dataKey="views" name="Views" fill="#D94C7B" radius={[0, 8, 8, 0]} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
+                    cursor={{ fill: 'rgba(217,76,123,0.06)' }}
+                  />
+                  <Bar dataKey="views" name="Views" fill="#D94C7B" radius={[0, 8, 8, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -394,14 +442,14 @@ export default function AdminDashboard() {
 
       {/* Compact stat row */}
       <motion.div variants={itemVariants} className="grid gap-4 sm:grid-cols-3">
-        <CompactStat icon={Images} label="Gallery Views" value={stats.cards.galleryViews} />
-        <CompactStat icon={Eye} label="Product Views" value={stats.cards.productViews} />
-        <CompactStat icon={Mail} label="Unread Messages" value={unreadMessages} />
+        <StatCard icon={Images} label="Gallery Views" value={stats.cards.galleryViews} />
+        <StatCard icon={Eye} label="Product Views" value={stats.cards.productViews} />
+        <StatCard icon={Mail} label="Unread Messages" value={unreadMessages} />
       </motion.div>
 
       {/* Popular products + Quick actions */}
       <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm lg:col-span-2">
+        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md lg:col-span-2">
           <h2 className="font-display text-lg font-semibold text-admin-text">Popular Products</h2>
           {stats.topProducts.length === 0 ? (
             <EmptyState message="No product views recorded yet." />
@@ -410,7 +458,7 @@ export default function AdminDashboard() {
               {stats.topProducts.map((p, index) => {
                 const product = productMap[p.productId];
                 return (
-                  <div key={p.productId} className="flex items-center gap-3 rounded-2xl border border-admin-border p-3">
+                  <div key={p.productId} className="flex items-center gap-3 rounded-2xl border border-admin-border p-3 transition-colors duration-200 hover:bg-admin-bg/60">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-primary/10 text-xs font-bold text-admin-primary">
                       {index + 1}
                     </span>
@@ -431,7 +479,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm">
+        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
           <h2 className="font-display text-lg font-semibold text-admin-text">Quick Actions</h2>
           <div className="mt-4 grid grid-cols-2 gap-3">
             {QUICK_ACTIONS.map((action) => (
@@ -449,7 +497,7 @@ export default function AdminDashboard() {
       </motion.div>
 
       {/* Recent activity */}
-      <motion.div variants={itemVariants} className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm">
+      <motion.div variants={itemVariants} className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
         <h2 className="font-display text-lg font-semibold text-admin-text">Recent Activity</h2>
         <div className="mt-4">
           <ActivityTimeline items={stats.recentActivity} />
@@ -470,26 +518,10 @@ function TrendBadgeLight({ trend }) {
   );
 }
 
-function CompactStat({ icon: Icon, label, value, format }) {
-  return (
-    <div className="flex items-center gap-4 rounded-admin border border-admin-border bg-admin-card p-5 shadow-sm">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-admin-primary/10 text-admin-primary">
-        <Icon className="h-5 w-5" />
-      </span>
-      <div>
-        <p className="text-sm text-admin-muted">{label}</p>
-        <p className="text-2xl font-semibold text-admin-text">
-          <AnimatedNumber value={value} format={format} />
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function ReminderRow({ reminder }) {
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 transition-colors duration-200 hover:bg-admin-bg/60 ${
         reminder.urgent ? 'border-admin-danger/40 bg-admin-danger/5' : 'border-admin-border'
       }`}
     >
@@ -536,15 +568,6 @@ function ReminderRow({ reminder }) {
           View
         </Link>
       </div>
-    </div>
-  );
-}
-
-function EmptyState({ message }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-admin-muted">
-      <Sparkles className="h-8 w-8 opacity-40" />
-      <p className="text-sm">{message}</p>
     </div>
   );
 }

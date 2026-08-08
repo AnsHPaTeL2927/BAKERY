@@ -1,0 +1,89 @@
+<svg width="900" height="700" viewBox="0 0 900 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Custom decorated celebration cake">
+  <defs>
+    <linearGradient id="ccBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A2A20" />
+      <stop offset="100%" stop-color="#6E4436" />
+    </linearGradient>
+    <linearGradient id="ccPlate" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFCF7" />
+      <stop offset="100%" stop-color="#F5E5D6" />
+    </linearGradient>
+    <linearGradient id="ccTier1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#FDF3F6" />
+    </linearGradient>
+    <linearGradient id="ccTier2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#C6567A" />
+      <stop offset="100%" stop-color="#A83E60" />
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="700" fill="url(#ccBg)" />
+
+  <!-- gold sparkles scattered around -->
+  <g fill="#C79A3E" opacity="0.7">
+    <path d="M120 140 l7 17 17 7 -17 7 -7 17 -7 -17 -17 -7 17 -7 z" />
+    <path d="M760 180 l9 22 22 9 -22 9 -9 22 -9 -22 -22 -9 22 -9 z" />
+    <path d="M110 520 l6 15 15 6 -15 6 -6 15 -6 -15 -15 -6 15 -6 z" />
+    <path d="M780 500 l8 19 19 8 -19 8 -8 19 -8 -19 -19 -8 19 -8 z" />
+  </g>
+  <circle cx="200" cy="330" r="5" fill="#F7D6DF" opacity="0.5" />
+  <circle cx="700" cy="300" r="6" fill="#F7D6DF" opacity="0.5" />
+  <circle cx="670" cy="560" r="4" fill="#F7D6DF" opacity="0.5" />
+
+  <!-- plate -->
+  <ellipse cx="450" cy="590" rx="260" ry="26" fill="url(#ccPlate)" />
+  <ellipse cx="450" cy="583" rx="260" ry="22" fill="#FFFCF7" />
+  <ellipse cx="450" cy="588" rx="185" ry="14" fill="#4A2A20" opacity="0.15" />
+
+  <!-- bottom tier -->
+  <rect x="300" y="430" width="300" height="150" rx="16" fill="url(#ccTier2)" />
+  <!-- piped shell border -->
+  <g fill="#FFFCF7">
+    <circle cx="310" cy="440" r="9" /><circle cx="336" cy="440" r="9" /><circle cx="362" cy="440" r="9" />
+    <circle cx="388" cy="440" r="9" /><circle cx="414" cy="440" r="9" /><circle cx="440" cy="440" r="9" />
+    <circle cx="466" cy="440" r="9" /><circle cx="492" cy="440" r="9" /><circle cx="518" cy="440" r="9" />
+    <circle cx="544" cy="440" r="9" /><circle cx="570" cy="440" r="9" /><circle cx="590" cy="440" r="9" />
+  </g>
+  <!-- ribbon -->
+  <rect x="300" y="495" width="300" height="26" fill="#C79A3E" opacity="0.9" />
+
+  <!-- top tier -->
+  <rect x="355" y="300" width="190" height="140" rx="14" fill="url(#ccTier1)" />
+  <g fill="#F7D6DF">
+    <circle cx="365" cy="308" r="7" /><circle cx="387" cy="308" r="7" /><circle cx="409" cy="308" r="7" />
+    <circle cx="431" cy="308" r="7" /><circle cx="453" cy="308" r="7" /><circle cx="475" cy="308" r="7" />
+    <circle cx="497" cy="308" r="7" /><circle cx="519" cy="308" r="7" /><circle cx="535" cy="308" r="7" />
+  </g>
+
+  <!-- decorative floral piping on top tier -->
+  <g transform="translate(450 375)">
+    <circle r="20" fill="#C6567A" />
+    <circle cx="-26" cy="4" r="13" fill="#C6567A" opacity="0.85" />
+    <circle cx="26" cy="4" r="13" fill="#C6567A" opacity="0.85" />
+    <circle cx="-14" cy="-22" r="13" fill="#F7D6DF" />
+    <circle cx="14" cy="-22" r="13" fill="#F7D6DF" />
+    <circle r="7" fill="#C79A3E" />
+  </g>
+  <g transform="translate(390 400)" opacity="0.9">
+    <circle r="7" fill="#C79A3E" />
+  </g>
+  <g transform="translate(510 400)" opacity="0.9">
+    <circle r="7" fill="#C79A3E" />
+  </g>
+
+  <!-- "Made for You" flag topper -->
+  <line x1="450" y1="300" x2="450" y2="238" stroke="#4A2A20" stroke-width="4" stroke-linecap="round" />
+  <path d="M450 238 L520 258 L450 278 Z" fill="#C79A3E" />
+
+  <!-- paintbrush icon representing customization, tucked beside the cake -->
+  <g transform="translate(640 470) rotate(24)">
+    <rect x="-8" y="-70" width="16" height="60" rx="6" fill="#4A2A20" />
+    <rect x="-10" y="-84" width="20" height="18" rx="4" fill="#C6C6C6" />
+    <path d="M-10 -84 q10 -22 20 0 q-10 -8 -20 0 z" fill="#A83E60" />
+  </g>
+
+  <text x="450" y="650" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-size="30" fill="#FFFCF7" opacity="0.92">
+    Custom Cakes for Every Occasion
+  </text>
+</svg>

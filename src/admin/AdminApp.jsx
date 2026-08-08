@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './pages/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminVerify from './pages/AdminVerify';
+import AdminForgotPassword from './pages/AdminForgotPassword';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminOrders from './pages/AdminOrders';
 import AdminCategories from './pages/AdminCategories';
@@ -34,6 +35,7 @@ export default function AdminApp() {
           <Route path="/" element={<AdminLogin />} />
           <Route path="/login" element={<AdminLogin />} />
           <Route path="/verify" element={<AdminVerify />} />
+          <Route path="/forgot-password" element={<AdminForgotPassword />} />
           <Route path="/dashboard" element={protectedPage(AdminDashboard)} />
           <Route path="/orders" element={protectedPage(AdminOrders)} />
           <Route path="/categories" element={protectedPage(AdminCategories)} />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getPublicContent, trackEvent } from "../services/api";
+import SafeImage from "./SafeImage";
 
 export default function ProductCard({ product }) {
   const [settings, setSettings] = useState({});
@@ -21,7 +22,7 @@ export default function ProductCard({ product }) {
   return (
     <div className="bg-ivory rounded-3xl overflow-hidden shadow-sm border border-blush/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
       <div className="aspect-[4/3] overflow-hidden">
-        <img
+        <SafeImage
           src={product.image}
           alt={product.name}
           loading="lazy"

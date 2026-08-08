@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Images } from 'lucide-react';
 import { galleryApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import Thumbnail from '../components/Thumbnail';
@@ -9,6 +9,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
 import ImageUploader from '../components/ImageUploader';
+import EmptyState from '../components/EmptyState';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, SelectField } from '../components/FormField';
 
 const EMPTY_FORM = { alt: '', category: '', status: 'LIVE' };
@@ -28,7 +30,7 @@ export default function AdminGallery() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const pageSize = 12;
+  const [pageSize, setPageSize] = useState(12);
 
   async function load() {
     setLoading(true);
@@ -46,12 +48,18 @@ export default function AdminGallery() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+  }, [page, pageSize, search]);
+
+  function handlePageSizeChange(size) {
+    setPageSize(size);
+    setPage(1);
+  }
 
   function openCreate() {
     setForm(EMPTY_FORM);
     setImageFile(null);
     setExistingImage(null);
+    setError('');
     setModal({ open: true, mode: 'create', id: null });
   }
 
@@ -59,6 +67,7 @@ export default function AdminGallery() {
     setForm({ alt: item.alt || '', category: item.category || '', status: item.status });
     setImageFile(null);
     setExistingImage(item.image);
+    setError('');
     setModal({ open: true, mode: 'edit', id: item.id });
   }
 
@@ -138,6 +147,15 @@ export default function AdminGallery() {
         items={items}
         draggable={!search}
         onReorder={handleReorder}
+        renderEmpty={
+          <EmptyState
+            icon={Images}
+            title="No gallery images yet"
+            message="Upload photos of your bakes to showcase in the gallery."
+            actionLabel="New Image"
+            onAction={openCreate}
+          />
+        }
         columns={[
           { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.alt} /> },
           { key: 'category', label: 'Category' },
@@ -167,13 +185,14 @@ export default function AdminGallery() {
         )}
       />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Gallery Image' : 'Edit Gallery Image'} onClose={() => setModal({ ...modal, open: false })}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
           <ImageUploader
             label="Image"
-            hint="1200x1200"
+            dimensions="1200 × 1200 px"
             initialUrl={existingImage}
             required={modal.mode === 'create'}
             onChange={setImageFile}
@@ -186,7 +205,7 @@ export default function AdminGallery() {
             <option value="HIDDEN">Hidden</option>
           </SelectField>
           <button type="submit" disabled={saving} className="w-full rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60">
-            {saving ? 'Saving…' : 'Save Image'}
+            {saving ? <ButtonLoader /> : 'Save Image'}
           </button>
         </form>
       </Modal>

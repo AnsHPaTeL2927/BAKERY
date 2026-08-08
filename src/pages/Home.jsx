@@ -5,6 +5,11 @@ import { Star, Sparkles, Heart, Leaf, ChefHat, ShieldCheck, Clock } from "lucide
 import { getPublicContent } from "../services/api";
 import IcingDivider from "../components/IcingDivider";
 import ProductCard from "../components/ProductCard";
+import SafeImage from "../components/SafeImage";
+import Skeleton from "../components/loading/Skeleton";
+import CardSkeleton from "../components/loading/CardSkeleton";
+import heroDefault from "../assets/hero-default.svg";
+import customCakeDefault from "../assets/custom-cake-default.svg";
 
 const icons = [Heart, Leaf, Sparkles, ChefHat, Star, Clock, ShieldCheck];
 
@@ -15,9 +20,12 @@ const fadeUp = {
 
 export default function Home() {
   const [content, setContent] = useState({ settings: {}, categories: [], products: [], gallery: [], offers: [], testimonials: [] });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getPublicContent().then(setContent).catch(() => {});
+    getPublicContent()
+      .then(setContent)
+      .finally(() => setLoading(false));
   }, []);
 
   const settings = content.settings || {};
@@ -26,7 +34,8 @@ export default function Home() {
   const galleryImages = content.gallery || [];
   const festivalOffers = content.offers || [];
   const reviews = content.testimonials || [];
-  const heroImage = content.heroBanners?.[0]?.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=900&q=80";
+  const liveHeroBanners = (content.heroBanners || []).filter((b) => !b.status || b.status === "LIVE");
+  const heroImage = liveHeroBanners[0]?.image || heroDefault;
   const whyChooseUs = [
     { title: "Homemade", detail: "Every order baked in a real home kitchen, not a factory line." },
     { title: "Fresh Ingredients", detail: "Sourced in small batches, never stocked for weeks." },
@@ -92,8 +101,9 @@ export default function Home() {
             className="relative"
           >
             <div className="absolute -inset-4 bg-blush rounded-[3rem] -rotate-3" aria-hidden="true" />
-            <img
+            <SafeImage
               src={heroImage}
+              fallback={heroDefault}
               alt="Premium homemade chocolate truffle cake"
               className="relative rounded-[3rem] shadow-xl w-full aspect-[4/3] object-cover"
             />
@@ -126,7 +136,7 @@ export default function Home() {
               </div>
             </div>
             <div className="h-56 md:h-full">
-              <img src={activeOffer.banner} alt="" className="w-full h-full object-cover opacity-90" />
+              <SafeImage src={activeOffer.banner} alt="" className="w-full h-full object-cover opacity-90" />
             </div>
           </div>
         </section>
@@ -136,18 +146,25 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-8 md:py-14">
         <SectionTitle eyebrow="What We Bake" title="Explore Our Categories" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
-          {categories.map((c) => (
-            <Link
-              key={c.slug || c.id}
-              to={`/menu?category=${c.slug || c.id}`}
-              className="group bg-ivory rounded-2xl border border-blush/60 p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all"
-            >
-              <div className="w-full aspect-square rounded-xl overflow-hidden mb-3">
-                <img src={c.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80'} alt={c.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-              </div>
-              <p className="font-display font-semibold text-cocoa text-sm">{c.name}</p>
-            </Link>
-          ))}
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-2xl border border-blush/60 bg-ivory p-4 text-center">
+                  <Skeleton className="mb-3 aspect-square w-full rounded-xl" />
+                  <Skeleton className="mx-auto h-3 w-2/3" />
+                </div>
+              ))
+            : categories.map((c) => (
+                <Link
+                  key={c.slug || c.id}
+                  to={`/menu?category=${c.slug || c.id}`}
+                  className="group bg-ivory rounded-2xl border border-blush/60 p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all"
+                >
+                  <div className="w-full aspect-square rounded-xl overflow-hidden mb-3">
+                    <SafeImage src={c.image} alt={c.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  </div>
+                  <p className="font-display font-semibold text-cocoa text-sm">{c.name}</p>
+                </Link>
+              ))}
         </div>
       </section>
 
@@ -156,9 +173,9 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-5 md:px-8">
           <SectionTitle eyebrow="Customer Favourites" title="Best Sellers" />
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-            {bestSellers.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
+            {loading
+              ? Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+              : bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
           <div className="text-center mt-10">
             <Link to="/menu" className="font-semibold text-rose-deep hover:underline">
@@ -204,8 +221,9 @@ export default function Home() {
             </Link>
           </div>
           <div className="h-56 md:h-full">
-            <img
-              src="https://images.unsplash.com/photo-1519340333755-c1aa5571fd46?w=900&q=80"
+            <SafeImage
+              src={customCakeDefault}
+              fallback={customCakeDefault}
               alt="Custom tiered celebration cake"
               className="w-full h-full object-cover opacity-90"
             />
@@ -217,11 +235,13 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-5 md:px-8 pb-14 md:pb-20">
         <SectionTitle eyebrow="A Peek Inside" title="Gallery" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
-          {galleryImages.slice(0, 8).map((g) => (
-            <div key={g.id} className="rounded-2xl overflow-hidden aspect-square">
-              <img src={g.image} alt={g.alt || g.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-            </div>
-          ))}
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-2xl" />)
+            : galleryImages.slice(0, 8).map((g) => (
+                <div key={g.id} className="rounded-2xl overflow-hidden aspect-square">
+                  <SafeImage src={g.image} alt={g.alt || g.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
+              ))}
         </div>
         <div className="text-center mt-8">
           <Link to="/gallery" className="font-semibold text-rose-deep hover:underline">
@@ -235,20 +255,34 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-5 md:px-8">
           <SectionTitle eyebrow="Kind Words" title="What Our Customers Say" />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-10">
-            {reviews.filter((r) => r.approved !== false).map((r) => (
-              <div key={r.id} className="bg-ivory rounded-2xl border border-blush/60 p-6">
-                <div className="flex gap-1 text-gold mb-3">
-                  {Array.from({ length: r.rating }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-gold" />
+            {loading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-ivory rounded-2xl border border-blush/60 p-6">
+                    <Skeleton className="mb-3 h-4 w-20" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="mt-2 h-3 w-4/5" />
+                    <div className="flex items-center gap-3 mt-4">
+                      <Skeleton className="h-9 w-9 rounded-full" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                ))
+              : reviews
+                  .filter((r) => r.approved !== false)
+                  .map((r) => (
+                    <div key={r.id} className="bg-ivory rounded-2xl border border-blush/60 p-6">
+                      <div className="flex gap-1 text-gold mb-3">
+                        {Array.from({ length: r.rating }).map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-gold" />
+                        ))}
+                      </div>
+                      <p className="text-sm text-cocoa-soft/85 leading-relaxed">"{r.review}"</p>
+                      <div className="flex items-center gap-3 mt-4">
+                        <SafeImage src={r.photo} alt="" className="w-9 h-9 rounded-full object-cover" />
+                        <p className="font-semibold text-sm text-cocoa">{r.name}</p>
+                      </div>
+                    </div>
                   ))}
-                </div>
-                <p className="text-sm text-cocoa-soft/85 leading-relaxed">"{r.review}"</p>
-                <div className="flex items-center gap-3 mt-4">
-                  <img src={r.photo} alt="" className="w-9 h-9 rounded-full object-cover" />
-                  <p className="font-semibold text-sm text-cocoa">{r.name}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

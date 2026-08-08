@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid } from 'lucide-react';
 import { categoriesApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import Thumbnail from '../components/Thumbnail';
@@ -9,6 +9,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
 import ImageUploader from '../components/ImageUploader';
+import EmptyState from '../components/EmptyState';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, SelectField } from '../components/FormField';
 
 const EMPTY_FORM = { name: '', slug: '', status: 'LIVE' };
@@ -28,7 +30,7 @@ export default function AdminCategories() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   async function load() {
     setLoading(true);
@@ -46,12 +48,18 @@ export default function AdminCategories() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+  }, [page, pageSize, search]);
+
+  function handlePageSizeChange(size) {
+    setPageSize(size);
+    setPage(1);
+  }
 
   function openCreate() {
     setForm(EMPTY_FORM);
     setImageFile(null);
     setExistingImage(null);
+    setError('');
     setModal({ open: true, mode: 'create', id: null });
   }
 
@@ -59,6 +67,7 @@ export default function AdminCategories() {
     setForm({ name: item.name, slug: item.slug, status: item.status });
     setImageFile(null);
     setExistingImage(item.image);
+    setError('');
     setModal({ open: true, mode: 'edit', id: item.id });
   }
 
@@ -138,6 +147,15 @@ export default function AdminCategories() {
         items={items}
         draggable={!search}
         onReorder={handleReorder}
+        renderEmpty={
+          <EmptyState
+            icon={LayoutGrid}
+            title="No categories yet"
+            message="Create a category to start organising your menu."
+            actionLabel="New Category"
+            onAction={openCreate}
+          />
+        }
         columns={[
           { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.name} /> },
           { key: 'name', label: 'Name' },
@@ -167,15 +185,16 @@ export default function AdminCategories() {
         )}
       />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Category' : 'Edit Category'} onClose={() => setModal({ ...modal, open: false })}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
           <TextField label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <TextField label="Slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
           <ImageUploader
             label="Category Image"
-            hint="600x600"
+            dimensions="800 × 800 px"
             initialUrl={existingImage}
             required={modal.mode === 'create'}
             onChange={setImageFile}
@@ -186,7 +205,7 @@ export default function AdminCategories() {
             <option value="HIDDEN">Hidden</option>
           </SelectField>
           <button type="submit" disabled={saving} className="w-full rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60">
-            {saving ? 'Saving…' : 'Save Category'}
+            {saving ? <ButtonLoader /> : 'Save Category'}
           </button>
         </form>
       </Modal>

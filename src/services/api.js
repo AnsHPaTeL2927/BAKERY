@@ -1,5 +1,16 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Validation failures come back as { message: 'Validation failed', details: { field: [msg, ...] } }
+// (see server/middleware/validate.js) — the generic top-level message is useless on its own,
+// so surface the actual field-level reasons whenever they're present.
+function formatErrorMessage(data) {
+  if (data && data.details && typeof data.details === 'object') {
+    const messages = Object.values(data.details).flat().filter(Boolean);
+    if (messages.length) return messages.join(' ');
+  }
+  return (data && data.message) || 'Request failed';
+}
+
 async function request(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (!(options.body instanceof FormData) && options.body) {
@@ -14,7 +25,10 @@ async function request(path, options = {}) {
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.message || 'Request failed');
+    const error = new Error(formatErrorMessage(data));
+    error.status = response.status;
+    error.details = data.details;
+    throw error;
   }
   return data;
 }
@@ -34,6 +48,14 @@ export async function getPublicContent() {
     return { settings, categories, products, gallery, offers, testimonials, heroBanners };
   } catch {
     return { settings: {}, categories: [], products: [], gallery: [], offers: [], testimonials: [], heroBanners: [] };
+  }
+}
+
+export async function getGallery() {
+  try {
+    return await request('/gallery');
+  } catch {
+    return [];
   }
 }
 

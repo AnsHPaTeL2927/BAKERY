@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Mail, X, Phone } from 'lucide-react';
+import { Mail, X, Phone, Inbox, Cake, Calendar, Scale } from 'lucide-react';
 import { messagesApi } from '../services/adminApi';
 import { useToast } from '../components/ToastProvider';
 import DataTable from '../components/DataTable';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
+import EmptyState from '../components/EmptyState';
 
 const STATUS_STYLES = {
   NEW: 'bg-admin-primary/10 text-admin-primary',
@@ -20,6 +21,20 @@ function MessageStatusBadge({ status }) {
   );
 }
 
+function SourceBadge({ source }) {
+  const isCustomCake = source === 'CUSTOM_CAKE';
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
+        isCustomCake ? 'bg-rose/10 text-rose-deep' : 'bg-admin-border/50 text-admin-text'
+      }`}
+    >
+      {isCustomCake && <Cake className="h-3 w-3" />}
+      {isCustomCake ? 'Custom Cake' : 'Contact'}
+    </span>
+  );
+}
+
 export default function AdminMessages() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
@@ -31,7 +46,7 @@ export default function AdminMessages() {
   const [selected, setSelected] = useState(null);
   const { showToast } = useToast();
 
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   async function load() {
     setLoading(true);
@@ -49,7 +64,12 @@ export default function AdminMessages() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search, statusFilter]);
+  }, [page, pageSize, search, statusFilter]);
+
+  function handlePageSizeChange(size) {
+    setPageSize(size);
+    setPage(1);
+  }
 
   async function updateStatus(id, status) {
     try {
@@ -96,12 +116,19 @@ export default function AdminMessages() {
       </div>
 
       <DataTable
+        theme="admin"
         loading={loading}
         items={items}
-        emptyLabel="No messages yet."
+        renderEmpty={
+          <EmptyState
+            icon={Inbox}
+            title="No messages yet"
+            message="Enquiries from your contact form and custom cake requests will show up here."
+          />
+        }
         columns={[
+          { key: 'source', label: 'Type', render: (i) => <SourceBadge source={i.source} /> },
           { key: 'name', label: 'Name' },
-          { key: 'email', label: 'Email' },
           { key: 'phone', label: 'Phone', render: (i) => i.phone || '—' },
           { key: 'message', label: 'Message', render: (i) => <span className="line-clamp-1 max-w-xs">{i.message}</span> },
           { key: 'status', label: 'Status', render: (i) => <MessageStatusBadge status={i.status} /> },
@@ -118,14 +145,15 @@ export default function AdminMessages() {
         )}
       />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+      <Pagination theme="admin" page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/30 px-4 py-10">
           <div className="w-full max-w-lg rounded-admin border border-admin-border bg-admin-card p-6 shadow-xl">
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-display text-lg font-semibold text-admin-text">{selected.name}</p>
+                <SourceBadge source={selected.source} />
+                <p className="mt-2 font-display text-lg font-semibold text-admin-text">{selected.name}</p>
                 <p className="text-sm text-admin-muted">{selected.email}</p>
               </div>
               <button
@@ -142,6 +170,35 @@ export default function AdminMessages() {
               <p className="mt-3 flex items-center gap-2 text-sm text-admin-text">
                 <Phone className="h-4 w-4 text-admin-primary" /> {selected.phone}
               </p>
+            )}
+
+            {selected.source === 'CUSTOM_CAKE' && (
+              <div className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-admin-bg p-4 text-sm sm:grid-cols-3">
+                {selected.occasion && (
+                  <div>
+                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
+                      <Cake className="h-3.5 w-3.5" /> Occasion
+                    </p>
+                    <p className="mt-1 font-semibold text-admin-text">{selected.occasion}</p>
+                  </div>
+                )}
+                {selected.cakeWeight && (
+                  <div>
+                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
+                      <Scale className="h-3.5 w-3.5" /> Cake Weight
+                    </p>
+                    <p className="mt-1 font-semibold text-admin-text">{selected.cakeWeight}</p>
+                  </div>
+                )}
+                {selected.deliveryDate && (
+                  <div>
+                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
+                      <Calendar className="h-3.5 w-3.5" /> Delivery Date
+                    </p>
+                    <p className="mt-1 font-semibold text-admin-text">{new Date(selected.deliveryDate).toLocaleDateString()}</p>
+                  </div>
+                )}
+              </div>
             )}
 
             <div className="mt-4 rounded-2xl bg-admin-bg p-4">

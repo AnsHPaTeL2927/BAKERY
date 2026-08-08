@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import ProductCard from "../components/ProductCard";
+import CardSkeleton from "../components/loading/CardSkeleton";
 import { getPublicContent } from "../services/api";
 
 export default function Menu() {
@@ -9,9 +10,12 @@ export default function Menu() {
   const initialCategory = searchParams.get("category") || "all";
   const [active, setActive] = useState(initialCategory);
   const [content, setContent] = useState({ categories: [], products: [] });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getPublicContent().then(setContent).catch(() => {});
+    getPublicContent()
+      .then(setContent)
+      .finally(() => setLoading(false));
   }, []);
 
   const categories = content.categories || [];
@@ -23,7 +27,7 @@ export default function Menu() {
 
   const filtered = useMemo(
     () => (active === "all" ? products : products.filter((p) => p.category === active)),
-    [active]
+    [active, products]
   );
 
   function selectCategory(slug) {
@@ -67,7 +71,13 @@ export default function Menu() {
           ))}
         </div>
 
-        {filtered.length > 0 ? (
+        {loading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </div>
+        ) : filtered.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((p) => (
               <ProductCard key={p.id} product={p} />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, MessageSquareQuote } from 'lucide-react';
 import { testimonialsApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import Thumbnail from '../components/Thumbnail';
@@ -9,6 +9,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
 import ImageUploader from '../components/ImageUploader';
+import EmptyState from '../components/EmptyState';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, TextAreaField, SelectField, CheckboxField } from '../components/FormField';
 
 const EMPTY_FORM = { name: '', review: '', rating: 5, approved: true, featured: false, status: 'LIVE', sortOrder: 0 };
@@ -28,7 +30,7 @@ export default function AdminTestimonials() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   async function load() {
     setLoading(true);
@@ -46,12 +48,18 @@ export default function AdminTestimonials() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+  }, [page, pageSize, search]);
+
+  function handlePageSizeChange(size) {
+    setPageSize(size);
+    setPage(1);
+  }
 
   function openCreate() {
     setForm(EMPTY_FORM);
     setImageFile(null);
     setExistingImage(null);
+    setError('');
     setModal({ open: true, mode: 'create', id: null });
   }
 
@@ -67,6 +75,7 @@ export default function AdminTestimonials() {
     });
     setImageFile(null);
     setExistingImage(item.photo);
+    setError('');
     setModal({ open: true, mode: 'edit', id: item.id });
   }
 
@@ -132,6 +141,15 @@ export default function AdminTestimonials() {
       <DataTable
         loading={loading}
         items={items}
+        renderEmpty={
+          <EmptyState
+            icon={MessageSquareQuote}
+            title="No testimonials yet"
+            message="Add a customer review to build trust on your homepage."
+            actionLabel="New Testimonial"
+            onAction={openCreate}
+          />
+        }
         columns={[
           { key: 'photo', label: 'Photo', render: (i) => <Thumbnail src={i.photo} alt={i.name} /> },
           { key: 'name', label: 'Name' },
@@ -172,7 +190,7 @@ export default function AdminTestimonials() {
         )}
       />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
       <Modal
         open={modal.open}
@@ -180,7 +198,8 @@ export default function AdminTestimonials() {
         onClose={() => setModal({ ...modal, open: false })}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <ImageUploader label="Photo (optional)" hint="1200x1200" initialUrl={existingImage} onChange={setImageFile} />
+          {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
+          <ImageUploader label="Photo (optional)" dimensions="500 × 500 px" initialUrl={existingImage} onChange={setImageFile} />
           <TextField label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <TextAreaField label="Review" required value={form.review} onChange={(e) => setForm({ ...form, review: e.target.value })} />
           <div className="grid grid-cols-2 gap-4">
@@ -206,7 +225,7 @@ export default function AdminTestimonials() {
             <CheckboxField label="Featured" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
           </div>
           <button type="submit" disabled={saving} className="w-full rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60">
-            {saving ? 'Saving…' : 'Save Testimonial'}
+            {saving ? <ButtonLoader /> : 'Save Testimonial'}
           </button>
         </form>
       </Modal>

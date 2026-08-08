@@ -1,20 +1,31 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { CheckCircle2 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
-import { getPublicContent } from "../services/api";
+import ThemedSelect from "../components/ThemedSelect";
+import DatePicker from "../components/DatePicker";
+import { getPublicContent, submitContactMessage } from "../services/api";
+
+const OCCASIONS = ["Birthday", "Anniversary", "Wedding", "Baby Shower", "Corporate Event", "Other"];
+const CAKE_WEIGHTS = ["500g", "1kg", "1.5kg", "2kg+"];
+
+function todayISODate() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 export default function CustomCake() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
   } = useForm();
   const [submitted, setSubmitted] = useState(false);
   const [fileName, setFileName] = useState("");
   const [settings, setSettings] = useState({});
-  const [customCakeOccasions] = useState(["Birthday", "Anniversary", "Wedding", "Baby Shower", "Corporate Event", "Other"]);
 
   useEffect(() => {
     getPublicContent().then((data) => setSettings(data.settings || {})).catch(() => {});
@@ -23,8 +34,6 @@ export default function CustomCake() {
   const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
 
   function onSubmit(data) {
-    // No backend yet — compose the request as a pre-filled WhatsApp message.
-    // Once the API is wired up, this should POST to /api/custom-cake-requests instead.
     const message = [
       "Hi! I'd like to request a custom cake quote:",
       `Name: ${data.name}`,
@@ -39,10 +48,23 @@ export default function CustomCake() {
       .filter(Boolean)
       .join("\n");
 
+    // WhatsApp redirect stays exactly as before, regardless of whether the
+    // save below succeeds — the message request must never be blocked on it.
     window.open(waLink(message), "_blank", "noopener,noreferrer");
     setSubmitted(true);
     reset();
     setFileName("");
+
+    submitContactMessage({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      message: data.message || `Custom cake request — Theme: ${data.theme}`,
+      source: "CUSTOM_CAKE",
+      occasion: data.occasion,
+      cakeWeight: data.weight,
+      deliveryDate: data.deliveryDate,
+    }).catch(() => {});
   }
 
   return (
@@ -83,31 +105,55 @@ export default function CustomCake() {
             />
           </Field>
 
+          <Field label="Email" error={errors.email}>
+            <input
+              type="email"
+              {...register("email", {
+                required: "Please enter your email",
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Enter a valid email" },
+              })}
+              className="input"
+              placeholder="you@example.com"
+            />
+          </Field>
+
           <Field label="Occasion" error={errors.occasion}>
-            <select {...register("occasion", { required: "Please select an occasion" })} className="input">
-              <option value="">Select an occasion</option>
-              {customCakeOccasions.map((o) => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
+            <Controller
+              name="occasion"
+              control={control}
+              rules={{ required: "Please select an occasion" }}
+              render={({ field }) => (
+                <ThemedSelect value={field.value} onChange={field.onChange} options={OCCASIONS} placeholder="Select an occasion" />
+              )}
+            />
           </Field>
 
           <Field label="Delivery Date" error={errors.deliveryDate}>
-            <input
-              type="date"
-              {...register("deliveryDate", { required: "Please choose a delivery date" })}
-              className="input"
+            <Controller
+              name="deliveryDate"
+              control={control}
+              rules={{ required: "Please choose a delivery date" }}
+              render={({ field }) => (
+                <DatePicker
+                  theme="public"
+                  value={field.value}
+                  onChange={field.onChange}
+                  min={todayISODate()}
+                  placeholder="Select delivery date"
+                />
+              )}
             />
           </Field>
 
           <Field label="Cake Weight" error={errors.weight}>
-            <select {...register("weight", { required: "Please select a weight" })} className="input">
-              <option value="">Select weight</option>
-              <option value="500g">500g</option>
-              <option value="1kg">1kg</option>
-              <option value="1.5kg">1.5kg</option>
-              <option value="2kg+">2kg+</option>
-            </select>
+            <Controller
+              name="weight"
+              control={control}
+              rules={{ required: "Please select a weight" }}
+              render={({ field }) => (
+                <ThemedSelect value={field.value} onChange={field.onChange} options={CAKE_WEIGHTS} placeholder="Select weight" />
+              )}
+            />
           </Field>
 
           <Field label="Theme" error={errors.theme}>

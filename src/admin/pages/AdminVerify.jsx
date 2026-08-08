@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 
 export default function AdminVerify() {
   const [otp, setOtp] = useState('');
@@ -63,7 +64,7 @@ export default function AdminVerify() {
             disabled={submitting || otp.length !== 6}
             className="w-full rounded-2xl bg-cocoa px-4 py-3 font-semibold text-white disabled:opacity-60"
           >
-            {submitting ? 'Verifying…' : 'Verify'}
+            {submitting ? <ButtonLoader label="Verifying…" /> : 'Verify'}
           </button>
         </form>
         <div className="mt-4 flex items-center justify-between text-sm">

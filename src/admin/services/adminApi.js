@@ -3,8 +3,22 @@ const ADMIN_BASE_URL = `${API_BASE_URL}/admin`;
 
 let refreshPromise = null;
 
-async function rawRequest(path, options) {
+// Validation failures come back as { message: 'Validation failed', details: { field: [msg, ...] } }
+// (see server/middleware/validate.js) — the generic top-level message is useless on its own,
+// so surface the actual field-level reasons whenever they're present.
+function formatErrorMessage(data) {
+  if (data && data.details && typeof data.details === 'object') {
+    const messages = Object.values(data.details).flat().filter(Boolean);
+    if (messages.length) return messages.join(' ');
+  }
+  return (data && data.message) || 'Request failed';
+}
+
+async function rawRequest(path, options = {}) {
   const headers = { ...(options.headers || {}) };
+  if (options.otpSessionToken) {
+    headers['x-otp-session-token'] = options.otpSessionToken;
+  }
   if (!(options.body instanceof FormData) && options.body) {
     headers['Content-Type'] = 'application/json';
   }
@@ -42,7 +56,7 @@ async function request(path, options = {}) {
   }
 
   if (!response.ok) {
-    const error = new Error(data.message || 'Request failed');
+    const error = new Error(formatErrorMessage(data));
     error.status = response.status;
     error.details = data.details;
     throw error;
@@ -55,9 +69,21 @@ async function request(path, options = {}) {
 export const login = (email, password) =>
   request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
 
-export const verifyOtp = (otp) => request('/auth/verify', { method: 'POST', body: JSON.stringify({ otp }) });
+export const verifyOtp = (otp, otpSessionToken) =>
+  request('/auth/verify', {
+    method: 'POST',
+    body: JSON.stringify({ otp, otpSessionToken }),
+    otpSessionToken,
+  });
 
-export const resendOtp = () => request('/auth/resend-otp', { method: 'POST' });
+export const resendOtp = (otpSessionToken) =>
+  request('/auth/resend-otp', { method: 'POST', body: JSON.stringify({ otpSessionToken }), otpSessionToken });
+
+export const forgotPassword = (email) =>
+  request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+
+export const resetPassword = ({ email, code, newPassword }) =>
+  request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, code, newPassword }) });
 
 export const getMe = () => request('/auth/me');
 
@@ -113,4 +139,6 @@ export const ordersApi = {
   create: (payload) => request('/orders', { method: 'POST', body: JSON.stringify(payload) }),
   update: (id, payload) => request(`/orders/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
   remove: (id) => request(`/orders/${id}`, { method: 'DELETE' }),
+  generateInvoice: (id) => request(`/orders/${id}/invoice`, { method: 'POST' }),
+  getTimeline: (id) => request(`/orders/${id}/timeline`),
 };

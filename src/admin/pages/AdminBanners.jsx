@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
 import { bannersApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import Thumbnail from '../components/Thumbnail';
@@ -9,7 +9,10 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
 import ImageUploader from '../components/ImageUploader';
+import EmptyState from '../components/EmptyState';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, SelectField } from '../components/FormField';
+import heroDefault from '../../assets/hero-default.svg';
 
 const EMPTY_FORM = { title: '', subtitle: '', ctaText: '', ctaLink: '', status: 'LIVE' };
 
@@ -28,7 +31,7 @@ export default function AdminBanners() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   async function load() {
     setLoading(true);
@@ -46,12 +49,18 @@ export default function AdminBanners() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+  }, [page, pageSize, search]);
+
+  function handlePageSizeChange(size) {
+    setPageSize(size);
+    setPage(1);
+  }
 
   function openCreate() {
     setForm(EMPTY_FORM);
     setImageFile(null);
     setExistingImage(null);
+    setError('');
     setModal({ open: true, mode: 'create', id: null });
   }
 
@@ -65,6 +74,7 @@ export default function AdminBanners() {
     });
     setImageFile(null);
     setExistingImage(item.image);
+    setError('');
     setModal({ open: true, mode: 'edit', id: item.id });
   }
 
@@ -139,11 +149,32 @@ export default function AdminBanners() {
 
       {search && <p className="text-xs text-cocoa-soft/70">Clear the search to drag and reorder banners.</p>}
 
+      {!loading && !search && items.length === 0 && (
+        <div className="flex flex-col gap-4 rounded-3xl border border-blush/70 bg-white p-5 sm:flex-row sm:items-center">
+          <img src={heroDefault} alt="Default hero banner preview" className="h-32 w-full rounded-2xl object-cover sm:w-56" />
+          <div>
+            <p className="font-display font-semibold text-cocoa">No custom banner yet</p>
+            <p className="mt-1 text-sm text-cocoa-soft/80">
+              Your homepage is currently showing this built-in default hero image. Upload a banner below to replace it.
+            </p>
+          </div>
+        </div>
+      )}
+
       <DataTable
         loading={loading}
         items={items}
         draggable={!search}
         onReorder={handleReorder}
+        renderEmpty={
+          <EmptyState
+            icon={ImageIcon}
+            title="No hero banners yet"
+            message="Upload a banner image to feature it on your homepage."
+            actionLabel="New Banner"
+            onAction={openCreate}
+          />
+        }
         columns={[
           { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.title} /> },
           { key: 'title', label: 'Title' },
@@ -172,14 +203,15 @@ export default function AdminBanners() {
         )}
       />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Hero Banner' : 'Edit Hero Banner'} onClose={() => setModal({ ...modal, open: false })} wide>
         <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+          {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa md:col-span-2">{error}</p>}
           <div className="md:col-span-2">
             <ImageUploader
               label="Banner Image"
-              hint="1920x800"
+              dimensions="1920 × 800 px"
               initialUrl={existingImage}
               required={modal.mode === 'create'}
               onChange={setImageFile}
@@ -195,7 +227,7 @@ export default function AdminBanners() {
             <option value="HIDDEN">Hidden</option>
           </SelectField>
           <button type="submit" disabled={saving} className="rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60 md:col-span-2">
-            {saving ? 'Saving…' : 'Save Banner'}
+            {saving ? <ButtonLoader /> : 'Save Banner'}
           </button>
         </form>
       </Modal>

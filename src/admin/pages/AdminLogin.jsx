@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { CheckCircle2 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -9,6 +11,8 @@ export default function AdminLogin() {
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAdminAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const resetSuccess = location.state?.resetSuccess;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -32,6 +36,11 @@ export default function AdminLogin() {
         <p className="mt-2 text-sm text-cocoa-soft">
           Enter your admin email and password to receive a one-time verification code.
         </p>
+        {resetSuccess && (
+          <p className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">
+            <CheckCircle2 className="h-4 w-4 shrink-0" /> Password updated. Please log in with your new password.
+          </p>
+        )}
         {error && <p className="mt-4 rounded-xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input
@@ -57,9 +66,14 @@ export default function AdminLogin() {
             disabled={submitting}
             className="w-full rounded-2xl bg-rose px-4 py-3 font-semibold text-white disabled:opacity-60"
           >
-            {submitting ? 'Sending code…' : 'Continue'}
+            {submitting ? <ButtonLoader label="Sending code…" /> : 'Continue'}
           </button>
         </form>
+        <div className="mt-4 text-center text-sm">
+          <Link to="/admin/forgot-password" className="font-semibold text-rose-deep hover:underline">
+            Forgot password?
+          </Link>
+        </div>
       </div>
     </div>
   );

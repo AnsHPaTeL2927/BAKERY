@@ -1,0 +1,92 @@
+<svg width="1920" height="800" viewBox="0 0 1920 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Freshly baked celebration cake">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCE9EE" />
+      <stop offset="55%" stop-color="#F7D6DF" />
+      <stop offset="100%" stop-color="#F5E5D6" />
+    </linearGradient>
+    <linearGradient id="plate" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFCF7" />
+      <stop offset="100%" stop-color="#F5E5D6" />
+    </linearGradient>
+    <linearGradient id="tier1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#FDF3F6" />
+    </linearGradient>
+    <linearGradient id="tier2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F7D6DF" />
+      <stop offset="100%" stop-color="#EFC0CD" />
+    </linearGradient>
+    <linearGradient id="tier3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#C6567A" />
+      <stop offset="100%" stop-color="#A83E60" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="800" fill="url(#bg)" />
+
+  <!-- soft decorative dots -->
+  <circle cx="180" cy="140" r="10" fill="#C79A3E" opacity="0.35" />
+  <circle cx="260" cy="620" r="14" fill="#C6567A" opacity="0.2" />
+  <circle cx="1680" cy="160" r="16" fill="#C6567A" opacity="0.22" />
+  <circle cx="1780" cy="560" r="10" fill="#C79A3E" opacity="0.3" />
+  <circle cx="120" cy="420" r="6" fill="#4A2A20" opacity="0.15" />
+  <circle cx="1820" cy="360" r="6" fill="#4A2A20" opacity="0.15" />
+
+  <!-- sparkles -->
+  <g fill="#C79A3E" opacity="0.55">
+    <path d="M1500 210 l8 20 20 8 -20 8 -8 20 -8 -20 -20 -8 20 -8 z" />
+    <path d="M430 560 l6 15 15 6 -15 6 -6 15 -6 -15 -15 -6 15 -6 z" />
+  </g>
+
+  <!-- plate -->
+  <ellipse cx="960" cy="660" rx="330" ry="34" fill="url(#plate)" stroke="#F2D7E1" stroke-width="2" />
+  <ellipse cx="960" cy="652" rx="330" ry="30" fill="#FFFCF7" />
+
+  <!-- cake shadow -->
+  <ellipse cx="960" cy="656" rx="230" ry="18" fill="#4A2A20" opacity="0.08" />
+
+  <!-- tier 3 (bottom, largest) -->
+  <rect x="770" y="500" width="380" height="150" rx="18" fill="url(#tier3)" />
+  <path d="M770 520 q190 -26 380 0 l0 18 q-190 -22 -380 0 z" fill="#FFFCF7" opacity="0.5" />
+
+  <!-- tier 2 (middle) -->
+  <rect x="820" y="380" width="280" height="130" rx="16" fill="url(#tier2)" />
+  <path d="M820 398 q140 -20 280 0 l0 16 q-140 -18 -280 0 z" fill="#FFFFFF" opacity="0.6" />
+
+  <!-- tier 1 (top) -->
+  <rect x="865" y="270" width="190" height="120" rx="14" fill="url(#tier1)" />
+  <path d="M865 286 q95 -16 190 0 l0 14 q-95 -14 -190 0 z" fill="#F7D6DF" opacity="0.7" />
+
+  <!-- drip icing on top tier -->
+  <path d="M865 270 q10 34 24 6 q10 30 24 4 q10 28 24 6 q10 26 24 4 q10 30 24 6 q10 26 24 4 q10 28 24 -4 l0 -56 z" fill="#FFFFFF" />
+
+  <!-- cherry -->
+  <circle cx="960" cy="248" r="16" fill="#C6567A" />
+  <path d="M960 232 q6 -18 20 -22" stroke="#4A2A20" stroke-width="4" fill="none" stroke-linecap="round" />
+
+  <!-- candles -->
+  <g>
+    <rect x="905" y="230" width="10" height="42" rx="4" fill="#FFFFFF" />
+    <rect x="1005" y="230" width="10" height="42" rx="4" fill="#F7D6DF" />
+    <path d="M910 230 q-6 -14 0 -22 q6 8 0 22 z" fill="#C79A3E" />
+    <path d="M1010 230 q-6 -14 0 -22 q6 8 0 22 z" fill="#C79A3E" />
+  </g>
+
+  <!-- decorative dots on tiers -->
+  <g fill="#FFFFFF" opacity="0.8">
+    <circle cx="850" cy="440" r="6" />
+    <circle cx="900" cy="450" r="6" />
+    <circle cx="950" cy="440" r="6" />
+    <circle cx="1000" cy="450" r="6" />
+    <circle cx="1050" cy="440" r="6" />
+  </g>
+  <g fill="#FFFFFF" opacity="0.6">
+    <circle cx="810" cy="560" r="7" />
+    <circle cx="870" cy="575" r="7" />
+    <circle cx="930" cy="560" r="7" />
+    <circle cx="990" cy="575" r="7" />
+    <circle cx="1050" cy="560" r="7" />
+    <circle cx="1110" cy="575" r="7" />
+  </g>
+</svg>

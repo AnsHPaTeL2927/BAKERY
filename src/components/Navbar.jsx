@@ -15,10 +15,14 @@ const links = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const [siteConfig, setSiteConfig] = useState({ name: 'Cakes by Tulsi' });
+  const [siteName, setSiteName] = useState('Cakes by Tulsi');
 
   useEffect(() => {
-    getPublicContent().then((data) => setSiteConfig(data.settings || {})).catch(() => {});
+    getPublicContent()
+      .then((data) => {
+        if (data.settings?.siteName) setSiteName(data.settings.siteName);
+      })
+      .catch(() => {});
   }, []);
   const [scrolled, setScrolled] = useState(false);
 
@@ -41,7 +45,7 @@ export default function Navbar() {
       <nav className="max-w-6xl mx-auto px-5 md:px-8 flex items-center justify-between h-16 md:h-20">
         <NavLink to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
           <span className="font-script text-3xl md:text-4xl text-rose-deep leading-none">
-            {siteConfig.name}
+            {siteName}
           </span>
         </NavLink>
 

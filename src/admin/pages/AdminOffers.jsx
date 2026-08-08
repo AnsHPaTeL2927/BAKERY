@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Gift } from 'lucide-react';
 import { offersApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import Thumbnail from '../components/Thumbnail';
@@ -9,6 +9,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
 import ImageUploader from '../components/ImageUploader';
+import EmptyState from '../components/EmptyState';
+import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, TextAreaField, SelectField, CheckboxField } from '../components/FormField';
 
 const EMPTY_FORM = {
@@ -39,7 +41,7 @@ export default function AdminOffers() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   async function load() {
     setLoading(true);
@@ -57,12 +59,18 @@ export default function AdminOffers() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+  }, [page, pageSize, search]);
+
+  function handlePageSizeChange(size) {
+    setPageSize(size);
+    setPage(1);
+  }
 
   function openCreate() {
     setForm(EMPTY_FORM);
     setImageFile(null);
     setExistingImage(null);
+    setError('');
     setModal({ open: true, mode: 'create', id: null });
   }
 
@@ -81,6 +89,7 @@ export default function AdminOffers() {
     });
     setImageFile(null);
     setExistingImage(item.banner);
+    setError('');
     setModal({ open: true, mode: 'edit', id: item.id });
   }
 
@@ -146,6 +155,15 @@ export default function AdminOffers() {
       <DataTable
         loading={loading}
         items={items}
+        renderEmpty={
+          <EmptyState
+            icon={Gift}
+            title="No festival offers yet"
+            message="Create a seasonal offer to promote it on the homepage."
+            actionLabel="New Offer"
+            onAction={openCreate}
+          />
+        }
         columns={[
           { key: 'banner', label: 'Banner', render: (i) => <Thumbnail src={i.banner} alt={i.title} /> },
           { key: 'festival', label: 'Festival' },
@@ -176,14 +194,15 @@ export default function AdminOffers() {
         )}
       />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Offer' : 'Edit Offer'} onClose={() => setModal({ ...modal, open: false })} wide>
         <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+          {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa md:col-span-2">{error}</p>}
           <div className="md:col-span-2">
             <ImageUploader
               label="Banner Image"
-              hint="1920x800"
+              dimensions="1200 × 600 px"
               initialUrl={existingImage}
               required={modal.mode === 'create'}
               onChange={setImageFile}
@@ -231,7 +250,7 @@ export default function AdminOffers() {
             onChange={(e) => setForm({ ...form, active: e.target.checked })}
           />
           <button type="submit" disabled={saving} className="rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60 md:col-span-2">
-            {saving ? 'Saving…' : 'Save Offer'}
+            {saving ? <ButtonLoader /> : 'Save Offer'}
           </button>
         </form>
       </Modal>

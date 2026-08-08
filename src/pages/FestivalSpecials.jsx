@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import { getPublicContent } from "../services/api";
+import SafeImage from "../components/SafeImage";
 
 function useCountdown(endDate) {
   const [remaining, setRemaining] = useState(getRemaining());
@@ -64,7 +65,7 @@ function FestivalBlock({ offer, products, whatsapp }) {
   return (
     <div>
       <div className="relative rounded-[2rem] overflow-hidden">
-        <img src={offer.banner} alt={offer.title} className="w-full h-64 md:h-80 object-cover" />
+        <SafeImage src={offer.banner} alt={offer.title} className="w-full h-64 md:h-80 object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-cocoa/80 via-cocoa/20 to-transparent flex items-end">
           <div className="p-6 md:p-10 text-ivory">
             <p className="font-script text-3xl text-blush">{offer.festival}</p>
@@ -99,7 +100,7 @@ function FestivalBlock({ offer, products, whatsapp }) {
       <div className="grid sm:grid-cols-3 gap-4 mt-8">
         {relatedProducts.map((p) => (
           <div key={p.id} className="rounded-2xl overflow-hidden bg-ivory border border-blush/60">
-            <img src={p.image} alt={p.name} className="w-full aspect-[4/3] object-cover" loading="lazy" />
+            <SafeImage src={p.image} alt={p.name} className="w-full aspect-[4/3] object-cover" loading="lazy" />
             <p className="p-3 font-display font-semibold text-sm text-cocoa">{p.name}</p>
           </div>
         ))}

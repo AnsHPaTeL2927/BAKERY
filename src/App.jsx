@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import WhatsAppFloat from "./components/WhatsAppFloat";
+import GlobalLoader from "./components/loading/GlobalLoader";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Menu from "./pages/Menu";
@@ -26,8 +27,16 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const id = setTimeout(() => setInitialLoading(false), 700);
+    return () => clearTimeout(id);
+  }, []);
+
   return (
     <BrowserRouter>
+      <GlobalLoader visible={initialLoading} />
       <ScrollToTop />
       <Routes>
         <Route path="/admin/*" element={<AdminApp />} />

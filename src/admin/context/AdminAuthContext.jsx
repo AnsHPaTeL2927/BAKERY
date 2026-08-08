@@ -6,6 +6,7 @@ const AdminAuthContext = createContext(null);
 export function AdminAuthProvider({ children }) {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [otpSessionToken, setOtpSessionToken] = useState(null);
 
   const refreshSession = useCallback(async () => {
     try {
@@ -22,21 +23,26 @@ export function AdminAuthProvider({ children }) {
     refreshSession().finally(() => setLoading(false));
   }, [refreshSession]);
 
-  const login = useCallback((email, password) => adminApi.login(email, password), []);
-
-  const verifyOtp = useCallback(async (otp) => {
-    const result = await adminApi.verifyOtp(otp);
-    setAdmin(result.admin);
+  const login = useCallback(async (email, password) => {
+    const result = await adminApi.login(email, password);
+    setOtpSessionToken(result.otpSessionToken || null);
     return result;
   }, []);
 
-  const resendOtp = useCallback(() => adminApi.resendOtp(), []);
+  const verifyOtp = useCallback(async (otp) => {
+    const result = await adminApi.verifyOtp(otp, otpSessionToken);
+    setAdmin(result.admin);
+    return result;
+  }, [otpSessionToken]);
+
+  const resendOtp = useCallback(() => adminApi.resendOtp(otpSessionToken), [otpSessionToken]);
 
   const logout = useCallback(async () => {
     try {
       await adminApi.logout();
     } finally {
       setAdmin(null);
+      setOtpSessionToken(null);
     }
   }, []);
 
