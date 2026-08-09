@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Image as ImageIcon, Eye, EyeOff, ChevronUp, ChevronDown } from 'lucide-react';
 import { bannersApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
+import CardListItem from '../components/CardListItem';
 import Thumbnail from '../components/Thumbnail';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -127,6 +128,46 @@ export default function AdminBanners() {
     }
   }
 
+  function moveItem(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= items.length) return;
+    const reordered = [...items];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(target, 0, moved);
+    handleReorder(reordered);
+  }
+
+  function renderBannerCard(item, index) {
+    return (
+      <CardListItem
+        theme="public"
+        image={item.image}
+        icon={ImageIcon}
+        title={item.title || 'Untitled Banner'}
+        subtitle={item.subtitle || '—'}
+        badge={<StatusBadge status={item.status} />}
+        primaryActions={
+          !search
+            ? [
+                { icon: ChevronUp, label: 'Move Up', onClick: () => moveItem(index, -1) },
+                { icon: ChevronDown, label: 'Move Down', onClick: () => moveItem(index, 1) },
+              ]
+            : []
+        }
+        actions={[
+          {
+            icon: item.status === 'LIVE' ? EyeOff : Eye,
+            label: item.status === 'LIVE' ? 'Hide' : 'Publish',
+            onClick: () => handleStatusToggle(item),
+          },
+          { icon: Pencil, label: 'Edit', onClick: () => openEdit(item) },
+          { icon: Trash2, label: 'Delete', onClick: () => setConfirmDelete(item.id), danger: true },
+        ]}
+        onClick={() => openEdit(item)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -166,6 +207,7 @@ export default function AdminBanners() {
         items={items}
         draggable={!search}
         onReorder={handleReorder}
+        renderCard={renderBannerCard}
         renderEmpty={
           <EmptyState
             icon={ImageIcon}

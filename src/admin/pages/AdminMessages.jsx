@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Mail, X, Phone, Inbox, Cake, Calendar, Scale } from 'lucide-react';
+import { Mail, X, Phone, Inbox, Cake, Calendar, Scale, Eye, CheckCheck, Archive } from 'lucide-react';
 import { messagesApi } from '../services/adminApi';
+import { emitMessagesUpdate } from '../utils/messagesBus';
 import { useToast } from '../components/ToastProvider';
 import DataTable from '../components/DataTable';
+import CardListItem from '../components/CardListItem';
+import BottomSheet from '../components/BottomSheet';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
 import EmptyState from '../components/EmptyState';
+import useIsMobile from '../hooks/useIsMobile';
 
 const STATUS_STYLES = {
   NEW: 'bg-admin-primary/10 text-admin-primary',
@@ -36,6 +40,7 @@ function SourceBadge({ source }) {
 }
 
 export default function AdminMessages() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -77,9 +82,33 @@ export default function AdminMessages() {
       showToast(`Message marked as ${status.toLowerCase()}.`, 'success');
       load();
       setSelected((prev) => (prev && prev.id === id ? { ...prev, status } : prev));
+      emitMessagesUpdate();
     } catch (err) {
       showToast(err.message, 'error');
     }
+  }
+
+  function renderMessageCard(item) {
+    return (
+      <CardListItem
+        icon={Mail}
+        title={item.name}
+        subtitle={item.phone || item.message}
+        meta={<span className="text-xs text-admin-muted">{new Date(item.createdAt).toLocaleDateString()}</span>}
+        badge={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <SourceBadge source={item.source} />
+            <MessageStatusBadge status={item.status} />
+          </div>
+        }
+        primaryActions={[{ icon: Eye, label: 'View', onClick: () => setSelected(item) }]}
+        actions={[
+          ...(item.status !== 'READ' ? [{ icon: CheckCheck, label: 'Mark Read', onClick: () => updateStatus(item.id, 'READ') }] : []),
+          ...(item.status !== 'ARCHIVED' ? [{ icon: Archive, label: 'Archive', onClick: () => updateStatus(item.id, 'ARCHIVED') }] : []),
+        ]}
+        onClick={() => setSelected(item)}
+      />
+    );
   }
 
   return (
@@ -119,6 +148,7 @@ export default function AdminMessages() {
         theme="admin"
         loading={loading}
         items={items}
+        renderCard={renderMessageCard}
         renderEmpty={
           <EmptyState
             icon={Inbox}
@@ -147,7 +177,91 @@ export default function AdminMessages() {
 
       <Pagination theme="admin" page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
-      {selected && (
+      {/* Mobile: bottom sheet (reuses the same BottomSheet primitive as Orders/Notifications
+          instead of a fourth one-off overlay). Desktop below is untouched, byte-for-byte —
+          duplicated rather than shared so nothing here can shift desktop spacing. */}
+      {selected && isMobile && (
+        <BottomSheet
+          open
+          onClose={() => setSelected(null)}
+          title={selected.name}
+          footer={
+            <div className="flex flex-wrap gap-2">
+              {selected.status !== 'READ' && (
+                <button
+                  type="button"
+                  onClick={() => updateStatus(selected.id, 'READ')}
+                  className="rounded-xl bg-admin-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-admin-primary-hover"
+                >
+                  Mark as Read
+                </button>
+              )}
+              {selected.status !== 'ARCHIVED' && (
+                <button
+                  type="button"
+                  onClick={() => updateStatus(selected.id, 'ARCHIVED')}
+                  className="rounded-xl border border-admin-border px-4 py-2.5 text-sm font-semibold text-admin-text hover:bg-admin-bg"
+                >
+                  Archive
+                </button>
+              )}
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <SourceBadge source={selected.source} />
+            </div>
+            <p className="text-sm text-admin-muted">{selected.email}</p>
+
+            {selected.phone && (
+              <p className="flex items-center gap-2 text-sm text-admin-text">
+                <Phone className="h-4 w-4 text-admin-primary" /> {selected.phone}
+              </p>
+            )}
+
+            {selected.source === 'CUSTOM_CAKE' && (
+              <div className="grid grid-cols-2 gap-3 rounded-2xl bg-admin-bg p-4 text-sm">
+                {selected.occasion && (
+                  <div>
+                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
+                      <Cake className="h-3.5 w-3.5" /> Occasion
+                    </p>
+                    <p className="mt-1 font-semibold text-admin-text">{selected.occasion}</p>
+                  </div>
+                )}
+                {selected.cakeWeight && (
+                  <div>
+                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
+                      <Scale className="h-3.5 w-3.5" /> Cake Weight
+                    </p>
+                    <p className="mt-1 font-semibold text-admin-text">{selected.cakeWeight}</p>
+                  </div>
+                )}
+                {selected.deliveryDate && (
+                  <div>
+                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
+                      <Calendar className="h-3.5 w-3.5" /> Delivery Date
+                    </p>
+                    <p className="mt-1 font-semibold text-admin-text">{new Date(selected.deliveryDate).toLocaleDateString()}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="rounded-2xl bg-admin-bg p-4">
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-admin-muted">
+                <Mail className="h-3.5 w-3.5" /> Message
+              </p>
+              <p className="mt-2 whitespace-pre-wrap text-sm text-admin-text">{selected.message}</p>
+            </div>
+
+            <p className="text-xs text-admin-muted">Received {new Date(selected.createdAt).toLocaleString()}</p>
+          </div>
+        </BottomSheet>
+      )}
+
+      {selected && !isMobile && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/30 px-4 py-10">
           <div className="w-full max-w-lg rounded-admin border border-admin-border bg-admin-card p-6 shadow-xl">
             <div className="flex items-start justify-between">

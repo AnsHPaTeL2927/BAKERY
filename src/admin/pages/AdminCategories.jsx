@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, LayoutGrid } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, Eye, EyeOff, ChevronUp, ChevronDown, ArrowUpDown, GripVertical, Check } from 'lucide-react';
 import { categoriesApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
+import CardListItem from '../components/CardListItem';
 import Thumbnail from '../components/Thumbnail';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -12,10 +13,13 @@ import ImageUploader from '../components/ImageUploader';
 import EmptyState from '../components/EmptyState';
 import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, SelectField } from '../components/FormField';
+import useIsMobile from '../hooks/useIsMobile';
 
 const EMPTY_FORM = { name: '', slug: '', status: 'LIVE' };
 
 export default function AdminCategories() {
+  const isMobile = useIsMobile();
+  const [reorderMode, setReorderMode] = useState(false);
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -120,6 +124,49 @@ export default function AdminCategories() {
     }
   }
 
+  // Mobile card list has no HTML5 drag-and-drop (touch drag across a scrolling
+  // list is the most common mobile admin failure point) — up/down buttons
+  // reuse the same handleReorder path the desktop drag handle already calls.
+  function moveItem(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= items.length) return;
+    const reordered = [...items];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(target, 0, moved);
+    handleReorder(reordered);
+  }
+
+  function renderCategoryCard(item, index) {
+    return (
+      <CardListItem
+        theme="public"
+        image={item.image}
+        icon={LayoutGrid}
+        title={item.name}
+        subtitle={item.slug}
+        badge={<StatusBadge status={item.status} />}
+        primaryActions={
+          !search
+            ? [
+                { icon: ChevronUp, label: 'Move Up', onClick: () => moveItem(index, -1) },
+                { icon: ChevronDown, label: 'Move Down', onClick: () => moveItem(index, 1) },
+              ]
+            : []
+        }
+        actions={[
+          {
+            icon: item.status === 'LIVE' ? EyeOff : Eye,
+            label: item.status === 'LIVE' ? 'Hide' : 'Publish',
+            onClick: () => handleStatusToggle(item),
+          },
+          { icon: Pencil, label: 'Edit', onClick: () => openEdit(item) },
+          { icon: Trash2, label: 'Delete', onClick: () => setConfirmDelete(item.id), danger: true },
+        ]}
+        onClick={() => openEdit(item)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -127,65 +174,144 @@ export default function AdminCategories() {
           <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Menu Management</p>
           <h1 className="font-display text-3xl font-semibold text-cocoa">Categories</h1>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
-        >
-          <Plus className="h-4 w-4" /> New Category
-        </button>
+        <div className="flex items-center gap-2.5">
+          {!search && (
+            <button
+              type="button"
+              onClick={() => setReorderMode((v) => !v)}
+              className="flex h-11 items-center gap-1.5 rounded-2xl border border-rose bg-rose/8 px-3.5 text-sm font-semibold text-rose-deep sm:hidden"
+            >
+              <ArrowUpDown className="h-4 w-4" /> Reorder
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={openCreate}
+            className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
+          >
+            <Plus className="h-4 w-4" /> New Category
+          </button>
+        </div>
       </div>
 
       {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
 
-      <SearchInput value={search} onChange={setSearch} placeholder="Search categories…" />
+      {isMobile && reorderMode ? (
+        <>
+          <div className="flex items-start gap-2.5 rounded-2xl bg-rose/8 p-3">
+            <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-rose-deep" />
+            <p className="text-xs leading-relaxed text-rose-deep">
+              Use the arrows to set the order shown on the website. Changes save as you go — tap Done when you're finished.
+            </p>
+          </div>
 
-      {search && <p className="text-xs text-cocoa-soft/70">Clear the search to drag and reorder categories.</p>}
+          <div className="flex flex-col gap-2.5 pb-2">
+            {items.map((item, index) => (
+              <div key={item.id} className="flex items-center gap-2.5 rounded-admin border border-blush/70 bg-white p-2.5">
+                <span className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full bg-rose/10 text-xs font-extrabold text-rose-deep">
+                  {index + 1}
+                </span>
+                <Thumbnail src={item.image} alt={item.name} className="h-14 w-14 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-bold text-cocoa">{item.name}</p>
+                  <p className="truncate text-xs text-cocoa-soft/70">{item.status === 'LIVE' ? 'Visible' : 'Hidden'}</p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveItem(index, -1)}
+                    disabled={index === 0}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-blush text-cocoa disabled:opacity-30"
+                    aria-label="Move up"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveItem(index, 1)}
+                    disabled={index === items.length - 1}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-blush text-cocoa disabled:opacity-30"
+                    aria-label="Move down"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
 
-      <DataTable
-        loading={loading}
-        items={items}
-        draggable={!search}
-        onReorder={handleReorder}
-        renderEmpty={
-          <EmptyState
-            icon={LayoutGrid}
-            title="No categories yet"
-            message="Create a category to start organising your menu."
-            actionLabel="New Category"
-            onAction={openCreate}
+          {/* Both buttons close reorder mode — each move already persists immediately
+              (same as the desktop drag handle), so there is nothing left to discard. */}
+          <div className="sticky bottom-20 z-10 flex gap-3 rounded-2xl border border-blush/70 bg-white p-3 shadow-lg">
+            <button
+              type="button"
+              onClick={() => setReorderMode(false)}
+              className="flex-1 rounded-2xl border border-blush py-3 text-sm font-bold text-cocoa"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => setReorderMode(false)}
+              className="flex flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-rose py-3 text-sm font-bold text-white"
+            >
+              <Check className="h-4 w-4" /> Done
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <SearchInput value={search} onChange={setSearch} placeholder="Search categories…" />
+
+          {search && <p className="text-xs text-cocoa-soft/70">Clear the search to drag and reorder categories.</p>}
+
+          <DataTable
+            loading={loading}
+            items={items}
+            draggable={!search}
+            onReorder={handleReorder}
+            renderCard={renderCategoryCard}
+            renderEmpty={
+              <EmptyState
+                icon={LayoutGrid}
+                title="No categories yet"
+                message="Create a category to start organising your menu."
+                actionLabel="New Category"
+                onAction={openCreate}
+              />
+            }
+            columns={[
+              { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.name} /> },
+              { key: 'name', label: 'Name' },
+              { key: 'slug', label: 'Slug' },
+              { key: 'status', label: 'Status', render: (i) => <StatusBadge status={i.status} /> },
+            ]}
+            renderActions={(item) => (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleStatusToggle(item)}
+                  className="rounded-full border border-blush px-3 py-1 text-xs font-semibold text-cocoa hover:bg-blush-soft"
+                >
+                  {item.status === 'LIVE' ? 'Hide' : 'Publish'}
+                </button>
+                <button type="button" onClick={() => openEdit(item)} className="rounded-full border border-blush p-1.5 text-cocoa hover:bg-blush-soft">
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(item.id)}
+                  className="rounded-full border border-red-200 p-1.5 text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </>
+            )}
           />
-        }
-        columns={[
-          { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.name} /> },
-          { key: 'name', label: 'Name' },
-          { key: 'slug', label: 'Slug' },
-          { key: 'status', label: 'Status', render: (i) => <StatusBadge status={i.status} /> },
-        ]}
-        renderActions={(item) => (
-          <>
-            <button
-              type="button"
-              onClick={() => handleStatusToggle(item)}
-              className="rounded-full border border-blush px-3 py-1 text-xs font-semibold text-cocoa hover:bg-blush-soft"
-            >
-              {item.status === 'LIVE' ? 'Hide' : 'Publish'}
-            </button>
-            <button type="button" onClick={() => openEdit(item)} className="rounded-full border border-blush p-1.5 text-cocoa hover:bg-blush-soft">
-              <Pencil className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmDelete(item.id)}
-              className="rounded-full border border-red-200 p-1.5 text-red-600 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </>
-        )}
-      />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
+          <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
+        </>
+      )}
 
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Category' : 'Edit Category'} onClose={() => setModal({ ...modal, open: false })}>
         <form onSubmit={handleSubmit} className="space-y-4">

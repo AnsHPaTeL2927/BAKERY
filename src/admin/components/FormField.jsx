@@ -1,29 +1,51 @@
 import { Children, useEffect, useRef, useState } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export function TextField({ label, required, containerClassName = '', ...props }) {
+export function TextField({ label, required, error, containerClassName = '', ...props }) {
   return (
-    <label className={`block text-sm ${containerClassName}`}>
-      <span className="mb-1.5 block font-semibold text-cocoa">
-        {label} {required && <span className="text-rose-deep">*</span>}
-      </span>
-      <input {...props} required={required} className="w-full rounded-2xl border border-blush p-3" />
+    <label className={`block text-xs ${containerClassName}`}>
+      {label && (
+        <span className="mb-1 block font-semibold text-admin-text">
+          {label} {required && <span className="text-admin-primary">*</span>}
+        </span>
+      )}
+      <input
+        {...props}
+        className={`w-full rounded-xl border bg-admin-card p-2.5 text-sm text-admin-text shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 ${
+          error
+            ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
+            : 'border-admin-border focus:border-admin-primary focus:ring-admin-primary/20'
+        }`}
+      />
+      {error && <p className="mt-1 text-[11px] font-semibold text-rose-600">{error}</p>}
     </label>
   );
 }
 
-export function TextAreaField({ label, required, containerClassName = '', ...props }) {
+export function TextAreaField({ label, required, error, containerClassName = '', ...props }) {
   return (
-    <label className={`block text-sm ${containerClassName}`}>
-      <span className="mb-1.5 block font-semibold text-cocoa">
-        {label} {required && <span className="text-rose-deep">*</span>}
-      </span>
-      <textarea {...props} required={required} rows={props.rows || 4} className="w-full rounded-2xl border border-blush p-3" />
+    <label className={`block text-xs ${containerClassName}`}>
+      {label && (
+        <span className="mb-1 block font-semibold text-admin-text">
+          {label} {required && <span className="text-admin-primary">*</span>}
+        </span>
+      )}
+      <textarea
+        {...props}
+        rows={props.rows || 2}
+        className={`w-full rounded-xl border bg-admin-card p-2.5 text-sm text-admin-text shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 ${
+          error
+            ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
+            : 'border-admin-border focus:border-admin-primary focus:ring-admin-primary/20'
+        }`}
+      />
+      {error && <p className="mt-1 text-[11px] font-semibold text-rose-600">{error}</p>}
     </label>
   );
 }
 
-export function SelectField({ label, required, containerClassName = '', value, onChange, disabled, children }) {
+export function SelectField({ label, required, error, containerClassName = '', value, onChange, disabled, children }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
 
@@ -46,45 +68,65 @@ export function SelectField({ label, required, containerClassName = '', value, o
   }
 
   return (
-    <div ref={rootRef} className={`relative text-sm ${containerClassName}`}>
-      <span className="mb-1.5 block font-semibold text-cocoa">
-        {label} {required && <span className="text-rose-deep">*</span>}
-      </span>
+    <div ref={rootRef} className={`relative text-xs ${containerClassName}`}>
+      {label && (
+        <span className="mb-1 block font-semibold text-admin-text">
+          {label} {required && <span className="text-admin-primary">*</span>}
+        </span>
+      )}
       <button
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 rounded-2xl border border-blush bg-white p-3 text-left text-cocoa transition-colors hover:border-rose disabled:opacity-60"
+        className={`flex w-full items-center justify-between gap-2 rounded-xl border bg-admin-card p-2.5 text-left text-sm text-admin-text shadow-sm transition-all duration-200 disabled:opacity-60 ${
+          error
+            ? 'border-rose-500'
+            : open
+            ? 'border-admin-primary ring-2 ring-admin-primary/20'
+            : 'border-admin-border hover:border-admin-primary/60'
+        }`}
       >
-        <span className="truncate">{selected ? selected.label : 'Select…'}</span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-cocoa-soft transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className="truncate font-medium">{selected ? selected.label : 'Select…'}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-admin-primary transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && (
-        <ul className="absolute z-20 mt-2 max-h-60 w-full overflow-auto rounded-2xl border border-blush bg-white p-1.5 shadow-lg">
-          {options.map((opt) => (
-            <li key={opt.value ?? 'empty'}>
-              <button
-                type="button"
-                onClick={() => selectOption(opt.value)}
-                className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left transition-colors hover:bg-blush-soft ${
-                  String(opt.value) === String(value) ? 'bg-blush-soft font-semibold text-rose-deep' : 'text-cocoa'
-                }`}
-              >
-                <span className="truncate">{opt.label}</span>
-                {String(opt.value) === String(value) && <Check className="h-4 w-4 shrink-0" />}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            style={{ transformOrigin: 'top' }}
+            className="absolute left-0 z-50 mt-1 max-h-56 w-full overflow-auto rounded-2xl border border-admin-border bg-admin-card p-1.5 shadow-xl shadow-cocoa/10"
+          >
+            {options.map((opt) => {
+              const isSelected = String(opt.value) === String(value);
+              return (
+                <button
+                  key={opt.value ?? 'empty'}
+                  type="button"
+                  onClick={() => selectOption(opt.value)}
+                  className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-1.5 text-left text-xs transition-colors hover:bg-admin-bg ${
+                    isSelected ? 'bg-admin-primary/10 font-bold text-admin-primary' : 'text-admin-text font-medium'
+                  }`}
+                >
+                  <span className="truncate">{opt.label}</span>
+                  {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-admin-primary" />}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {error && <p className="mt-1 text-[11px] font-semibold text-rose-600">{error}</p>}
     </div>
   );
 }
 
 export function CheckboxField({ label, containerClassName = '', ...props }) {
   return (
-    <label className={`flex items-center gap-2 text-sm text-cocoa-soft ${containerClassName}`}>
-      <input type="checkbox" {...props} />
+    <label className={`flex items-center gap-2 text-xs text-admin-muted ${containerClassName}`}>
+      <input type="checkbox" {...props} className="h-4 w-4 rounded border-admin-border text-admin-primary focus:ring-admin-primary" />
       {label}
     </label>
   );

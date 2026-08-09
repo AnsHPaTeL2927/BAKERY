@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import imageFallback from '../../assets/image-fallback.svg';
 
-export default function Thumbnail({ src, alt }) {
+export default function Thumbnail({ src, alt, className = 'h-12 w-12' }) {
   const [failed, setFailed] = useState(false);
 
   return (
-    <div className="h-12 w-12 overflow-hidden rounded-xl bg-blush-soft">
+    <div className={`overflow-hidden rounded-xl bg-blush-soft ${className}`}>
       {src ? (
         <img
           src={failed ? imageFallback : src}

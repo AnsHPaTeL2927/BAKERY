@@ -47,6 +47,7 @@ import {
 } from 'lucide-react';
 import { getDashboard, productsApi, messagesApi } from '../services/adminApi';
 import { useToast } from '../components/ToastProvider';
+import useIsMobile from '../hooks/useIsMobile';
 import KpiCard from '../components/KpiCard';
 import StatCard from '../components/StatCard';
 import AnimatedNumber from '../components/AnimatedNumber';
@@ -98,6 +99,7 @@ const QUICK_ACTIONS = [
 ];
 
 export default function AdminDashboard() {
+  const isMobile = useIsMobile();
   const [stats, setStats] = useState(null);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [productMap, setProductMap] = useState({});
@@ -336,11 +338,11 @@ export default function AdminDashboard() {
                   dataKey="date"
                   tickFormatter={formatShortDate}
                   tick={{ fontSize: 11, fill: '#7B7B7B' }}
-                  interval={6}
+                  interval={isMobile ? 9 : 6}
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} width={isMobile ? 28 : 60} />
                 <Tooltip
                   contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
                   cursor={{ stroke: '#D94C7B', strokeWidth: 1, strokeDasharray: '4 4' }}
@@ -398,16 +400,16 @@ export default function AdminDashboard() {
                   dataKey="date"
                   tickFormatter={formatShortDate}
                   tick={{ fontSize: 11, fill: '#7B7B7B' }}
-                  interval={6}
+                  interval={isMobile ? 9 : 6}
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} width={isMobile ? 28 : 60} />
                 <Tooltip
                   contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
                   cursor={{ stroke: '#D94C7B', strokeWidth: 1, strokeDasharray: '4 4' }}
                 />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: isMobile ? 10 : 12, paddingTop: 8 }} />
                 <Line type="monotone" dataKey="orderClicks" name="Order Clicks" stroke="#D94C7B" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
                 <Line type="monotone" dataKey="whatsappClicks" name="WhatsApp" stroke="#22C55E" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
                 <Line type="monotone" dataKey="callClicks" name="Calls" stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
@@ -427,7 +429,7 @@ export default function AdminDashboard() {
                 <BarChart data={stats.topProducts} layout="vertical" margin={{ left: 24 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#2F2F2F' }} width={110} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#2F2F2F' }} width={isMobile ? 80 : 110} axisLine={false} tickLine={false} />
                   <Tooltip
                     contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
                     cursor={{ fill: 'rgba(217,76,123,0.06)' }}
@@ -481,12 +483,14 @@ export default function AdminDashboard() {
 
         <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
           <h2 className="font-display text-lg font-semibold text-admin-text">Quick Actions</h2>
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          {/* Below sm: horizontal snap-scroll row (same pattern as Orders' stat strip)
+              instead of a 4-row 2-col grid — sm: and up is the original grid, unchanged. */}
+          <div className="-mx-1 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
             {QUICK_ACTIONS.map((action) => (
               <Link
                 key={action.label}
                 to={action.to}
-                className="flex flex-col items-center gap-2 rounded-2xl border border-admin-border p-4 text-center text-xs font-semibold text-admin-text transition-colors hover:border-admin-primary hover:bg-admin-primary/5"
+                className="flex w-24 shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border border-admin-border p-4 text-center text-xs font-semibold text-admin-text transition-colors hover:border-admin-primary hover:bg-admin-primary/5 sm:w-auto sm:shrink"
               >
                 <action.icon className="h-5 w-5 text-admin-primary" />
                 {action.label}

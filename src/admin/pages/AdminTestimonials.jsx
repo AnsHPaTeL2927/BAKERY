@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Star, MessageSquareQuote } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, MessageSquareQuote, Eye, EyeOff } from 'lucide-react';
 import { testimonialsApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
+import CardListItem from '../components/CardListItem';
 import Thumbnail from '../components/Thumbnail';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -118,6 +119,40 @@ export default function AdminTestimonials() {
     load();
   }
 
+  function renderTestimonialCard(item) {
+    return (
+      <CardListItem
+        theme="public"
+        image={item.photo}
+        icon={MessageSquareQuote}
+        title={item.name}
+        subtitle={item.review}
+        badge={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StatusBadge status={item.status} />
+            <span className="flex items-center gap-0.5 text-gold">
+              {Array.from({ length: item.rating }).map((_, idx) => (
+                <Star key={idx} className="h-3 w-3 fill-gold" />
+              ))}
+            </span>
+            {item.featured && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-cocoa">Featured</span>}
+            {!item.approved && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600">Unapproved</span>}
+          </div>
+        }
+        actions={[
+          {
+            icon: item.status === 'LIVE' ? EyeOff : Eye,
+            label: item.status === 'LIVE' ? 'Hide' : 'Publish',
+            onClick: () => handleStatusToggle(item),
+          },
+          { icon: Pencil, label: 'Edit', onClick: () => openEdit(item) },
+          { icon: Trash2, label: 'Delete', onClick: () => setConfirmDelete(item.id), danger: true },
+        ]}
+        onClick={() => openEdit(item)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -141,6 +176,7 @@ export default function AdminTestimonials() {
       <DataTable
         loading={loading}
         items={items}
+        renderCard={renderTestimonialCard}
         renderEmpty={
           <EmptyState
             icon={MessageSquareQuote}

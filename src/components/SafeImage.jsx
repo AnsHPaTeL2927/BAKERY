@@ -7,15 +7,15 @@ import Skeleton from "./loading/Skeleton";
 // on-brand placeholder instead of the browser's broken-image icon, exactly
 // once per src change, so a broken fallback can't loop.
 //
-// Pass showSkeleton to also cover the moment between mount and the image
-// actually loading, instead of a blank box — the wrapper only appears when
-// opted in, so every existing call site is unaffected.
+// Enhanced with blur-to-sharp loading transition: images start blurred and
+// smoothly become sharp when loaded, giving a premium feel.
 export default function SafeImage({
   src,
   alt = "",
   fallback = imageFallback,
   className,
   showSkeleton = false,
+  blurLoad = false,
   containerClassName,
   ...rest
 }) {
@@ -29,22 +29,29 @@ export default function SafeImage({
     setLoaded(false);
   }
 
+  const imgStyle = blurLoad && !loaded
+    ? { filter: "blur(12px)", transform: "scale(1.04)", transition: "filter 0.6s ease, transform 0.6s ease" }
+    : blurLoad
+      ? { filter: "blur(0)", transform: "scale(1)", transition: "filter 0.6s ease, transform 0.6s ease" }
+      : undefined;
+
   const img = (
     <img
       src={!src || failed ? fallback : src}
       alt={alt}
       className={className}
+      style={imgStyle}
       onError={() => setFailed(true)}
       onLoad={() => setLoaded(true)}
       {...rest}
     />
   );
 
-  if (!showSkeleton) return img;
+  if (!showSkeleton && !blurLoad) return img;
 
   return (
-    <div className={`relative ${containerClassName || ""}`}>
-      {!loaded && <Skeleton className="absolute inset-0 h-full w-full rounded-none" />}
+    <div className={`relative overflow-hidden ${containerClassName || ""}`}>
+      {showSkeleton && !loaded && <Skeleton className="absolute inset-0 h-full w-full rounded-none" />}
       {img}
     </div>
   );

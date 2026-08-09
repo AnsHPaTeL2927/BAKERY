@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import { getPublicContent } from "../services/api";
 import SafeImage from "../components/SafeImage";
+import ScrollReveal from "../components/ScrollReveal";
+import AnimatedButton from "../components/AnimatedButton";
 
 function useCountdown(endDate) {
   const [remaining, setRemaining] = useState(getRemaining());
@@ -45,12 +47,17 @@ export default function FestivalSpecials() {
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20 space-y-16">
         {active.length === 0 && (
-          <p className="text-center text-cocoa-soft/70">No festival offers are running right now — check back soon!</p>
+          <div className="text-center py-16">
+            <p className="text-5xl mb-4">🎉</p>
+            <p className="text-cocoa-soft/70 text-lg">No festival offers are running right now — check back soon!</p>
+          </div>
         )}
         {active
           .sort((a, b) => a.priority - b.priority)
-          .map((offer) => (
-            <FestivalBlock key={offer.id} offer={offer} products={products} whatsapp={settings.whatsapp} />
+          .map((offer, i) => (
+            <ScrollReveal key={offer.id} delay={i * 100}>
+              <FestivalBlock offer={offer} products={products} whatsapp={settings.whatsapp} />
+            </ScrollReveal>
           ))}
       </section>
     </>
@@ -64,8 +71,17 @@ function FestivalBlock({ offer, products, whatsapp }) {
 
   return (
     <div>
-      <div className="relative rounded-[2rem] overflow-hidden">
-        <SafeImage src={offer.banner} alt={offer.title} className="w-full h-64 md:h-80 object-cover" />
+      <div className="relative rounded-[2rem] overflow-hidden group">
+        <div className="img-zoom-container">
+          <SafeImage
+            src={offer.banner}
+            alt={offer.title}
+            blurLoad
+            showSkeleton
+            containerClassName="w-full h-64 md:h-80"
+            className="w-full h-full object-cover img-zoom-target"
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-t from-cocoa/80 via-cocoa/20 to-transparent flex items-end">
           <div className="p-6 md:p-10 text-ivory">
             <p className="font-script text-3xl text-blush">{offer.festival}</p>
@@ -75,11 +91,11 @@ function FestivalBlock({ offer, products, whatsapp }) {
       </div>
 
       <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <p className="text-cocoa-soft/80 max-w-xl">{offer.description}</p>
+        <p className="text-cocoa-soft/80 max-w-xl leading-relaxed">{offer.description}</p>
         <div className="flex items-center gap-4 shrink-0">
-          <span className="bg-gold text-cocoa font-bold px-4 py-1.5 rounded-full text-sm">{offer.discount}</span>
+          <span className="bg-gold text-cocoa font-bold px-4 py-1.5 rounded-full text-sm badge-float">{offer.discount}</span>
           {countdown && (
-            <span className="text-sm font-semibold text-rose-deep">
+            <span className="text-sm font-semibold text-rose-deep bg-blush-soft px-3 py-1.5 rounded-full">
               {countdown.days}d {countdown.hours}h left
             </span>
           )}
@@ -87,24 +103,38 @@ function FestivalBlock({ offer, products, whatsapp }) {
       </div>
 
       <div className="mt-6">
-        <a
+        <AnimatedButton
           href={waLink(`Hi! I'd like to order for ${offer.festival} (${offer.discount}).`)}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block bg-rose text-ivory font-semibold px-6 py-3 rounded-full hover:bg-rose-deep transition-colors"
+          arrow
         >
           {offer.ctaText}
-        </a>
+        </AnimatedButton>
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-4 mt-8">
-        {relatedProducts.map((p) => (
-          <div key={p.id} className="rounded-2xl overflow-hidden bg-ivory border border-blush/60">
-            <SafeImage src={p.image} alt={p.name} className="w-full aspect-[4/3] object-cover" loading="lazy" />
-            <p className="p-3 font-display font-semibold text-sm text-cocoa">{p.name}</p>
-          </div>
-        ))}
-      </div>
+      {relatedProducts.length > 0 && (
+        <div className="grid sm:grid-cols-3 gap-4 mt-8">
+          {relatedProducts.map((p, i) => (
+            <ScrollReveal key={p.id} delay={i * 80} distance={12}>
+              <div className="rounded-2xl overflow-hidden bg-ivory border border-blush/50 card-hover">
+                <div className="img-zoom-container">
+                  <SafeImage
+                    src={p.image}
+                    alt={p.name}
+                    blurLoad
+                    showSkeleton
+                    containerClassName="w-full aspect-[4/3]"
+                    className="w-full h-full object-cover img-zoom-target"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="p-3 font-display font-semibold text-sm text-cocoa">{p.name}</p>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

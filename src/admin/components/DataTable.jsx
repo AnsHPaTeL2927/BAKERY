@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { GripVertical } from 'lucide-react';
 import TableSkeleton from '../../components/loading/TableSkeleton';
+import Skeleton from '../../components/loading/Skeleton';
+import useIsMobile from '../hooks/useIsMobile';
 
 export default function DataTable({
   columns,
@@ -17,9 +19,11 @@ export default function DataTable({
   spacious = false,
   actionsPosition = 'end',
   minWidthClass = 'min-w-180',
+  renderCard,
 }) {
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
+  const isMobile = useIsMobile();
 
   function handleDrop(index) {
     if (dragIndex !== null && dragIndex !== index) {
@@ -30,6 +34,37 @@ export default function DataTable({
     }
     setDragIndex(null);
     setOverIndex(null);
+  }
+
+  // Below 640px, when the caller supplies renderCard, render a stacked list
+  // of cards instead of a <table> — genuinely different markup (per
+  // useIsMobile's own purpose), not a CSS restyle of the same table. Callers
+  // that don't pass renderCard, and every desktop/tablet view, are completely
+  // unaffected — this branch only exists when both conditions are true.
+  if (isMobile && renderCard) {
+    if (loading) {
+      return (
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} theme={theme} className="h-20 w-full rounded-2xl" />
+          ))}
+        </div>
+      );
+    }
+    if (items.length === 0) {
+      return (
+        <div className={`rounded-3xl border p-6 ${theme === 'admin' ? 'border-admin-border bg-admin-card' : 'border-blush/70 bg-white'}`}>
+          {renderEmpty || <p className="text-center text-cocoa-soft">{emptyLabel}</p>}
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        {items.map((item, index) => (
+          <div key={item.id}>{renderCard(item, index)}</div>
+        ))}
+      </div>
+    );
   }
 
   const colSpan = columns.length + (renderActions ? 1 : 0) + (draggable ? 1 : 0);

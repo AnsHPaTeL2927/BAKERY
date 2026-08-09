@@ -1,10 +1,27 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import useIsMobile from '../hooks/useIsMobile';
+import BottomSheet from './BottomSheet';
 
 // Slide-in-from-the-right panel for read-only detail views (e.g. Order
 // Details), using the same overlay + motion pattern as AdminLayout's mobile
 // nav drawer, instead of a second full-screen Modal design.
-export default function Drawer({ open, title, onClose, children, widthClass = 'w-full max-w-lg' }) {
+//
+// Pass mobileBottomSheet to have this render via the existing BottomSheet
+// component below 640px instead — a right-edge slide-in is an awkward reach
+// on a phone; a sheet that rises from the thumb zone isn't. Desktop/tablet
+// (and any caller that doesn't opt in) render exactly as before.
+export default function Drawer({ open, title, onClose, children, widthClass = 'w-full max-w-lg', mobileBottomSheet = false, footer }) {
+  const isMobile = useIsMobile();
+
+  if (mobileBottomSheet && isMobile) {
+    return (
+      <BottomSheet open={open} title={title} onClose={onClose} footer={footer} maxHeightClass="max-h-[92vh]">
+        {children}
+      </BottomSheet>
+    );
+  }
+
   return (
     <AnimatePresence>
       {open && (
@@ -35,6 +52,7 @@ export default function Drawer({ open, title, onClose, children, widthClass = 'w
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+            {footer && <div className="shrink-0 border-t border-admin-border px-6 py-4">{footer}</div>}
           </motion.aside>
         </>
       )}

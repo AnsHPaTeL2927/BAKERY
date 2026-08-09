@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Star, Cake } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Star, Cake, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { productsApi, categoriesApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
+import CardListItem from '../components/CardListItem';
 import Thumbnail from '../components/Thumbnail';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -51,7 +52,8 @@ export default function AdminProducts() {
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
   const [weightRows, setWeightRows] = useState([{ weight: '', price: '' }]);
-  const [flavoursInput, setFlavoursInput] = useState('');
+  const [flavoursList, setFlavoursList] = useState([]);
+  const [flavourDraft, setFlavourDraft] = useState('');
   const [existingImages, setExistingImages] = useState([]);
   const [removeImageIds, setRemoveImageIds] = useState([]);
   const [primaryImageId, setPrimaryImageId] = useState(null);
@@ -61,6 +63,7 @@ export default function AdminProducts() {
 
   const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const hasActiveFilters = Boolean(search || Object.values(filters).some(Boolean));
 
   async function load() {
     setLoading(true);
@@ -101,6 +104,12 @@ export default function AdminProducts() {
     setPage(1);
   }
 
+  function resetFilters() {
+    setSearch('');
+    setFilters(EMPTY_FILTERS);
+    setPage(1);
+  }
+
   useEffect(() => {
     categoriesApi.list({ page: 1, pageSize: 100 }).then((data) => setCategories(data.items)).catch(() => {});
   }, []);
@@ -115,7 +124,8 @@ export default function AdminProducts() {
   function openCreate() {
     setForm(EMPTY_FORM);
     setWeightRows([{ weight: '', price: '' }]);
-    setFlavoursInput('');
+    setFlavoursList([]);
+    setFlavourDraft('');
     resetImageState();
     setError('');
     setModal({ open: true, mode: 'create', id: null });
@@ -135,7 +145,8 @@ export default function AdminProducts() {
     const weights = Array.isArray(item.weights) ? item.weights : [];
     const priceByWeight = item.priceByWeight || {};
     setWeightRows(weights.length ? weights.map((w) => ({ weight: w, price: priceByWeight[w] ?? '' })) : [{ weight: '', price: '' }]);
-    setFlavoursInput(Array.isArray(item.flavours) ? item.flavours.join(', ') : '');
+    setFlavoursList(Array.isArray(item.flavours) ? item.flavours : []);
+    setFlavourDraft('');
     setExistingImages(item.images || []);
     setRemoveImageIds([]);
     setPrimaryImageId(item.images?.find((img) => img.isPrimary)?.id || null);
@@ -154,6 +165,17 @@ export default function AdminProducts() {
 
   function removeWeightRow(index) {
     setWeightRows(weightRows.filter((_, i) => i !== index));
+  }
+
+  function addFlavour() {
+    const value = flavourDraft.trim();
+    if (!value) return;
+    setFlavoursList((prev) => (prev.some((f) => f.toLowerCase() === value.toLowerCase()) ? prev : [...prev, value]));
+    setFlavourDraft('');
+  }
+
+  function removeFlavour(index) {
+    setFlavoursList((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleNewFiles(e) {
@@ -193,10 +215,7 @@ export default function AdminProducts() {
     try {
       const weights = validRows.map((row) => row.weight.trim());
       const priceByWeight = Object.fromEntries(validRows.map((row) => [row.weight.trim(), Number(row.price) || 0]));
-      const flavours = flavoursInput
-        .split(',')
-        .map((f) => f.trim())
-        .filter(Boolean);
+      const flavours = flavoursList.map((f) => f.trim()).filter(Boolean);
 
       const fd = new FormData();
       fd.append('name', form.name);
@@ -242,6 +261,35 @@ export default function AdminProducts() {
     const next = item.status === 'LIVE' ? 'HIDDEN' : 'LIVE';
     await productsApi.setStatus(item.id, next);
     load();
+  }
+
+  function renderProductCard(item) {
+    return (
+      <CardListItem
+        theme="public"
+        image={item.image}
+        icon={Cake}
+        title={item.name}
+        subtitle={item.category?.name || 'Uncategorised'}
+        badge={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StatusBadge status={item.status} />
+            {item.featured && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-cocoa">Featured</span>}
+            {!item.available && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600">Unavailable</span>}
+          </div>
+        }
+        actions={[
+          {
+            icon: item.status === 'LIVE' ? EyeOff : Eye,
+            label: item.status === 'LIVE' ? 'Hide' : 'Publish',
+            onClick: () => handleStatusToggle(item),
+          },
+          { icon: Pencil, label: 'Edit', onClick: () => openEdit(item) },
+          { icon: Trash2, label: 'Delete', onClick: () => setConfirmDelete(item.id), danger: true },
+        ]}
+        onClick={() => openEdit(item)}
+      />
+    );
   }
 
   return (
@@ -331,16 +379,13 @@ export default function AdminProducts() {
             { value: 'oldest', label: 'Oldest First' },
           ]}
         />
-        {(filters.categoryId || filters.status || filters.featured || filters.available || filters.minPrice || filters.maxPrice || filters.sort) && (
+        {hasActiveFilters && (
           <button
             type="button"
-            onClick={() => {
-              setFilters(EMPTY_FILTERS);
-              setPage(1);
-            }}
-            className="text-xs font-semibold text-rose-deep hover:underline"
+            onClick={resetFilters}
+            className="flex items-center gap-1.5 rounded-full border border-blush px-3.5 py-1.5 text-xs font-semibold text-rose-deep hover:bg-blush-soft transition-colors"
           >
-            Clear Filters
+            <RotateCcw className="h-3.5 w-3.5" /> Reset Filters
           </button>
         )}
       </div>
@@ -348,6 +393,7 @@ export default function AdminProducts() {
       <DataTable
         loading={loading}
         items={items}
+        renderCard={renderProductCard}
         renderEmpty={
           <EmptyState
             icon={Cake}
@@ -456,12 +502,51 @@ export default function AdminProducts() {
             </button>
           </div>
 
-          <TextField
-            label="Flavours (comma separated)"
-            containerClassName="md:col-span-2"
-            value={flavoursInput}
-            onChange={(e) => setFlavoursInput(e.target.value)}
-          />
+          <div className="md:col-span-2">
+            <span className="mb-1.5 block text-sm font-semibold text-cocoa">Flavours</span>
+            <div className="flex gap-2">
+              <input
+                className="w-full rounded-2xl border border-blush p-2.5 text-sm"
+                placeholder="e.g. Chocolate Truffle"
+                value={flavourDraft}
+                onChange={(e) => setFlavourDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addFlavour();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={addFlavour}
+                className="shrink-0 rounded-2xl border border-blush px-4 text-sm font-semibold text-rose-deep hover:bg-blush-soft"
+              >
+                Add
+              </button>
+            </div>
+            {flavoursList.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {flavoursList.map((f, index) => (
+                  <span
+                    key={`${f}-${index}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-blush-soft px-3 py-1 text-xs font-semibold text-cocoa"
+                  >
+                    {f}
+                    <button
+                      type="button"
+                      onClick={() => removeFlavour(index)}
+                      className="rounded-full text-cocoa-soft hover:text-red-600"
+                      aria-label={`Remove ${f}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="mt-1 text-xs text-cocoa-soft/70">Press Enter or click Add after typing each flavour.</p>
+          </div>
 
           <div className="md:col-span-2">
             <span className="mb-1.5 block text-sm font-semibold text-cocoa">
@@ -515,11 +600,18 @@ export default function AdminProducts() {
             <p className="text-xs text-cocoa-soft/70">Formats: JPG, PNG, WEBP · Max Size: 5 MB</p>
           </div>
 
-          <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-            <option value="LIVE">Live</option>
-            <option value="DRAFT">Draft</option>
-            <option value="HIDDEN">Hidden</option>
-          </SelectField>
+          <div>
+            <span className="mb-1.5 block text-sm font-semibold text-cocoa">Status</span>
+            <ThemedSelect
+              value={form.status}
+              onChange={(v) => setForm({ ...form, status: v })}
+              options={[
+                { value: 'LIVE', label: 'Live' },
+                { value: 'DRAFT', label: 'Draft' },
+                { value: 'HIDDEN', label: 'Hidden' },
+              ]}
+            />
+          </div>
           <div className="flex items-end gap-6">
             <CheckboxField label="Featured" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
             <CheckboxField label="Available" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} />

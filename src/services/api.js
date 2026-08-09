@@ -51,6 +51,17 @@ export async function getPublicContent() {
   }
 }
 
+// Lean single-endpoint fetch for callers that only need branding/settings
+// (e.g. applying the favicon at boot) — avoids pulling the full public
+// content bundle (products, gallery, offers, …) just for one field.
+export async function getSiteSettings() {
+  try {
+    return await request('/settings');
+  } catch {
+    return {};
+  }
+}
+
 export async function getGallery() {
   try {
     return await request('/gallery');

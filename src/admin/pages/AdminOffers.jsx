@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Gift } from 'lucide-react';
+import { Plus, Pencil, Trash2, Gift, Eye, EyeOff } from 'lucide-react';
 import { offersApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
+import CardListItem from '../components/CardListItem';
 import Thumbnail from '../components/Thumbnail';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -132,6 +133,35 @@ export default function AdminOffers() {
     load();
   }
 
+  function renderOfferCard(item) {
+    return (
+      <CardListItem
+        theme="public"
+        image={item.banner}
+        icon={Gift}
+        title={item.title}
+        subtitle={item.festival}
+        meta={<span className="font-semibold text-cocoa">{item.discount}</span>}
+        badge={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StatusBadge status={item.status} />
+            {item.active && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-cocoa">Active</span>}
+          </div>
+        }
+        actions={[
+          {
+            icon: item.status === 'LIVE' ? EyeOff : Eye,
+            label: item.status === 'LIVE' ? 'Hide' : 'Publish',
+            onClick: () => handleStatusToggle(item),
+          },
+          { icon: Pencil, label: 'Edit', onClick: () => openEdit(item) },
+          { icon: Trash2, label: 'Delete', onClick: () => setConfirmDelete(item.id), danger: true },
+        ]}
+        onClick={() => openEdit(item)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -155,6 +185,7 @@ export default function AdminOffers() {
       <DataTable
         loading={loading}
         items={items}
+        renderCard={renderOfferCard}
         renderEmpty={
           <EmptyState
             icon={Gift}

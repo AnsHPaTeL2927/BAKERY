@@ -1,5 +1,8 @@
 import PageHeader from "../components/PageHeader";
 import IcingDivider from "../components/IcingDivider";
+import ScrollReveal from "../components/ScrollReveal";
+import ParallaxLayer from "../components/ParallaxLayer";
+import SafeImage from "../components/SafeImage";
 
 export default function About() {
   return (
@@ -10,14 +13,22 @@ export default function About() {
         description="Cakes by Tulsi began the way most good things do — with a home kitchen, a handful of recipes, and people who kept coming back for seconds."
       />
 
-      <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20 grid md:grid-cols-2 gap-12 items-center">
-        <img
-          src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80"
-          alt="Baker icing a cake by hand in a home kitchen"
-          className="rounded-[2rem] shadow-lg w-full aspect-[4/3] object-cover"
-        />
-        <div>
-          <p className="font-script text-2xl text-rose-deep mb-2">Meet the Baker</p>
+      <section className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+        <ScrollReveal direction="left">
+          <div className="relative">
+            <ParallaxLayer speed={0.06} className="absolute -inset-4 bg-gradient-to-br from-blush to-blush-soft/40 rounded-[2rem] -rotate-2" />
+            <SafeImage
+              src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80"
+              alt="Baker icing a cake by hand in a home kitchen"
+              blurLoad
+              showSkeleton
+              containerClassName="relative rounded-[2rem] overflow-hidden shadow-lg aspect-[4/3]"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </ScrollReveal>
+        <ScrollReveal direction="right" delay={100}>
+          <p className="font-script text-2xl md:text-3xl text-rose-deep mb-2">Meet the Baker</p>
           <h2 className="font-display font-semibold text-3xl text-cocoa mb-4">Tulsi</h2>
           <p className="text-cocoa-soft/85 leading-relaxed">
             What started as birthday cakes for family grew, one referral at a time, into a
@@ -30,52 +41,58 @@ export default function About() {
             everyday moments worth celebrating — using real butter, real chocolate, and
             recipes tested until they were exactly right.
           </p>
-        </div>
+        </ScrollReveal>
       </section>
 
       <IcingDivider className="text-blush" />
 
-      <section className="bg-blush-soft py-14 md:py-20">
+      <section className="bg-blush-soft/50 py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-5 md:px-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ValueCard
-            title="Our Mission"
-            text="To make every celebration a little sweeter with desserts that taste homemade — because they are."
-          />
-          <ValueCard
-            title="Quality Promise"
-            text="No preservatives, no shortcuts. If we wouldn't serve it to our own family, it doesn't leave the kitchen."
-          />
-          <ValueCard
-            title="Fresh Ingredients"
-            text="Real butter, real chocolate, seasonal fruit — sourced in small batches every week."
-          />
-          <ValueCard
-            title="Handmade Process"
-            text="Every layer, every swirl of icing, every flower is piped and placed by hand."
-          />
+          {[
+            { title: "Our Mission", text: "To make every celebration a little sweeter with desserts that taste homemade — because they are." },
+            { title: "Quality Promise", text: "No preservatives, no shortcuts. If we wouldn't serve it to our own family, it doesn't leave the kitchen." },
+            { title: "Fresh Ingredients", text: "Real butter, real chocolate, seasonal fruit — sourced in small batches every week." },
+            { title: "Handmade Process", text: "Every layer, every swirl of icing, every flower is piped and placed by hand." },
+          ].map((item, i) => (
+            <ScrollReveal key={item.title} delay={i * 80} distance={20}>
+              <div className="bg-ivory rounded-2xl border border-blush/50 p-6 card-hover h-full">
+                <p className="font-display font-semibold text-cocoa mb-2">{item.title}</p>
+                <p className="text-sm text-cocoa-soft/70 leading-relaxed">{item.text}</p>
+              </div>
+            </ScrollReveal>
+          ))}
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">
-        <div className="text-center mb-10">
-          <p className="font-script text-2xl text-rose-deep mb-1">Inside Our Kitchen</p>
-          <h2 className="font-display font-semibold text-2xl md:text-4xl text-cocoa">Where It All Comes Together</h2>
-        </div>
+      <section className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24">
+        <ScrollReveal>
+          <div className="text-center mb-10">
+            <p className="font-script text-2xl md:text-3xl text-rose-deep mb-1">Inside Our Kitchen</p>
+            <h2 className="font-display font-semibold text-2xl md:text-4xl text-cocoa">Where It All Comes Together</h2>
+          </div>
+        </ScrollReveal>
         <div className="grid sm:grid-cols-3 gap-4">
-          <img className="rounded-2xl aspect-square object-cover w-full" src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600&q=80" alt="Kitchen prep" loading="lazy" />
-          <img className="rounded-2xl aspect-square object-cover w-full" src="https://images.unsplash.com/photo-1587241321921-91a834d6d191?w=600&q=80" alt="Fresh ingredients laid out" loading="lazy" />
-          <img className="rounded-2xl aspect-square object-cover w-full" src="https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=600&q=80" alt="Fresh bake cooling" loading="lazy" />
+          {[
+            { src: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600&q=80", alt: "Kitchen prep" },
+            { src: "https://images.unsplash.com/photo-1587241321921-91a834d6d191?w=600&q=80", alt: "Fresh ingredients laid out" },
+            { src: "https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=600&q=80", alt: "Fresh bake cooling" },
+          ].map((img, i) => (
+            <ScrollReveal key={img.alt} delay={i * 100} distance={16}>
+              <div className="rounded-2xl overflow-hidden aspect-square img-zoom-container">
+                <SafeImage
+                  src={img.src}
+                  alt={img.alt}
+                  loading="lazy"
+                  blurLoad
+                  showSkeleton
+                  containerClassName="w-full h-full"
+                  className="w-full h-full object-cover img-zoom-target"
+                />
+              </div>
+            </ScrollReveal>
+          ))}
         </div>
       </section>
     </>
-  );
-}
-
-function ValueCard({ title, text }) {
-  return (
-    <div className="bg-ivory rounded-2xl border border-blush/60 p-6">
-      <p className="font-display font-semibold text-cocoa mb-2">{title}</p>
-      <p className="text-sm text-cocoa-soft/75 leading-relaxed">{text}</p>
-    </div>
   );
 }

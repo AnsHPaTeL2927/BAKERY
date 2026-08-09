@@ -31,9 +31,91 @@
   --radius-admin: 20px;
 }
 
+/* ─── Base ─────────────────────────────────────────────────────────── */
+
 html {
   scroll-behavior: smooth;
 }
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-cocoa);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+::selection {
+  background-color: var(--color-blush);
+  color: var(--color-cocoa);
+}
+
+/* ─── Override Chrome Autofill background color ───────────────────── */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-cocoa) !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ─── Focus ring ───────────────────────────────────────────────────── */
+
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--color-rose);
+  outline-offset: 2px;
+}
+
+/* ─── Inputs ───────────────────────────────────────────────────────── */
+
+.input {
+  width: 100%;
+  border: 1px solid var(--color-blush);
+  background-color: var(--color-ivory);
+  border-radius: 0.9rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  color: var(--color-cocoa);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input:focus {
+  border-color: var(--color-rose);
+  box-shadow: 0 0 0 3px rgba(198, 86, 122, 0.1);
+  outline: none;
+}
+
+.input::placeholder {
+  color: rgba(110, 68, 54, 0.4);
+}
+
+/* ─── Signature brand element ──────────────────────────────────────── */
+
+.scallop-edge {
+  --scallop-size: 14px;
+  -webkit-mask-image: radial-gradient(circle at var(--scallop-size) var(--scallop-size), transparent calc(var(--scallop-size) - 1px), black var(--scallop-size));
+  -webkit-mask-size: calc(var(--scallop-size) * 2) calc(var(--scallop-size) * 2);
+  mask-image: radial-gradient(circle at var(--scallop-size) var(--scallop-size), transparent calc(var(--scallop-size) - 1px), black var(--scallop-size));
+  mask-size: calc(var(--scallop-size) * 2) calc(var(--scallop-size) * 2);
+}
+
+/* ─── Keyframes ────────────────────────────────────────────────────── */
 
 @keyframes fadeIn {
   from {
@@ -47,36 +129,168 @@ html {
 }
 
 @keyframes shimmer {
-  from {
-    background-position: -200% 0;
-  }
-  to {
-    background-position: 200% 0;
-  }
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
 }
 
-body {
-  background-color: var(--color-cream);
-  color: var(--color-cocoa);
-  font-family: var(--font-body);
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
 }
 
-.font-display {
-  font-family: var(--font-display);
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-12px) rotate(2deg); }
 }
 
-.font-script {
-  font-family: var(--font-script);
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.05); }
 }
 
-/* Signature scalloped edge - echoes the badge shapes from the bakery ad */
-.scallop-edge {
-  --scallop-size: 14px;
-  -webkit-mask-image: radial-gradient(circle at var(--scallop-size) var(--scallop-size), transparent calc(var(--scallop-size) - 1px), black var(--scallop-size));
-  -webkit-mask-size: calc(var(--scallop-size) * 2) calc(var(--scallop-size) * 2);
-  mask-image: radial-gradient(circle at var(--scallop-size) var(--scallop-size), transparent calc(var(--scallop-size) - 1px), black var(--scallop-size));
-  mask-size: calc(var(--scallop-size) * 2) calc(var(--scallop-size) * 2);
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes heroGlow {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 0.6; }
+}
+
+/* ─── Utility animation classes ────────────────────────────────────── */
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-gentle-pulse {
+  animation: gentlePulse 3s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Glassmorphism Navbar ─────────────────────────────────────────── */
+
+.navbar-glass {
+  background: rgba(251, 241, 230, 0.85);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
+
+.navbar-transparent {
+  background: rgba(251, 241, 230, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ─── Card hover effect ────────────────────────────────────────────── */
+
+.card-hover {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(74, 42, 32, 0.12),
+              0 8px 16px -8px rgba(74, 42, 32, 0.08);
+}
+
+/* ─── Image zoom container ─────────────────────────────────────────── */
+
+.img-zoom-container {
+  overflow: hidden;
+}
+
+.img-zoom-container img,
+.img-zoom-container .img-zoom-target {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.img-zoom-container:hover img,
+.img-zoom-container:hover .img-zoom-target {
+  transform: scale(1.05);
+}
+
+/* ─── Animated link underline ──────────────────────────────────────── */
+
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-rose);
+  border-radius: 1px;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-underline:hover::after,
+.link-underline.active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ─── Lightbox ─────────────────────────────────────────────────────── */
+
+.lightbox-backdrop {
+  background: rgba(74, 42, 32, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ─── Hero carousel indicators ─────────────────────────────────────── */
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 252, 247, 0.4);
+  transition: all 0.4s ease;
+  cursor: pointer;
+}
+
+.carousel-dot.active {
+  background: var(--color-ivory);
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* ─── Badge floating ───────────────────────────────────────────────── */
+
+.badge-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ─── Reduced Motion ───────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -85,30 +299,13 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
 
-.input {
-  width: 100%;
-  border: 1px solid var(--color-blush);
-  background-color: var(--color-cream);
-  border-radius: 0.9rem;
-  padding: 0.7rem 1rem;
-  font-size: 0.95rem;
-  color: var(--color-cocoa);
-  transition: border-color 0.2s;
-}
+  .card-hover:hover {
+    transform: none;
+  }
 
-.input:focus {
-  border-color: var(--color-rose);
-  outline: none;
-}
-
-::selection {
-  background-color: var(--color-blush);
-  color: var(--color-cocoa);
-}
-
-a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-  outline: 2px solid var(--color-rose);
-  outline-offset: 2px;
+  .img-zoom-container:hover img,
+  .img-zoom-container:hover .img-zoom-target {
+    transform: none;
+  }
 }

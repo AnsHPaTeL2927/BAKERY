@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Images } from 'lucide-react';
+import { Plus, Pencil, Trash2, Images, Eye, EyeOff, ChevronUp, ChevronDown, ArrowUpDown, Check } from 'lucide-react';
 import { galleryApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
+import CardListItem from '../components/CardListItem';
 import Thumbnail from '../components/Thumbnail';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -12,10 +13,13 @@ import ImageUploader from '../components/ImageUploader';
 import EmptyState from '../components/EmptyState';
 import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, SelectField } from '../components/FormField';
+import useIsMobile from '../hooks/useIsMobile';
 
 const EMPTY_FORM = { alt: '', category: '', status: 'LIVE' };
 
 export default function AdminGallery() {
+  const isMobile = useIsMobile();
+  const [reorderMode, setReorderMode] = useState(false);
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -120,6 +124,46 @@ export default function AdminGallery() {
     }
   }
 
+  function moveItem(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= items.length) return;
+    const reordered = [...items];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(target, 0, moved);
+    handleReorder(reordered);
+  }
+
+  function renderGalleryCard(item, index) {
+    return (
+      <CardListItem
+        theme="public"
+        image={item.image}
+        icon={Images}
+        title={item.category || 'Uncategorised'}
+        subtitle={item.alt || '—'}
+        badge={<StatusBadge status={item.status} />}
+        primaryActions={
+          !search
+            ? [
+                { icon: ChevronUp, label: 'Move Up', onClick: () => moveItem(index, -1) },
+                { icon: ChevronDown, label: 'Move Down', onClick: () => moveItem(index, 1) },
+              ]
+            : []
+        }
+        actions={[
+          {
+            icon: item.status === 'LIVE' ? EyeOff : Eye,
+            label: item.status === 'LIVE' ? 'Hide' : 'Publish',
+            onClick: () => handleStatusToggle(item),
+          },
+          { icon: Pencil, label: 'Edit', onClick: () => openEdit(item) },
+          { icon: Trash2, label: 'Delete', onClick: () => setConfirmDelete(item.id), danger: true },
+        ]}
+        onClick={() => openEdit(item)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -127,65 +171,143 @@ export default function AdminGallery() {
           <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Media</p>
           <h1 className="font-display text-3xl font-semibold text-cocoa">Gallery</h1>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
-        >
-          <Plus className="h-4 w-4" /> New Image
-        </button>
+        <div className="flex items-center gap-2.5">
+          {!search && (
+            <button
+              type="button"
+              onClick={() => setReorderMode((v) => !v)}
+              className="flex h-11 items-center gap-1.5 rounded-2xl border border-rose bg-rose/8 px-3.5 text-sm font-semibold text-rose-deep sm:hidden"
+            >
+              <ArrowUpDown className="h-4 w-4" /> Reorder
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={openCreate}
+            className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
+          >
+            <Plus className="h-4 w-4" /> New Image
+          </button>
+        </div>
       </div>
 
       {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
 
-      <SearchInput value={search} onChange={setSearch} placeholder="Search by category or alt text…" />
+      {isMobile && reorderMode ? (
+        <>
+          <div className="flex items-start gap-2.5 rounded-2xl bg-rose/8 p-3">
+            <ArrowUpDown className="mt-0.5 h-4 w-4 shrink-0 text-rose-deep" />
+            <p className="text-xs leading-relaxed text-rose-deep">
+              Use the arrows to reposition a photo. Photo 1 shows first on the website — changes save as you go.
+            </p>
+          </div>
 
-      {search && <p className="text-xs text-cocoa-soft/70">Clear the search to drag and reorder images.</p>}
+          <div className="grid grid-cols-2 gap-3 pb-2">
+            {items.map((item, index) => (
+              <div key={item.id} className="relative aspect-square overflow-hidden rounded-admin border border-blush/70 bg-blush-soft">
+                <img src={item.image} alt={item.alt || ''} className="h-full w-full object-cover" />
+                <span className="absolute top-2.5 left-2.5 flex h-6.5 w-6.5 items-center justify-center rounded-full bg-rose text-xs font-extrabold text-white">
+                  {index + 1}
+                </span>
+                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveItem(index, -1)}
+                    disabled={index === 0}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-cocoa disabled:opacity-30"
+                    aria-label="Move earlier"
+                  >
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveItem(index, 1)}
+                    disabled={index === items.length - 1}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-cocoa disabled:opacity-30"
+                    aria-label="Move later"
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {(item.alt || item.category) && (
+                  <span className="absolute right-0 bottom-0 left-0 truncate bg-white/85 px-2.5 py-1.5 text-[11px] font-semibold text-cocoa-soft">
+                    {item.alt || item.category}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
 
-      <DataTable
-        loading={loading}
-        items={items}
-        draggable={!search}
-        onReorder={handleReorder}
-        renderEmpty={
-          <EmptyState
-            icon={Images}
-            title="No gallery images yet"
-            message="Upload photos of your bakes to showcase in the gallery."
-            actionLabel="New Image"
-            onAction={openCreate}
+          <div className="sticky bottom-20 z-10 flex gap-3 rounded-2xl border border-blush/70 bg-white p-3 shadow-lg">
+            <button
+              type="button"
+              onClick={() => setReorderMode(false)}
+              className="flex-1 rounded-2xl border border-blush py-3 text-sm font-bold text-cocoa"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => setReorderMode(false)}
+              className="flex flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-rose py-3 text-sm font-bold text-white"
+            >
+              <Check className="h-4 w-4" /> Done
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <SearchInput value={search} onChange={setSearch} placeholder="Search by category or alt text…" />
+
+          {search && <p className="text-xs text-cocoa-soft/70">Clear the search to drag and reorder images.</p>}
+
+          <DataTable
+            loading={loading}
+            items={items}
+            draggable={!search}
+            onReorder={handleReorder}
+            renderCard={renderGalleryCard}
+            renderEmpty={
+              <EmptyState
+                icon={Images}
+                title="No gallery images yet"
+                message="Upload photos of your bakes to showcase in the gallery."
+                actionLabel="New Image"
+                onAction={openCreate}
+              />
+            }
+            columns={[
+              { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.alt} /> },
+              { key: 'category', label: 'Category' },
+              { key: 'alt', label: 'Alt Text' },
+              { key: 'status', label: 'Status', render: (i) => <StatusBadge status={i.status} /> },
+            ]}
+            renderActions={(item) => (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleStatusToggle(item)}
+                  className="rounded-full border border-blush px-3 py-1 text-xs font-semibold text-cocoa hover:bg-blush-soft"
+                >
+                  {item.status === 'LIVE' ? 'Hide' : 'Publish'}
+                </button>
+                <button type="button" onClick={() => openEdit(item)} className="rounded-full border border-blush p-1.5 text-cocoa hover:bg-blush-soft">
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(item.id)}
+                  className="rounded-full border border-red-200 p-1.5 text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </>
+            )}
           />
-        }
-        columns={[
-          { key: 'image', label: 'Image', render: (i) => <Thumbnail src={i.image} alt={i.alt} /> },
-          { key: 'category', label: 'Category' },
-          { key: 'alt', label: 'Alt Text' },
-          { key: 'status', label: 'Status', render: (i) => <StatusBadge status={i.status} /> },
-        ]}
-        renderActions={(item) => (
-          <>
-            <button
-              type="button"
-              onClick={() => handleStatusToggle(item)}
-              className="rounded-full border border-blush px-3 py-1 text-xs font-semibold text-cocoa hover:bg-blush-soft"
-            >
-              {item.status === 'LIVE' ? 'Hide' : 'Publish'}
-            </button>
-            <button type="button" onClick={() => openEdit(item)} className="rounded-full border border-blush p-1.5 text-cocoa hover:bg-blush-soft">
-              <Pencil className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmDelete(item.id)}
-              className="rounded-full border border-red-200 p-1.5 text-red-600 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </>
-        )}
-      />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
+          <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
+        </>
+      )}
 
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Gallery Image' : 'Edit Gallery Image'} onClose={() => setModal({ ...modal, open: false })}>
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -35,7 +35,9 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="pointer-events-none fixed bottom-5 right-5 z-[100] flex flex-col gap-2">
+      {/* bottom-24 clears the mobile bottom nav; sm:bottom-5 reverts to the
+          desktop corner position where there's no bottom nav to collide with */}
+      <div className="pointer-events-none fixed inset-x-4 bottom-24 z-[100] flex flex-col items-stretch gap-2 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:items-end">
         <AnimatePresence>
           {toasts.map((toast) => {
             const Icon = ICONS[toast.type] || Info;
@@ -46,7 +48,7 @@ export function ToastProvider({ children }) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-admin-border bg-admin-card px-4 py-3 shadow-lg"
+                className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-admin-border bg-admin-card px-4 py-3 shadow-lg sm:max-w-sm"
               >
                 <Icon className={`h-5 w-5 shrink-0 ${COLORS[toast.type] || COLORS.info}`} />
                 <p className="text-sm text-admin-text">{toast.message}</p>

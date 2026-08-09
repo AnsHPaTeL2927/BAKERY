@@ -1,8 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "../components/PageHeader";
 import ProductCard from "../components/ProductCard";
 import CardSkeleton from "../components/loading/CardSkeleton";
+import ScrollReveal from "../components/ScrollReveal";
 import { getPublicContent } from "../services/api";
 
 export default function Menu() {
@@ -48,12 +50,15 @@ export default function Menu() {
         description="Cakes, brownies, cupcakes, muffins, chocolates and cookies — all made fresh to order."
       />
 
-      <section className="max-w-6xl mx-auto px-5 md:px-8 py-10 md:py-14">
-        <div className="flex flex-wrap gap-2 justify-center mb-10">
+      <section className="max-w-6xl mx-auto px-5 md:px-8 py-10 md:py-16">
+        {/* Category filter pills */}
+        <ScrollReveal className="flex flex-wrap gap-2 justify-center mb-10">
           <button
             onClick={() => selectCategory("all")}
-            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-              active === "all" ? "bg-rose text-ivory border-rose" : "border-blush text-cocoa-soft hover:border-rose"
+            className={`px-5 py-2.5 rounded-full text-sm font-semibold border transition-all duration-300 ${
+              active === "all"
+                ? "bg-rose text-ivory border-rose shadow-sm shadow-rose/20"
+                : "border-blush text-cocoa-soft hover:border-rose/60 hover:text-rose-deep"
             }`}
           >
             All
@@ -62,14 +67,16 @@ export default function Menu() {
             <button
               key={c.slug || c.id}
               onClick={() => selectCategory(c.slug || c.id)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-                active === (c.slug || c.id) ? "bg-rose text-ivory border-rose" : "border-blush text-cocoa-soft hover:border-rose"
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold border transition-all duration-300 ${
+                active === (c.slug || c.id)
+                  ? "bg-rose text-ivory border-rose shadow-sm shadow-rose/20"
+                  : "border-blush text-cocoa-soft hover:border-rose/60 hover:text-rose-deep"
               }`}
             >
               {c.name}
             </button>
           ))}
-        </div>
+        </ScrollReveal>
 
         {loading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -78,15 +85,33 @@ export default function Menu() {
             ))}
           </div>
         ) : filtered.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.35 }}
+              className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {filtered.map((p, i) => (
+                <ScrollReveal key={p.id} delay={i * 60} distance={16}>
+                  <ProductCard product={p} />
+                </ScrollReveal>
+              ))}
+            </motion.div>
+          </AnimatePresence>
         ) : (
-          <p className="text-center text-cocoa-soft/70 py-14">
-            Nothing in this category yet — check back soon, or message us on WhatsApp for a custom order.
-          </p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <p className="text-5xl mb-4">🍰</p>
+            <p className="text-cocoa-soft/70 text-lg">
+              Nothing in this category yet — check back soon, or message us on WhatsApp for a custom order.
+            </p>
+          </motion.div>
         )}
       </section>
     </>
