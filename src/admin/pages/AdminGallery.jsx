@@ -29,12 +29,26 @@ export default function AdminGallery() {
 
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState({});
   const [imageFile, setImageFile] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const [pageSize, setPageSize] = useState(12);
+
+  function updateField(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) setFormErrors((prev) => ({ ...prev, [key]: null }));
+  }
+
+  function validateForm() {
+    const errs = {};
+    if (form.alt && form.alt.length > 200) errs.alt = 'Alt text must be 200 characters or fewer';
+    if (form.category && form.category.length > 100) errs.category = 'Category must be 100 characters or fewer';
+    if (modal.mode === 'create' && !imageFile) errs.image = 'An image is required';
+    return errs;
+  }
 
   async function load() {
     setLoading(true);
@@ -61,6 +75,7 @@ export default function AdminGallery() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(null);
     setError('');
@@ -69,6 +84,7 @@ export default function AdminGallery() {
 
   function openEdit(item) {
     setForm({ alt: item.alt || '', category: item.category || '', status: item.status });
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(item.image);
     setError('');
@@ -77,8 +93,15 @@ export default function AdminGallery() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length > 0) {
+      setFormErrors(errs);
+      setError('Please fix the highlighted fields.');
+      return;
+    }
     setSaving(true);
     setError('');
+    setFormErrors({});
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([key, value]) => fd.append(key, value));
@@ -322,10 +345,14 @@ export default function AdminGallery() {
             dimensions="1200 × 1200 px"
             initialUrl={existingImage}
             required={modal.mode === 'create'}
-            onChange={setImageFile}
+            onChange={(file) => {
+              setImageFile(file);
+              if (formErrors.image) setFormErrors((prev) => ({ ...prev, image: null }));
+            }}
           />
-          <TextField label="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-          <TextField label="Alt Text" value={form.alt} onChange={(e) => setForm({ ...form, alt: e.target.value })} />
+          {formErrors.image && <p className="-mt-2 text-[11px] font-semibold text-rose-600">{formErrors.image}</p>}
+          <TextField label="Category" value={form.category} error={formErrors.category} onChange={(e) => updateField('category', e.target.value)} />
+          <TextField label="Alt Text" value={form.alt} error={formErrors.alt} onChange={(e) => updateField('alt', e.target.value)} />
           <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="LIVE">Live</option>
             <option value="DRAFT">Draft</option>

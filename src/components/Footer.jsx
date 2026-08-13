@@ -71,6 +71,7 @@ export default function Footer() {
                 { to: "/menu", label: "Menu" },
                 { to: "/custom-cake", label: "Custom Cake" },
                 { to: "/gallery", label: "Gallery" },
+                { to: "/reviews", label: "Reviews" },
                 { to: "/contact", label: "Contact" },
               ].map((link) => (
                 <li key={link.to}>

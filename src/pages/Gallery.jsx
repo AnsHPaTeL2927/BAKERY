@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Images } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "../components/PageHeader";
 import { getGallery, trackEvent } from "../services/api";
@@ -99,7 +99,7 @@ export default function Gallery() {
 
         {!loading && filtered.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-5xl mb-4">📸</p>
+            <Images className="w-10 h-10 text-rose/40 mx-auto mb-4" strokeWidth={1.5} aria-hidden="true" />
             <p className="text-cocoa-soft/70 text-lg">No gallery images yet — check back soon!</p>
           </div>
         )}

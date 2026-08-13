@@ -13,6 +13,7 @@ import ImageUploader from '../components/ImageUploader';
 import EmptyState from '../components/EmptyState';
 import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, TextAreaField, SelectField, CheckboxField } from '../components/FormField';
+import DatePicker from '../../components/DatePicker';
 
 const EMPTY_FORM = {
   festival: '',
@@ -37,12 +38,34 @@ export default function AdminOffers() {
 
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState({});
   const [imageFile, setImageFile] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const [pageSize, setPageSize] = useState(10);
+
+  function updateField(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) setFormErrors((prev) => ({ ...prev, [key]: null }));
+  }
+
+  function validateForm() {
+    const errs = {};
+    if (!form.festival?.trim() || form.festival.trim().length < 2) errs.festival = 'Festival name must be at least 2 characters';
+    if (!form.title?.trim() || form.title.trim().length < 2) errs.title = 'Title must be at least 2 characters';
+    if (!form.description?.trim() || form.description.trim().length < 5) errs.description = 'Description must be at least 5 characters';
+    if (!form.discount?.trim()) errs.discount = 'Discount text is required';
+    if (!form.ctaText?.trim()) errs.ctaText = 'CTA text is required';
+    if (!form.startDate) errs.startDate = 'Start date is required';
+    if (!form.endDate) errs.endDate = 'End date is required';
+    if (form.startDate && form.endDate && new Date(form.endDate) < new Date(form.startDate)) {
+      errs.endDate = 'End date must be on or after the start date';
+    }
+    if (modal.mode === 'create' && !imageFile) errs.banner = 'Banner image is required';
+    return errs;
+  }
 
   async function load() {
     setLoading(true);
@@ -69,6 +92,7 @@ export default function AdminOffers() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(null);
     setError('');
@@ -88,6 +112,7 @@ export default function AdminOffers() {
       priority: item.priority,
       status: item.status,
     });
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(item.banner);
     setError('');
@@ -96,8 +121,15 @@ export default function AdminOffers() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length > 0) {
+      setFormErrors(errs);
+      setError('Please fix the highlighted fields.');
+      return;
+    }
     setSaving(true);
     setError('');
+    setFormErrors({});
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([key, value]) => fd.append(key, value));
@@ -237,39 +269,58 @@ export default function AdminOffers() {
               dimensions="1200 × 600 px"
               initialUrl={existingImage}
               required={modal.mode === 'create'}
-              onChange={setImageFile}
+              onChange={(file) => {
+                setImageFile(file);
+                if (formErrors.banner) setFormErrors({ ...formErrors, banner: null });
+              }}
             />
+            {formErrors.banner && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.banner}</p>}
           </div>
-          <TextField label="Festival" required value={form.festival} onChange={(e) => setForm({ ...form, festival: e.target.value })} />
-          <TextField label="Title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <TextField label="Festival" required value={form.festival} error={formErrors.festival} onChange={(e) => updateField('festival', e.target.value)} />
+          <TextField label="Title" required value={form.title} error={formErrors.title} onChange={(e) => updateField('title', e.target.value)} />
           <TextAreaField
             label="Description"
             required
             containerClassName="md:col-span-2"
             value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            error={formErrors.description}
+            onChange={(e) => updateField('description', e.target.value)}
           />
-          <TextField label="Discount Text" required value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} />
-          <TextField label="CTA Text" required value={form.ctaText} onChange={(e) => setForm({ ...form, ctaText: e.target.value })} />
-          <TextField
-            label="Start Date"
-            type="date"
-            required
-            value={form.startDate}
-            onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            required
-            value={form.endDate}
-            onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-          />
+          <TextField label="Discount Text" required value={form.discount} error={formErrors.discount} onChange={(e) => updateField('discount', e.target.value)} />
+          <TextField label="CTA Text" required value={form.ctaText} error={formErrors.ctaText} onChange={(e) => updateField('ctaText', e.target.value)} />
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-admin-text">
+              Start Date <span className="text-admin-primary">*</span>
+            </label>
+            <DatePicker
+              theme="admin"
+              value={form.startDate}
+              placeholder="Select start date"
+              onChange={(date) => {
+                updateField('startDate', date);
+                if (formErrors.endDate) setFormErrors((prev) => ({ ...prev, endDate: null }));
+              }}
+            />
+            {formErrors.startDate && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.startDate}</p>}
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-admin-text">
+              End Date <span className="text-admin-primary">*</span>
+            </label>
+            <DatePicker
+              theme="admin"
+              value={form.endDate}
+              min={form.startDate || undefined}
+              placeholder="Select end date"
+              onChange={(date) => updateField('endDate', date)}
+            />
+            {formErrors.endDate && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.endDate}</p>}
+          </div>
           <TextField
             label="Priority"
             type="number"
             value={form.priority}
-            onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })}
+            onChange={(e) => updateField('priority', Number(e.target.value))}
           />
           <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="LIVE">Live</option>

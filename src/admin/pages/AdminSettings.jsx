@@ -35,6 +35,7 @@ const EMPTY_FORM = {
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState('general');
   const [form, setForm] = useState(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState({});
   const [logoFile, setLogoFile] = useState(null);
   const [faviconFile, setFaviconFile] = useState(null);
   const [existingLogo, setExistingLogo] = useState(null);
@@ -65,6 +66,30 @@ export default function AdminSettings() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  function updateField(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) setFormErrors((prev) => ({ ...prev, [key]: null }));
+  }
+
+  function validateForm() {
+    const errs = {};
+    const siteName = form.siteName?.trim() || '';
+    if (siteName.length < 2 || siteName.length > 150) errs.siteName = 'Site name must be between 2 and 150 characters';
+    if (form.whatsapp?.trim() && !/^\d{10,15}$/.test(form.whatsapp.trim())) {
+      errs.whatsapp = 'Use digits only, with country code (10–15 digits)';
+    }
+    if (form.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      errs.email = 'Enter a valid email address';
+    }
+    if (form.instagram?.trim() && !/^https?:\/\/.+/.test(form.instagram.trim())) {
+      errs.instagram = 'Enter a full URL, e.g. https://instagram.com/yourpage';
+    }
+    if (form.facebook?.trim() && !/^https?:\/\/.+/.test(form.facebook.trim())) {
+      errs.facebook = 'Enter a full URL, e.g. https://facebook.com/yourpage';
+    }
+    return errs;
+  }
 
   function handleWhatsAppPrefChange(newPref) {
     setWhatsappPref(newPref);
@@ -121,9 +146,17 @@ export default function AdminSettings() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length > 0) {
+      setFormErrors(errs);
+      setError('Please fix the highlighted fields.');
+      setSuccess('');
+      return;
+    }
     setSaving(true);
     setError('');
     setSuccess('');
+    setFormErrors({});
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([key, value]) => fd.append(key, value ?? ''));
@@ -227,31 +260,32 @@ export default function AdminSettings() {
               }}
             />
           </div>
-          <TextField label="Site Name" required value={form.siteName} onChange={(e) => setForm({ ...form, siteName: e.target.value })} />
-          <TextField label="Tagline" value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} />
+          <TextField label="Site Name" required value={form.siteName} error={formErrors.siteName} onChange={(e) => updateField('siteName', e.target.value)} />
+          <TextField label="Tagline" value={form.tagline} onChange={(e) => updateField('tagline', e.target.value)} />
           <TextAreaField
             label="Description"
             containerClassName="md:col-span-2"
             value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            onChange={(e) => updateField('description', e.target.value)}
           />
-          <TextField label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <TextField label="Phone" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} />
           <TextField
             label="WhatsApp Number"
             placeholder="e.g. 918780652597"
             value={form.whatsapp}
-            onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+            error={formErrors.whatsapp}
+            onChange={(e) => updateField('whatsapp', e.target.value)}
           />
-          <TextField label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <TextField label="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          <TextField label="Email" type="email" value={form.email} error={formErrors.email} onChange={(e) => updateField('email', e.target.value)} />
+          <TextField label="Address" value={form.address} onChange={(e) => updateField('address', e.target.value)} />
           <TextField
             label="Working Hours"
             containerClassName="md:col-span-2"
             value={form.hours}
-            onChange={(e) => setForm({ ...form, hours: e.target.value })}
+            onChange={(e) => updateField('hours', e.target.value)}
           />
-          <TextField label="Instagram URL" value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} />
-          <TextField label="Facebook URL" value={form.facebook} onChange={(e) => setForm({ ...form, facebook: e.target.value })} />
+          <TextField label="Instagram URL" placeholder="https://instagram.com/yourpage" value={form.instagram} error={formErrors.instagram} onChange={(e) => updateField('instagram', e.target.value)} />
+          <TextField label="Facebook URL" placeholder="https://facebook.com/yourpage" value={form.facebook} error={formErrors.facebook} onChange={(e) => updateField('facebook', e.target.value)} />
           <button
             type="submit"
             disabled={saving}

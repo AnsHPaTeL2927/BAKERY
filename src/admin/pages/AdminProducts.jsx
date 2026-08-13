@@ -54,6 +54,7 @@ export default function AdminProducts() {
 
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState({});
   const [weightRows, setWeightRows] = useState([{ weight: '', price: '' }]);
   const [flavoursList, setFlavoursList] = useState([]);
   const [flavourDraft, setFlavourDraft] = useState('');
@@ -119,6 +120,26 @@ export default function AdminProducts() {
     categoriesApi.list({ page: 1, pageSize: 100 }).then((data) => setCategories(data.items)).catch(() => {});
   }, []);
 
+  function updateField(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) setFormErrors((prev) => ({ ...prev, [key]: null }));
+  }
+
+  function validateForm() {
+    const errs = {};
+    const name = form.name?.trim() || '';
+    if (name.length < 2 || name.length > 150) errs.name = 'Name must be between 2 and 150 characters';
+    const slug = form.slug?.trim() || '';
+    if (!slug) {
+      errs.slug = 'Slug is required';
+    } else if (!/^[a-z0-9-]+$/.test(slug)) {
+      errs.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
+    }
+    const description = form.description?.trim() || '';
+    if (description.length < 10 || description.length > 4000) errs.description = 'Description must be between 10 and 4000 characters';
+    return errs;
+  }
+
   function resetImageState() {
     setExistingImages([]);
     setRemoveImageIds([]);
@@ -128,6 +149,7 @@ export default function AdminProducts() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setFormErrors({});
     setWeightRows([{ weight: '', price: '' }]);
     setFlavoursList([]);
     setFlavourDraft('');
@@ -156,6 +178,7 @@ export default function AdminProducts() {
     setRemoveImageIds([]);
     setPrimaryImageId(item.images?.find((img) => img.isPrimary)?.id || null);
     setNewFiles([]);
+    setFormErrors({});
     setError('');
     setModal({ open: true, mode: 'edit', id: item.id });
   }
@@ -199,24 +222,41 @@ export default function AdminProducts() {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    const errs = validateForm();
+
     const validRows = weightRows.filter((row) => row.weight.trim());
     if (validRows.length === 0) {
-      setError('Add at least one weight/size option with a price');
-      return;
+      errs.weights = 'Add at least one weight/size option with a price';
+    } else if (validRows.some((row) => row.price === '' || Number.isNaN(Number(row.price)) || Number(row.price) < 0)) {
+      errs.weights = 'Enter a valid, non-negative price for every weight/size option';
+    } else {
+      const seen = new Set();
+      const hasDuplicate = validRows.some((row) => {
+        const key = row.weight.trim().toLowerCase();
+        if (seen.has(key)) return true;
+        seen.add(key);
+        return false;
+      });
+      if (hasDuplicate) errs.weights = 'Each weight/size option must be unique';
     }
 
     const remainingExisting = existingImages.filter((img) => !removeImageIds.includes(img.id));
     if (modal.mode === 'create' && newFiles.length === 0) {
-      setError('At least one product image is required');
-      return;
+      errs.images = 'At least one product image is required';
     }
     if (modal.mode === 'edit' && remainingExisting.length === 0 && newFiles.length === 0) {
-      setError('A product needs at least one image');
+      errs.images = 'A product needs at least one image';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setFormErrors(errs);
+      setError(errs.weights || errs.images || 'Please fix the highlighted fields.');
       return;
     }
 
     setSaving(true);
     setError('');
+    setFormErrors({});
     try {
       const weights = validRows.map((row) => row.weight.trim());
       const priceByWeight = Object.fromEntries(validRows.map((row) => [row.weight.trim(), Number(row.price) || 0]));
@@ -628,8 +668,8 @@ export default function AdminProducts() {
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Product' : 'Edit Product'} onClose={() => setModal({ ...modal, open: false })} wide>
         <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
           {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa md:col-span-2">{error}</p>}
-          <TextField label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <TextField label="Slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+          <TextField label="Name" required value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
+          <TextField label="Slug" required value={form.slug} error={formErrors.slug} onChange={(e) => updateField('slug', e.target.value)} />
           <SelectField
             label="Category"
             value={form.categoryId}
@@ -653,7 +693,8 @@ export default function AdminProducts() {
             required
             containerClassName="md:col-span-2"
             value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            error={formErrors.description}
+            onChange={(e) => updateField('description', e.target.value)}
           />
 
           <div className="md:col-span-2">
@@ -689,6 +730,7 @@ export default function AdminProducts() {
             <button type="button" onClick={addWeightRow} className="mt-2 text-sm font-semibold text-rose-deep hover:underline">
               + Add another size
             </button>
+            {formErrors.weights && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.weights}</p>}
           </div>
 
           <div className="md:col-span-2">
@@ -787,6 +829,7 @@ export default function AdminProducts() {
             </div>
             <p className="mt-1 text-xs text-cocoa-soft/70">Recommended Size: 800 × 800 px</p>
             <p className="text-xs text-cocoa-soft/70">Formats: JPG, PNG, WEBP · Max Size: 5 MB</p>
+            {formErrors.images && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.images}</p>}
           </div>
 
           <div>

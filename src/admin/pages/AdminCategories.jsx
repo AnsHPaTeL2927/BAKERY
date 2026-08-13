@@ -29,12 +29,33 @@ export default function AdminCategories() {
 
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState({});
   const [imageFile, setImageFile] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const [pageSize, setPageSize] = useState(10);
+
+  function updateField(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) setFormErrors((prev) => ({ ...prev, [key]: null }));
+  }
+
+  function validateForm() {
+    const errs = {};
+    const name = form.name?.trim() || '';
+    if (name.length < 2 || name.length > 120) errs.name = 'Name must be between 2 and 120 characters';
+    const slug = form.slug?.trim() || '';
+    if (!slug) {
+      errs.slug = 'Slug is required';
+    } else if (!/^[a-z0-9-]+$/.test(slug)) {
+      errs.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
+    }
+    if (form.description && form.description.length > 240) errs.description = 'Description must be 240 characters or fewer';
+    if (modal.mode === 'create' && !imageFile) errs.image = 'Category image is required';
+    return errs;
+  }
 
   async function load() {
     setLoading(true);
@@ -61,6 +82,7 @@ export default function AdminCategories() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(null);
     setError('');
@@ -69,6 +91,7 @@ export default function AdminCategories() {
 
   function openEdit(item) {
     setForm({ name: item.name, slug: item.slug, description: item.description || '', status: item.status });
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(item.image);
     setError('');
@@ -77,8 +100,15 @@ export default function AdminCategories() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length > 0) {
+      setFormErrors(errs);
+      setError('Please fix the highlighted fields.');
+      return;
+    }
     setSaving(true);
     setError('');
+    setFormErrors({});
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([key, value]) => fd.append(key, value));
@@ -321,22 +351,27 @@ export default function AdminCategories() {
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Category' : 'Edit Category'} onClose={() => setModal({ ...modal, open: false })}>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
-          <TextField label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <TextField label="Slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+          <TextField label="Name" required value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
+          <TextField label="Slug" required value={form.slug} error={formErrors.slug} onChange={(e) => updateField('slug', e.target.value)} />
           <TextAreaField
             label="Short Description"
             placeholder="Optional — shown under the category on the homepage (e.g. 'Rich, layered, and made for celebrations')"
             maxLength={240}
             value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            error={formErrors.description}
+            onChange={(e) => updateField('description', e.target.value)}
           />
           <ImageUploader
             label="Category Image"
             dimensions="800 × 800 px"
             initialUrl={existingImage}
             required={modal.mode === 'create'}
-            onChange={setImageFile}
+            onChange={(file) => {
+              setImageFile(file);
+              if (formErrors.image) setFormErrors((prev) => ({ ...prev, image: null }));
+            }}
           />
+          {formErrors.image && <p className="-mt-2 text-[11px] font-semibold text-rose-600">{formErrors.image}</p>}
           <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="LIVE">Live</option>
             <option value="DRAFT">Draft</option>

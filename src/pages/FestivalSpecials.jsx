@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { getPublicContent } from "../services/api";
 import SafeImage from "../components/SafeImage";
@@ -78,9 +79,9 @@ function EvergreenFestivalFallback({ bestSellers, upcoming, whatsapp }) {
   return (
     <div className="space-y-16">
       <ScrollReveal className="text-center max-w-xl mx-auto">
-        <p className="text-5xl mb-4" aria-hidden="true">🎉</p>
+        <Sparkles className="w-9 h-9 text-rose/40 mx-auto mb-4" strokeWidth={1.5} aria-hidden="true" />
         <h2 className="font-display font-semibold text-2xl md:text-3xl text-cocoa mb-3">
-          Sweet Moments, All Year Round ❤️
+          Sweet Moments, All Year Round
         </h2>
         <p className="text-cocoa-soft/70 leading-relaxed">
           No special festival collection is running right now, but there's always something worth celebrating.
@@ -122,7 +123,7 @@ function EvergreenFestivalFallback({ bestSellers, upcoming, whatsapp }) {
       {bestSellers.length > 0 && (
         <div>
           <p className="text-center font-script text-2xl text-rose-deep mb-1">Customer Favourites</p>
-          <h3 className="text-center font-display font-semibold text-2xl text-cocoa mb-8">Our Most Loved Cakes ❤️</h3>
+          <h3 className="text-center font-display font-semibold text-2xl text-cocoa mb-8">Our Most Loved Cakes</h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {bestSellers.map((p, i) => (
               <ScrollReveal key={p.id} delay={i * 80}>

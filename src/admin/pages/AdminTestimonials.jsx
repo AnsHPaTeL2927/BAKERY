@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Star, MessageSquareQuote, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, MessageSquareQuote, Eye, EyeOff, Check, X } from 'lucide-react';
 import { testimonialsApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import CardListItem from '../components/CardListItem';
@@ -16,16 +16,32 @@ import { TextField, TextAreaField, SelectField, CheckboxField } from '../compone
 
 const EMPTY_FORM = { name: '', review: '', rating: 5, approved: true, featured: false, status: 'LIVE', sortOrder: 0 };
 
+const APPROVAL_FILTERS = [
+  { value: '', label: 'All' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'approved', label: 'Approved' },
+];
+
+function formatDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export default function AdminTestimonials() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [approval, setApproval] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState({});
   const [imageFile, setImageFile] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -33,12 +49,29 @@ export default function AdminTestimonials() {
 
   const [pageSize, setPageSize] = useState(10);
 
+  function updateField(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) setFormErrors((prev) => ({ ...prev, [key]: null }));
+  }
+
+  function validateForm() {
+    const errs = {};
+    const name = form.name?.trim() || '';
+    if (name.length < 2 || name.length > 120) errs.name = 'Name must be between 2 and 120 characters';
+    const review = form.review?.trim() || '';
+    if (review.length < 5 || review.length > 2000) errs.review = 'Review must be between 5 and 2000 characters';
+    const rating = Number(form.rating);
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) errs.rating = 'Rating must be between 1 and 5 stars';
+    return errs;
+  }
+
   async function load() {
     setLoading(true);
     try {
-      const data = await testimonialsApi.list({ page, pageSize, search });
+      const data = await testimonialsApi.list({ page, pageSize, search, approval: approval || undefined });
       setItems(data.items);
       setTotal(data.total);
+      setPendingCount(data.pendingCount ?? 0);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -49,7 +82,7 @@ export default function AdminTestimonials() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, approval]);
 
   function handlePageSizeChange(size) {
     setPageSize(size);
@@ -58,6 +91,7 @@ export default function AdminTestimonials() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(null);
     setError('');
@@ -74,6 +108,7 @@ export default function AdminTestimonials() {
       status: item.status,
       sortOrder: item.sortOrder,
     });
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(item.photo);
     setError('');
@@ -82,8 +117,15 @@ export default function AdminTestimonials() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length > 0) {
+      setFormErrors(errs);
+      setError('Please fix the highlighted fields.');
+      return;
+    }
     setSaving(true);
     setError('');
+    setFormErrors({});
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([key, value]) => fd.append(key, value));
@@ -119,6 +161,18 @@ export default function AdminTestimonials() {
     load();
   }
 
+  // Reviews submitted from the public site arrive unapproved and hidden.
+  // Approving publishes them in one step; rejecting leaves the row in place
+  // (searchable, deletable) but keeps it off the site.
+  async function handleApproval(item, approved) {
+    try {
+      await testimonialsApi.setApproval(item.id, approved);
+      load();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   function renderTestimonialCard(item) {
     return (
       <CardListItem
@@ -137,10 +191,17 @@ export default function AdminTestimonials() {
               ))}
             </span>
             {item.featured && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-cocoa">Featured</span>}
-            {!item.approved && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600">Unapproved</span>}
+            {!item.approved && (
+              <span className="rounded-full bg-admin-warning/15 px-2 py-0.5 text-[10px] font-bold text-admin-warning">
+                Pending approval
+              </span>
+            )}
           </div>
         }
         actions={[
+          item.approved
+            ? { icon: X, label: 'Un-approve', onClick: () => handleApproval(item, false) }
+            : { icon: Check, label: 'Approve', onClick: () => handleApproval(item, true) },
           {
             icon: item.status === 'LIVE' ? EyeOff : Eye,
             label: item.status === 'LIVE' ? 'Hide' : 'Publish',
@@ -160,6 +221,16 @@ export default function AdminTestimonials() {
         <div>
           <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Social Proof</p>
           <h1 className="font-display text-3xl font-semibold text-cocoa">Testimonials</h1>
+          <p className="mt-1 text-sm text-admin-muted">
+            {pendingCount > 0 ? (
+              <>
+                <span className="font-semibold text-admin-warning">{pendingCount}</span> customer review
+                {pendingCount === 1 ? '' : 's'} waiting for approval
+              </>
+            ) : (
+              'Customer-submitted reviews appear here for approval before going live.'
+            )}
+          </p>
         </div>
         <button
           type="button"
@@ -172,7 +243,37 @@ export default function AdminTestimonials() {
 
       {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
 
-      <SearchInput value={search} onChange={setSearch} placeholder="Search by name…" />
+      <div className="flex flex-wrap items-center gap-3">
+        <SearchInput value={search} onChange={setSearch} placeholder="Search by name…" />
+        <div className="flex gap-2">
+          {APPROVAL_FILTERS.map((filter) => (
+            <button
+              key={filter.value || 'all'}
+              type="button"
+              onClick={() => {
+                setApproval(filter.value);
+                setPage(1);
+              }}
+              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+                approval === filter.value
+                  ? 'bg-admin-primary text-white'
+                  : 'border border-admin-border text-admin-muted hover:bg-admin-bg'
+              }`}
+            >
+              {filter.label}
+              {filter.value === 'pending' && pendingCount > 0 && (
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                    approval === 'pending' ? 'bg-white/25 text-white' : 'bg-admin-warning/15 text-admin-warning'
+                  }`}
+                >
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <DataTable
         loading={loading}
@@ -201,11 +302,45 @@ export default function AdminTestimonials() {
               </span>
             ),
           },
-          { key: 'approved', label: 'Approved', render: (i) => (i.approved ? 'Yes' : 'No') },
+          {
+            key: 'review',
+            label: 'Review',
+            render: (i) => <p className="max-w-xs truncate text-sm text-admin-muted" title={i.review}>{i.review}</p>,
+          },
+          {
+            key: 'approved',
+            label: 'Approval',
+            render: (i) =>
+              i.approved ? (
+                <span className="rounded-full bg-admin-success/10 px-2.5 py-1 text-xs font-semibold text-admin-success">Approved</span>
+              ) : (
+                <span className="rounded-full bg-admin-warning/15 px-2.5 py-1 text-xs font-semibold text-admin-warning">Pending</span>
+              ),
+          },
+          { key: 'createdAt', label: 'Received', render: (i) => <span className="text-sm text-admin-muted">{formatDate(i.createdAt)}</span> },
           { key: 'status', label: 'Status', render: (i) => <StatusBadge status={i.status} /> },
         ]}
         renderActions={(item) => (
           <>
+            {item.approved ? (
+              <button
+                type="button"
+                onClick={() => handleApproval(item, false)}
+                title="Un-approve — removes it from the public site"
+                className="rounded-full border border-admin-border p-1.5 text-admin-muted hover:bg-admin-bg"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleApproval(item, true)}
+                title="Approve and publish"
+                className="flex items-center gap-1 rounded-full bg-admin-success px-3 py-1 text-xs font-semibold text-white hover:opacity-90"
+              >
+                <Check className="h-3.5 w-3.5" /> Approve
+              </button>
+            )}
             <button
               type="button"
               onClick={() => handleStatusToggle(item)}
@@ -237,13 +372,14 @@ export default function AdminTestimonials() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
           <ImageUploader label="Photo (optional)" dimensions="500 × 500 px" initialUrl={existingImage} onChange={setImageFile} />
-          <TextField label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <TextAreaField label="Review" required value={form.review} onChange={(e) => setForm({ ...form, review: e.target.value })} />
+          <TextField label="Name" required value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
+          <TextAreaField label="Review" required value={form.review} error={formErrors.review} onChange={(e) => updateField('review', e.target.value)} />
           <div className="grid grid-cols-2 gap-4">
             <SelectField
               label="Rating"
               value={form.rating}
-              onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })}
+              error={formErrors.rating}
+              onChange={(e) => updateField('rating', Number(e.target.value))}
             >
               {[1, 2, 3, 4, 5].map((n) => (
                 <option key={n} value={n}>

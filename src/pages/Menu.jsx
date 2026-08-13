@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { CakeSlice } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import ProductCard from "../components/ProductCard";
 import CardSkeleton from "../components/loading/CardSkeleton";
@@ -108,7 +109,7 @@ export default function Menu() {
             animate={{ opacity: 1 }}
             className="text-center py-20"
           >
-            <p className="text-5xl mb-4">🍰</p>
+            <CakeSlice className="w-10 h-10 text-rose/40 mx-auto mb-4" strokeWidth={1.5} aria-hidden="true" />
             <p className="text-cocoa-soft/70 text-lg">
               Nothing in this category yet — check back soon, or message us on WhatsApp for a custom order.
             </p>

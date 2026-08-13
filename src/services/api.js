@@ -70,6 +70,24 @@ export async function getGallery() {
   }
 }
 
+// Public review submission. The server forces every submission into the
+// moderation queue, so a resolved promise means "received", never "published" —
+// the UI must say so rather than implying the review is already live.
+export async function submitReview({ name, rating, review }) {
+  return request('/reviews', {
+    method: 'POST',
+    body: JSON.stringify({ name, rating, review }),
+  });
+}
+
+export async function getTestimonials() {
+  try {
+    return await request('/testimonials');
+  } catch {
+    return [];
+  }
+}
+
 export async function submitContactMessage(payload) {
   return request('/contact', {
     method: 'POST',

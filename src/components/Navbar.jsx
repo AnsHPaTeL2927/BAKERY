@@ -12,6 +12,7 @@ const links = [
   { to: "/custom-cake", label: "Custom Cake" },
   { to: "/festival-specials", label: "Festival Specials" },
   { to: "/gallery", label: "Gallery" },
+  { to: "/reviews", label: "Reviews" },
   { to: "/contact", label: "Contact" },
 ];
 
@@ -88,7 +89,7 @@ export default function Navbar() {
         </NavLink>
 
         {/* Desktop nav */}
-        <ul className="hidden lg:flex items-center gap-8 font-semibold text-sm text-cocoa-soft">
+        <ul className="hidden lg:flex items-center gap-6 xl:gap-8 font-semibold text-sm text-cocoa-soft">
           {links.map((l) => (
             <li key={l.to}>
               <NavLink

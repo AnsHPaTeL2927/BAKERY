@@ -28,12 +28,29 @@ export default function AdminBanners() {
 
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState({});
   const [imageFile, setImageFile] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const [pageSize, setPageSize] = useState(10);
+
+  function updateField(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) setFormErrors((prev) => ({ ...prev, [key]: null }));
+  }
+
+  function validateForm() {
+    const errs = {};
+    if (form.title && form.title.length > 200) errs.title = 'Title must be 200 characters or fewer';
+    if (form.subtitle && form.subtitle.length > 300) errs.subtitle = 'Subtitle must be 300 characters or fewer';
+    if (form.ctaText && form.ctaText.length > 60) errs.ctaText = 'CTA text must be 60 characters or fewer';
+    if (form.ctaLink && form.ctaLink.length > 300) errs.ctaLink = 'CTA link must be 300 characters or fewer';
+    if (form.ctaText?.trim() && !form.ctaLink?.trim()) errs.ctaLink = 'Add a link for the CTA button, or clear the CTA text';
+    if (modal.mode === 'create' && !imageFile) errs.image = 'Banner image is required';
+    return errs;
+  }
 
   async function load() {
     setLoading(true);
@@ -60,6 +77,7 @@ export default function AdminBanners() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(null);
     setError('');
@@ -74,6 +92,7 @@ export default function AdminBanners() {
       ctaLink: item.ctaLink || '',
       status: item.status,
     });
+    setFormErrors({});
     setImageFile(null);
     setExistingImage(item.image);
     setError('');
@@ -82,8 +101,15 @@ export default function AdminBanners() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length > 0) {
+      setFormErrors(errs);
+      setError('Please fix the highlighted fields.');
+      return;
+    }
     setSaving(true);
     setError('');
+    setFormErrors({});
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([key, value]) => fd.append(key, value));
@@ -273,13 +299,17 @@ export default function AdminBanners() {
               dimensions="1920 × 800 px"
               initialUrl={existingImage}
               required={modal.mode === 'create'}
-              onChange={setImageFile}
+              onChange={(file) => {
+                setImageFile(file);
+                if (formErrors.image) setFormErrors((prev) => ({ ...prev, image: null }));
+              }}
             />
+            {formErrors.image && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.image}</p>}
           </div>
-          <TextField label="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <TextField label="Subtitle" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
-          <TextField label="CTA Text" value={form.ctaText} onChange={(e) => setForm({ ...form, ctaText: e.target.value })} />
-          <TextField label="CTA Link" value={form.ctaLink} onChange={(e) => setForm({ ...form, ctaLink: e.target.value })} />
+          <TextField label="Title" value={form.title} error={formErrors.title} onChange={(e) => updateField('title', e.target.value)} />
+          <TextField label="Subtitle" value={form.subtitle} error={formErrors.subtitle} onChange={(e) => updateField('subtitle', e.target.value)} />
+          <TextField label="CTA Text" value={form.ctaText} error={formErrors.ctaText} onChange={(e) => updateField('ctaText', e.target.value)} />
+          <TextField label="CTA Link" placeholder="/menu or https://…" value={form.ctaLink} error={formErrors.ctaLink} onChange={(e) => updateField('ctaLink', e.target.value)} />
           <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="LIVE">Live</option>
             <option value="DRAFT">Draft</option>

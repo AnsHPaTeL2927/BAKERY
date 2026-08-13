@@ -30,28 +30,29 @@ export default function HeroCakeAccent({ mousePos = { x: 0, y: 0 }, className = 
         className={`relative w-full h-full transition-transform duration-300 ease-out ${!reducedMotion ? "animate-float-slow" : ""}`}
         style={{ transformStyle: "preserve-3d", transform: tilt }}
       >
-        {/* sparkles */}
+        {/* Ambient gold specks — drawn, not emoji: the accent has to read as a
+            considered brand mark on a professional site, and pasted emoji
+            render differently on every platform anyway. */}
         <span
-          className={`absolute -top-1 -right-1 text-base md:text-lg ${!reducedMotion ? "animate-float" : ""}`}
+          className={`absolute -top-1 -right-1 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gold/80 ${
+            !reducedMotion ? "animate-gentle-pulse" : ""
+          }`}
           style={{ animationDelay: "0.3s" }}
-        >
-          ✨
-        </span>
+        />
         <span
-          className={`absolute top-5 -left-3 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gold/70 ${
+          className={`absolute top-5 -left-3 w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-gold/60 ${
             !reducedMotion ? "animate-gentle-pulse" : ""
           }`}
         />
 
-        {/* candle */}
+        {/* candle + flame, both CSS shapes */}
         <div className="absolute left-1/2 -translate-x-1/2 -top-6 md:-top-7 w-1 md:w-1.5 h-5 md:h-6 rounded-full bg-gold shadow-sm">
-          <div
-            className={`absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs md:text-sm ${
+          <span
+            className={`absolute -top-2 left-1/2 -translate-x-1/2 w-1.5 h-2.5 md:w-2 md:h-3 bg-gradient-to-t from-gold to-blush ${
               !reducedMotion ? "animate-gentle-pulse" : ""
             }`}
-          >
-            🔥
-          </div>
+            style={{ borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%" }}
+          />
         </div>
 
         {/* tiers — stacked back-to-front with translateZ for depth */}

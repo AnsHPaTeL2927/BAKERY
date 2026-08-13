@@ -1,8 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Sparkles, Heart, Leaf, ChefHat, ShieldCheck, Clock, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Star, Sparkles, Heart, Leaf, ChefHat, ShieldCheck, Clock, Quote, ChevronLeft, ChevronRight,
+  Wheat, Flame, Palette, Gift, MessageCircle, ClipboardCheck, Truck, Plus, Minus, BadgeCheck,
+} from "lucide-react";
 import { getPublicContent } from "../services/api";
+import { StarRatingDisplay } from "../components/StarRating";
 import IcingDivider from "../components/IcingDivider";
 import ProductCard from "../components/ProductCard";
 import SafeImage from "../components/SafeImage";
@@ -24,13 +28,48 @@ function isInternalLink(link) {
 
 const icons = [Heart, Leaf, Sparkles, ChefHat, Star, Clock, ShieldCheck];
 
-/* ─── Storytelling steps ─────────────────────────────────────────── */
-const storySteps = [
-  { title: "Finest Ingredients", desc: "Hand-picked butter, Belgian chocolate, seasonal fruit.", icon: "🧈" },
-  { title: "Crafted by Hand", desc: "Every layer mixed, folded and shaped with care.", icon: "🤲" },
-  { title: "Baked with Love", desc: "Slow-baked in small batches, never mass-produced.", icon: "🔥" },
-  { title: "Beautifully Finished", desc: "Decorated with precision, piped by hand.", icon: "🎂" },
-  { title: "Ready to Celebrate", desc: "Delivered fresh to your door for every occasion.", icon: "🎉" },
+/* ─── Our Process — the craft story, told as a numbered sequence ──── */
+const processSteps = [
+  { title: "Finest Ingredients", desc: "Hand-picked butter, Belgian chocolate and seasonal fruit — sourced in small batches.", Icon: Wheat },
+  { title: "Crafted by Hand", desc: "Every layer is mixed, folded and shaped by hand. No pre-mixes, no shortcuts.", Icon: ChefHat },
+  { title: "Baked to Order", desc: "Slow-baked in small batches on the day of your event — never mass-produced.", Icon: Flame },
+  { title: "Finished with Precision", desc: "Piped, layered and decorated to match the theme you asked for.", Icon: Palette },
+  { title: "Ready to Celebrate", desc: "Boxed, protected and handed over fresh for pickup or delivery.", Icon: Gift },
+];
+
+/* ─── Custom cake ordering journey ───────────────────────────────── */
+const orderSteps = [
+  { title: "Share your brief", desc: "Occasion, date, flavour, theme and budget — a rough idea is enough to start.", Icon: MessageCircle },
+  { title: "Approve the quote", desc: "We confirm the design, weight and price on WhatsApp before anything is baked.", Icon: ClipboardCheck },
+  { title: "Collect or get it delivered", desc: "Baked fresh on your date and ready exactly when you need it.", Icon: Truck },
+];
+
+/* ─── FAQ — the questions that actually block an order ───────────── */
+const faqs = [
+  {
+    q: "How far in advance should I place my order?",
+    a: "For regular cakes, 24–48 hours is usually enough. For custom or tiered designs — and around festivals — we recommend 3 to 5 days so we can reserve your date and source anything special.",
+  },
+  {
+    q: "Can you make a cake to a specific design or theme?",
+    a: "Yes — custom work is what we do most. Send a reference photo or just describe the idea, and we'll come back with what's achievable, the right weight and a firm quote.",
+  },
+  {
+    q: "How is the price decided?",
+    a: "Price depends on weight, flavour and how detailed the decoration is. You'll always get the final figure confirmed on WhatsApp before we begin, so there are no surprises later.",
+  },
+  {
+    q: "Do you deliver, or is it pickup only?",
+    a: "Both. Pickup is available from our kitchen at a time we agree, and delivery can be arranged for most orders — just mention it when you enquire and we'll confirm availability for your area.",
+  },
+  {
+    q: "How do I actually place an order?",
+    a: "Message us on WhatsApp with your requirement, or fill in the Custom Cake form on this site — it opens a pre-filled WhatsApp chat with all your details ready to send.",
+  },
+  {
+    q: "How fresh is the cake?",
+    a: "Every order is baked to order, not taken from a display case. Your cake is made close to your event date so it reaches you at its best.",
+  },
 ];
 
 export default function Home() {
@@ -62,6 +101,14 @@ export default function Home() {
   // Date-aware: an offer past its own `endDate` never renders here, even if
   // an admin forgot to flip its "active" toggle off (see server's getOffers).
   const activeOffer = festivalOffers.find((o) => o.isCurrentlyActive ?? o.active);
+  // Published reviews only — the public endpoint already filters to
+  // approved+LIVE, so this average is the real, moderated score and never
+  // includes anything sitting in the admin's approval queue.
+  const publishedReviews = reviews.filter((r) => r.approved !== false);
+  const reviewCount = publishedReviews.length;
+  const averageRating = reviewCount
+    ? publishedReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / reviewCount
+    : 0;
   const bestSellers = products.filter((p) => p.featured).slice(0, 6);
   // No products flagged "featured" yet shouldn't mean an empty Best Sellers
   // grid — fall back to whatever is in the live catalog so the section
@@ -79,6 +126,9 @@ export default function Home() {
         waLink={waLink}
         loading={loading}
       />
+
+      {/* ═══ TRUST BAR ═══ */}
+      <TrustBar averageRating={averageRating} reviewCount={reviewCount} loading={loading} />
 
       <IcingDivider className="text-blush" />
 
@@ -99,7 +149,7 @@ export default function Home() {
               <h2 className="font-display font-semibold text-2xl md:text-4xl">{activeOffer.title}</h2>
               <p className="mt-3 text-ivory/85 max-w-sm">{activeOffer.description}</p>
               <div className="mt-5 flex flex-wrap items-center gap-3">
-                <div className="inline-flex items-center gap-2 bg-gold text-cocoa font-bold px-4 py-1.5 rounded-full text-sm badge-float">
+                <div className="inline-flex items-center gap-2 bg-gold text-cocoa font-bold px-4 py-1.5 rounded-full text-sm">
                   {activeOffer.discount}
                 </div>
                 <OfferCountdown endDate={activeOffer.endDate} />
@@ -172,7 +222,7 @@ export default function Home() {
           // No categories configured yet — a bare/broken-looking grid would
           // undercut trust, so this collapses into a single discovery CTA.
           <ScrollReveal className="mt-10 text-center rounded-[2rem] border border-blush/50 bg-ivory py-14 px-6">
-            <p className="text-4xl mb-3" aria-hidden="true">🍰</p>
+            <Sparkles className="w-9 h-9 text-rose/40 mx-auto mb-4" strokeWidth={1.5} aria-hidden="true" />
             <p className="font-display font-semibold text-cocoa text-lg mb-2">Fresh Bakes, Ready to Explore</p>
             <p className="text-cocoa-soft/70 max-w-sm mx-auto mb-6">
               Browse our full menu of homemade cakes and treats — new categories are added all the time.
@@ -190,7 +240,7 @@ export default function Home() {
           <ScrollReveal>
             <SectionTitle
               eyebrow="Customer Favourites"
-              title="Our Most Loved Cakes ❤️"
+              title="Our Most Loved Cakes"
               description="The cakes our customers keep coming back for."
             />
           </ScrollReveal>
@@ -221,7 +271,7 @@ export default function Home() {
             // Catalog is genuinely empty — still give people a reason to
             // reach out rather than showing nothing at all.
             <ScrollReveal className="mt-10 text-center rounded-[2rem] border border-blush/50 bg-ivory py-14 px-6">
-              <p className="text-4xl mb-3" aria-hidden="true">🧁</p>
+              <ChefHat className="w-9 h-9 text-rose/40 mx-auto mb-4" strokeWidth={1.5} aria-hidden="true" />
               <p className="font-display font-semibold text-cocoa text-lg mb-2">Fresh Batches Coming Very Soon</p>
               <p className="text-cocoa-soft/70 max-w-sm mx-auto mb-6">
                 Our menu is being updated — message us on WhatsApp and we'll tell you what's fresh out of the oven today.
@@ -270,69 +320,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ STORYTELLING ═══ */}
-      <section className="relative bg-cocoa text-cream overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-rose blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-56 h-56 rounded-full bg-gold blur-3xl" />
-        </div>
-        <div className="relative max-w-6xl mx-auto px-5 md:px-8 py-20 md:py-32">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="font-script text-3xl text-blush mb-2">Our Process</p>
-              <h2 className="font-display font-semibold text-2xl md:text-4xl text-cream">From Kitchen to Celebration</h2>
-            </div>
-          </ScrollReveal>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-4">
-            {storySteps.map((step, i) => (
-              <ScrollReveal key={step.title} delay={i * 100} distance={24}>
-                <div className="text-center group">
-                  <div className="text-4xl md:text-5xl mb-4 transition-transform duration-500 group-hover:scale-110">
-                    {step.icon}
-                  </div>
-                  <p className="font-display font-semibold text-cream text-sm md:text-base mb-1">{step.title}</p>
-                  <p className="text-cream/60 text-xs md:text-sm leading-relaxed">{step.desc}</p>
-                  {i < storySteps.length - 1 && (
-                    <div className="hidden md:block mt-4 mx-auto w-8 h-[2px] bg-cream/20 rounded-full" />
-                  )}
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ═══ OUR PROCESS ═══ */}
+      <ProcessSection />
 
-      {/* ═══ CUSTOM CAKE BANNER ═══ */}
-      <section className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24">
-        <ScrollReveal>
-          <div className="relative rounded-[2rem] overflow-hidden bg-cocoa text-cream grid md:grid-cols-2 items-center">
-            <ParallaxLayer speed={0.05} className="absolute inset-0 pointer-events-none">
-              <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-rose/10 blur-3xl" />
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-gold/10 blur-2xl" />
-            </ParallaxLayer>
-            <div className="p-8 md:p-12 relative z-10">
-              <p className="font-script text-3xl text-blush mb-1">Made Just for You</p>
-              <h2 className="font-display font-semibold text-2xl md:text-4xl">Custom Cakes for Every Occasion</h2>
-              <p className="mt-3 text-cream/70 max-w-sm leading-relaxed">
-                Birthdays, anniversaries, weddings, baby showers, corporate events — tell us your vision and we'll bake it.
-              </p>
-              <div className="mt-6">
-                <AnimatedButton to="/custom-cake" arrow>
-                  Request Custom Cake
-                </AnimatedButton>
-              </div>
-            </div>
-            <div className="h-56 md:h-full img-zoom-container">
-              <SafeImage
-                src={customCakeDefault}
-                fallback={customCakeDefault}
-                alt="Custom tiered celebration cake"
-                className="w-full h-full object-cover opacity-85 img-zoom-target"
-              />
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
+      {/* ═══ CUSTOM CAKE ═══ */}
+      <CustomCakeSection waLink={waLink} />
 
       {/* ═══ GALLERY PREVIEW ═══ */}
       <section className="max-w-6xl mx-auto px-5 md:px-8 pb-16 md:pb-24">
@@ -368,17 +360,21 @@ export default function Home() {
       </section>
 
       {/* ═══ TESTIMONIALS ═══ */}
-      {!loading && reviews.filter((r) => r.approved !== false).length > 0 && (
-        <TestimonialsSection reviews={reviews.filter((r) => r.approved !== false)} />
+      {/* Renders even with zero published reviews — an empty reviews section is
+          a conversion opportunity ("be the first"), not something to hide. */}
+      {!loading && (
+        <TestimonialsSection reviews={publishedReviews} averageRating={averageRating} />
       )}
+
+      {/* ═══ FAQ ═══ */}
+      <FaqSection waLink={waLink} />
 
       {/* ═══ FINAL CTA ═══ */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blush-soft via-cream to-blush-soft/50" />
         <ParallaxLayer speed={0.08} className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 right-1/4 text-6xl opacity-10 animate-float-slow">🎂</div>
-          <div className="absolute bottom-1/3 left-1/6 text-5xl opacity-10 animate-float" style={{ animationDelay: "1s" }}>🧁</div>
-          <div className="absolute top-1/3 left-1/3 text-4xl opacity-10 animate-float-slow" style={{ animationDelay: "2s" }}>✨</div>
+          <div className="absolute -top-16 right-[12%] w-72 h-72 rounded-full bg-blush/40 blur-3xl" />
+          <div className="absolute -bottom-20 left-[8%] w-64 h-64 rounded-full bg-rose/10 blur-3xl" />
         </ParallaxLayer>
         <div className="relative max-w-6xl mx-auto px-5 md:px-8 py-20 md:py-32 text-center">
           <ScrollReveal>
@@ -410,6 +406,294 @@ export default function Home() {
   );
 }
 
+/* ═══ TRUST BAR ═══ */
+// The first thing below the hero: four reasons to keep scrolling. The rating
+// tile is driven by real published reviews and simply drops out when there are
+// none yet — an invented score would be worse than no score.
+function TrustBar({ averageRating, reviewCount, loading }) {
+  const items = [
+    reviewCount > 0 && {
+      key: "rating",
+      Icon: Star,
+      title: `${averageRating.toFixed(1)} out of 5`,
+      detail: `Rated by ${reviewCount} customer${reviewCount === 1 ? "" : "s"}`,
+      to: "/reviews",
+    },
+    { key: "fresh", Icon: Flame, title: "Baked to Order", detail: "Never pre-made, never from a display case" },
+    { key: "custom", Icon: Palette, title: "Fully Customisable", detail: "Your theme, flavour, colours and message" },
+    { key: "whatsapp", Icon: MessageCircle, title: "Order in Minutes", detail: "Straight from WhatsApp — no app, no account" },
+  ].filter(Boolean);
+
+  return (
+    <section className="border-y border-blush/50 bg-ivory">
+      <div className="max-w-6xl mx-auto px-5 md:px-8">
+        {loading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="py-7 px-4">
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ul className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-blush/40">
+            {items.map(({ key, Icon, title, detail, to }) => {
+              const body = (
+                <>
+                  <Icon className="w-5 h-5 text-rose shrink-0 mt-0.5" strokeWidth={1.75} aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block font-display font-semibold text-cocoa text-sm md:text-base leading-snug">{title}</span>
+                    <span className="block text-xs md:text-sm text-cocoa-soft/65 leading-snug mt-0.5">{detail}</span>
+                  </span>
+                </>
+              );
+              return (
+                <li key={key} className="py-6 px-4 md:px-6">
+                  {to ? (
+                    <Link to={to} className="flex items-start gap-3 group transition-colors hover:text-rose-deep">
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className="flex items-start gap-3">{body}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* ═══ OUR PROCESS ═══ */
+// Numbered, icon-led sequence on the dark panel. On mobile it reads as a
+// vertical timeline with a connecting rail (one step at a time, no cramped
+// 2-column grid); from `lg` it opens into the five-across row.
+function ProcessSection() {
+  return (
+    <section className="relative bg-cocoa text-cream overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.07] pointer-events-none">
+        <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-rose blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-56 h-56 rounded-full bg-gold blur-3xl" />
+      </div>
+
+      <div className="relative max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-28">
+        <ScrollReveal>
+          <div className="text-center mb-12 md:mb-16">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blush mb-3">Our Process</p>
+            <h2 className="font-display font-semibold text-2xl md:text-4xl text-cream">From Kitchen to Celebration</h2>
+            <p className="mt-4 text-cream/60 max-w-lg mx-auto leading-relaxed">
+              Five steps, every single order — so you know exactly what you're paying for.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        <div className="relative">
+          {/* Vertical rail (mobile/tablet) becomes a horizontal one on desktop.
+              Lives outside the <ol> — an <ol> may only contain <li>. */}
+          <span
+            aria-hidden="true"
+            className="absolute left-[27px] top-4 bottom-4 w-px bg-cream/15 lg:left-0 lg:right-0 lg:top-7 lg:bottom-auto lg:h-px lg:w-auto lg:mx-[10%]"
+          />
+
+          <ol className="relative grid gap-8 lg:grid-cols-5 lg:gap-6">
+            {processSteps.map((step, i) => (
+              <ScrollReveal as="li" key={step.title} delay={i * 90} distance={20} className="relative">
+                <div className="flex gap-5 lg:flex-col lg:items-center lg:text-center lg:gap-0">
+                  {/* Numbered icon medallion */}
+                  <span className="relative shrink-0 w-14 h-14 rounded-2xl bg-cocoa border border-cream/15 flex items-center justify-center lg:mx-auto">
+                    <step.Icon className="w-6 h-6 text-blush" strokeWidth={1.5} aria-hidden="true" />
+                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose text-ivory text-[11px] font-bold flex items-center justify-center tabular-nums">
+                      {i + 1}
+                    </span>
+                  </span>
+                  <div className="pt-1 lg:pt-5">
+                    <p className="font-display font-semibold text-cream text-base mb-1.5">{step.title}</p>
+                    <p className="text-cream/60 text-sm leading-relaxed lg:px-1">{step.desc}</p>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══ CUSTOM CAKE ═══ */
+// The single highest-intent block on the page, so it gets the full treatment:
+// the ordering journey spelled out, the objections answered inline, and two
+// CTAs side by side (form for people who want to specify, WhatsApp for people
+// who just want to talk).
+function CustomCakeSection({ waLink }) {
+  const assurances = [
+    "Quote confirmed before we bake — no surprise pricing",
+    "Reference photos welcome; we'll tell you what's achievable",
+    "Eggless and flavour substitutions on request",
+  ];
+
+  return (
+    <section className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24">
+      <ScrollReveal>
+        <div className="relative rounded-[2rem] overflow-hidden bg-cocoa text-cream">
+          <ParallaxLayer speed={0.05} className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-rose/10 blur-3xl" />
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-gold/10 blur-2xl" />
+          </ParallaxLayer>
+
+          <div className="relative grid lg:grid-cols-2">
+            {/* Copy + journey */}
+            <div className="p-7 sm:p-10 lg:p-12 order-2 lg:order-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blush mb-3">Custom Orders</p>
+              <h2 className="font-display font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight">
+                Your Occasion, Baked to Your Brief
+              </h2>
+              <p className="mt-4 text-cream/70 leading-relaxed max-w-md">
+                Birthdays, anniversaries, weddings, baby showers and corporate gifting — describe what you have in mind and
+                we'll turn it into a cake, with the price agreed up front.
+              </p>
+
+              {/* Ordering journey */}
+              <ol className="mt-8 space-y-5">
+                {orderSteps.map((step, i) => (
+                  <li key={step.title} className="flex gap-4">
+                    <span className="shrink-0 w-10 h-10 rounded-xl bg-cream/10 border border-cream/15 flex items-center justify-center">
+                      <step.Icon className="w-[18px] h-[18px] text-blush" strokeWidth={1.75} aria-hidden="true" />
+                    </span>
+                    <div className="pt-0.5">
+                      <p className="font-semibold text-cream text-sm">
+                        <span className="text-blush/70 tabular-nums mr-1.5">{String(i + 1).padStart(2, "0")}</span>
+                        {step.title}
+                      </p>
+                      <p className="text-cream/60 text-sm leading-relaxed mt-0.5">{step.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              {/* Objection handling */}
+              <ul className="mt-8 space-y-2.5 border-t border-cream/10 pt-6">
+                {assurances.map((line) => (
+                  <li key={line} className="flex items-start gap-2.5 text-sm text-cream/70">
+                    <BadgeCheck className="w-4 h-4 text-gold shrink-0 mt-0.5" strokeWidth={1.75} aria-hidden="true" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3">
+                <AnimatedButton to="/custom-cake" arrow className="justify-center">
+                  Start Your Custom Cake
+                </AnimatedButton>
+                <AnimatedButton
+                  href={waLink("Hi! I'd like to discuss a custom cake.")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="secondary"
+                  className="!border-ivory/40 !text-ivory hover:!bg-ivory/10 justify-center"
+                >
+                  Ask a Question First
+                </AnimatedButton>
+              </div>
+            </div>
+
+            {/* Image */}
+            <div className="relative h-56 sm:h-72 lg:h-auto lg:min-h-[560px] img-zoom-container order-1 lg:order-2">
+              <SafeImage
+                src={customCakeDefault}
+                fallback={customCakeDefault}
+                alt="Custom tiered celebration cake"
+                containerClassName="w-full h-full"
+                className="w-full h-full object-cover img-zoom-target"
+              />
+              <div
+                className="absolute inset-0 bg-gradient-to-t from-cocoa/70 via-cocoa/10 to-transparent lg:bg-gradient-to-r lg:from-cocoa lg:via-cocoa/25 lg:to-transparent"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        </div>
+      </ScrollReveal>
+    </section>
+  );
+}
+
+/* ═══ FAQ ═══ */
+// Accordion of the questions that actually stall an order. Single-open, native
+// buttons + aria-expanded (no library), and a "still unsure" WhatsApp escape
+// hatch at the bottom so an unanswered question never becomes a dead end.
+function FaqSection({ waLink }) {
+  const [openIndex, setOpenIndex] = useState(0);
+
+  return (
+    <section className="max-w-3xl mx-auto px-5 md:px-8 py-16 md:py-24">
+      <ScrollReveal>
+        <SectionTitle
+          eyebrow="Before You Order"
+          title="Frequently Asked Questions"
+          description="The things customers ask us most, answered up front."
+        />
+      </ScrollReveal>
+
+      <div className="mt-10 divide-y divide-blush/50 border-y border-blush/50">
+        {faqs.map((item, i) => {
+          const isOpen = openIndex === i;
+          return (
+            <ScrollReveal key={item.q} delay={Math.min(i, 4) * 50} distance={16}>
+              <h3>
+                <button
+                  type="button"
+                  onClick={() => setOpenIndex(isOpen ? -1 : i)}
+                  aria-expanded={isOpen}
+                  className="w-full flex items-start justify-between gap-5 py-5 text-left group"
+                >
+                  <span className={`font-display font-semibold text-base md:text-lg transition-colors duration-200 ${isOpen ? "text-rose-deep" : "text-cocoa group-hover:text-rose-deep"}`}>
+                    {item.q}
+                  </span>
+                  <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full border border-blush flex items-center justify-center text-rose-deep transition-colors duration-200 group-hover:bg-blush-soft">
+                    {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  </span>
+                </button>
+              </h3>
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <p className="pb-6 pr-10 text-sm md:text-base text-cocoa-soft/80 leading-relaxed">{item.a}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </ScrollReveal>
+          );
+        })}
+      </div>
+
+      <ScrollReveal className="mt-8 text-center" delay={100}>
+        <p className="text-cocoa-soft/70 text-sm">
+          Still have a question?{" "}
+          <a
+            href={waLink("Hi! I have a question before ordering.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-rose-deep hover:text-rose transition-colors link-underline"
+          >
+            Ask us on WhatsApp
+          </a>{" "}
+          — we usually reply the same day.
+        </p>
+      </ScrollReveal>
+    </section>
+  );
+}
+
 /* ═══ OFFER COUNTDOWN BADGE ═══ */
 function OfferCountdown({ endDate }) {
   const remaining = useCountdown(endDate);
@@ -433,7 +717,7 @@ function OfferFallbackBanner({ products }) {
       <div className="relative rounded-[2rem] overflow-hidden bg-rose-deep text-ivory grid md:grid-cols-2 items-center">
         <div className="p-8 md:p-12 relative z-10">
           <p className="font-script text-3xl text-blush mb-1">Something Sweet Is Always Baking</p>
-          <h2 className="font-display font-semibold text-2xl md:text-4xl">Our Customers' Favourites ❤️</h2>
+          <h2 className="font-display font-semibold text-2xl md:text-4xl">Our Customers' Favourites</h2>
           <p className="mt-3 text-ivory/85 max-w-sm leading-relaxed">
             Discover the cakes our customers keep coming back for — freshly baked, every single day.
           </p>
@@ -468,8 +752,8 @@ function OfferFallbackBanner({ products }) {
               ))}
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-6xl opacity-80" aria-hidden="true">
-              🎂
+            <div className="w-full h-full flex items-center justify-center" aria-hidden="true">
+              <ChefHat className="w-20 h-20 text-ivory/25" strokeWidth={1} />
             </div>
           )}
         </div>
@@ -691,26 +975,41 @@ function HeroSection({ banners, settings, waLink, loading }) {
   );
 }
 
-/* ═══ TESTIMONIALS CAROUSEL ═══ */
-function TestimonialsSection({ reviews }) {
+/* ═══ TESTIMONIALS ═══ */
+// Social proof block. Two jobs, not one: show the score/quotes, *and* recruit
+// the next review — customers can now publish their own from /reviews, so
+// every visit to this section is a chance to grow the proof it's built on.
+function TestimonialsSection({ reviews, averageRating }) {
   const [current, setCurrent] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(1);
   const timerRef = useRef(null);
+  const hasReviews = reviews.length > 0;
 
-  // Show 1 on mobile, up to 3 on desktop, but adapt to available reviews
-  const visibleCount = typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : Math.min(reviews.length, 3);
+  // Track the breakpoint live rather than reading window.innerWidth once at
+  // render — the old one-shot read never updated on resize/rotate, so a phone
+  // turned landscape kept the 1-up layout for the rest of the session.
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)");
+    const apply = () => setVisibleCount(mql.matches ? 3 : 1);
+    apply();
+    mql.addEventListener("change", apply);
+    return () => mql.removeEventListener("change", apply);
+  }, []);
+
+  const perView = Math.max(1, Math.min(visibleCount, reviews.length || 1));
 
   useEffect(() => {
-    if (!autoPlay || reviews.length <= visibleCount) return;
+    if (!autoPlay || reviews.length <= perView) return;
     timerRef.current = setInterval(() => {
       setCurrent((prev) => (prev + 1) % reviews.length);
-    }, 4000);
+    }, 5000);
     return () => clearInterval(timerRef.current);
-  }, [autoPlay, reviews.length, visibleCount]);
+  }, [autoPlay, reviews.length, perView]);
 
   const getVisible = () => {
     const result = [];
-    for (let i = 0; i < visibleCount; i++) {
+    for (let i = 0; i < perView; i++) {
       result.push(reviews[(current + i) % reviews.length]);
     }
     return result;
@@ -729,72 +1028,112 @@ function TestimonialsSection({ reviews }) {
     <section className="bg-blush-soft/50 py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-5 md:px-8">
         <ScrollReveal>
-          <SectionTitle eyebrow="Kind Words" title="What Our Customers Say" />
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep mb-3">Customer Reviews</p>
+            <h2 className="font-display font-semibold text-2xl md:text-4xl text-cocoa">
+              {hasReviews ? "What Our Customers Say" : "Be Our First Review"}
+            </h2>
+            {hasReviews ? (
+              <div className="mt-5 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-full border border-blush bg-ivory px-5 py-2.5">
+                <span className="font-display font-semibold text-xl text-cocoa tabular-nums">{averageRating.toFixed(1)}</span>
+                <StarRatingDisplay value={averageRating} size="md" />
+                <span className="text-sm text-cocoa-soft/65">
+                  from {reviews.length} review{reviews.length === 1 ? "" : "s"}
+                </span>
+              </div>
+            ) : (
+              <p className="mt-4 text-cocoa-soft/70 max-w-md mx-auto leading-relaxed">
+                Ordered from us already? Share how it went — your review helps the next customer decide.
+              </p>
+            )}
+          </div>
         </ScrollReveal>
 
-        <div className="relative mt-10">
-          {reviews.length > visibleCount && (
-            <>
-              <button
-                onClick={prev}
-                className="absolute -left-2 md:-left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-ivory shadow-md border border-blush/50 flex items-center justify-center text-cocoa-soft hover:text-rose-deep transition-colors"
-                aria-label="Previous testimonial"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={next}
-                className="absolute -right-2 md:-right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-ivory shadow-md border border-blush/50 flex items-center justify-center text-cocoa-soft hover:text-rose-deep transition-colors"
-                aria-label="Next testimonial"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </>
-          )}
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 overflow-hidden px-2">
-            <AnimatePresence mode="wait">
-              {getVisible().map((r, i) => (
-                <motion.div
-                  key={`${r.id}-${current}`}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.4, delay: i * 0.08 }}
-                  className="bg-ivory rounded-2xl border border-blush/50 p-6 relative"
-                >
-                  <Quote className="absolute top-4 right-4 w-8 h-8 text-blush/40" />
-                  <div className="flex gap-1 text-gold mb-3">
-                    {Array.from({ length: r.rating || 5 }).map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-gold" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-cocoa-soft/85 leading-relaxed line-clamp-4">"{r.review}"</p>
-                  <div className="flex items-center gap-3 mt-4">
-                    <SafeImage src={r.photo} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-blush/40" />
-                    <p className="font-semibold text-sm text-cocoa">{r.name}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-
-          {/* Dots */}
-          {reviews.length > visibleCount && (
-            <div className="flex justify-center gap-1.5 mt-6">
-              {reviews.map((_, i) => (
+        {hasReviews && (
+          <div className="relative mt-10">
+            {reviews.length > perView && (
+              <>
                 <button
-                  key={i}
-                  onClick={() => { setCurrent(i); setAutoPlay(false); }}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    i === current ? "bg-rose w-5" : "bg-blush hover:bg-rose/50"
-                  }`}
-                  aria-label={`Go to testimonial ${i + 1}`}
-                />
-              ))}
+                  onClick={prev}
+                  className="hidden sm:flex absolute -left-2 md:-left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-ivory shadow-md border border-blush/50 items-center justify-center text-cocoa-soft hover:text-rose-deep transition-colors"
+                  aria-label="Previous review"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={next}
+                  className="hidden sm:flex absolute -right-2 md:-right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-ivory shadow-md border border-blush/50 items-center justify-center text-cocoa-soft hover:text-rose-deep transition-colors"
+                  aria-label="Next review"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 px-1">
+              <AnimatePresence mode="wait">
+                {getVisible().map((r, i) => (
+                  <motion.article
+                    key={`${r.id}-${current}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.35, delay: i * 0.06 }}
+                    className="bg-ivory rounded-2xl border border-blush/50 p-6 relative flex flex-col"
+                  >
+                    <Quote className="absolute top-5 right-5 w-7 h-7 text-blush/50" strokeWidth={1.5} aria-hidden="true" />
+                    <StarRatingDisplay value={r.rating || 5} size="sm" />
+                    <p className="mt-4 text-sm text-cocoa-soft/85 leading-relaxed line-clamp-5 flex-1">{r.review}</p>
+                    <div className="flex items-center gap-3 mt-5 pt-5 border-t border-blush/40">
+                      {r.photo ? (
+                        <SafeImage
+                          src={r.photo}
+                          alt=""
+                          containerClassName="w-10 h-10 shrink-0"
+                          className="w-10 h-10 rounded-full object-cover border border-blush/50"
+                        />
+                      ) : (
+                        <span
+                          className="w-10 h-10 shrink-0 rounded-full bg-blush-soft border border-blush/50 flex items-center justify-center font-display font-semibold text-rose-deep"
+                          aria-hidden="true"
+                        >
+                          {(r.name || "?").trim().charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <p className="font-semibold text-sm text-cocoa truncate">{r.name}</p>
+                    </div>
+                  </motion.article>
+                ))}
+              </AnimatePresence>
             </div>
+
+            {reviews.length > perView && (
+              <div className="flex justify-center gap-1.5 mt-6">
+                {reviews.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setCurrent(i); setAutoPlay(false); }}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      i === current ? "bg-rose w-5" : "bg-blush w-2 hover:bg-rose/50"
+                    }`}
+                    aria-label={`Go to review ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <ScrollReveal className="mt-10 flex flex-col sm:flex-row justify-center gap-3" delay={80}>
+          {hasReviews && (
+            <AnimatedButton to="/reviews" variant="secondary" arrow className="justify-center">
+              Read All Reviews
+            </AnimatedButton>
           )}
-        </div>
+          <AnimatedButton to="/reviews" arrow className="justify-center">
+            Write a Review
+          </AnimatedButton>
+        </ScrollReveal>
       </div>
     </section>
   );

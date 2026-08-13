@@ -120,7 +120,14 @@ export const productsApi = createResource('/products');
 export const galleryApi = createResource('/gallery');
 export const bannersApi = createResource('/banners');
 export const offersApi = createResource('/offers');
-export const testimonialsApi = createResource('/testimonials');
+// Testimonials additionally carry a moderation step, because visitors can now
+// submit reviews themselves from the public site — approving publishes the row
+// (approved + LIVE) in one call, rejecting only clears the approved flag.
+export const testimonialsApi = {
+  ...createResource('/testimonials'),
+  setApproval: (id, approved) =>
+    request(`/testimonials/${id}/approval`, { method: 'PATCH', body: JSON.stringify({ approved }) }),
+};
 
 // ---- Settings (singleton) ----
 export const getSettings = () => request('/settings');

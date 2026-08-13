@@ -1,36 +1,53 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { CheckCircle2, Cake, Heart, PartyPopper, Star } from "lucide-react";
+import {
+  CheckCircle2, BadgeCheck, ClipboardList, MessageCircle, ClipboardCheck, Truck, ShieldCheck,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "../components/PageHeader";
 import ThemedSelect from "../components/ThemedSelect";
 import DatePicker from "../components/DatePicker";
 import ScrollReveal from "../components/ScrollReveal";
-import AnimatedButton from "../components/AnimatedButton";
 import { getPublicContent, submitContactMessage } from "../services/api";
 
 const OCCASIONS = ["Birthday", "Anniversary", "Wedding", "Baby Shower", "Corporate Event", "Other"];
 const CAKE_WEIGHTS = ["500g", "1kg", "1.5kg", "2kg+"];
 const SHAPES = [
-  { value: "round", label: "Round", icon: "⬤" },
-  { value: "square", label: "Square", icon: "◼" },
-  { value: "heart", label: "Heart", icon: "♥" },
-  { value: "rectangle", label: "Rectangle", icon: "▬" },
+  { value: "round", label: "Round" },
+  { value: "square", label: "Square" },
+  { value: "heart", label: "Heart" },
+  { value: "rectangle", label: "Rectangle" },
 ];
 
-const OCCASION_ICONS = {
-  Birthday: "🎂",
-  Anniversary: "💕",
-  Wedding: "💍",
-  "Baby Shower": "👶",
-  "Corporate Event": "🏢",
-  Other: "🎉",
-};
+// What happens after the form is sent — set expectations before we ask for
+// details, not after.
+const NEXT_STEPS = [
+  { title: "You send the brief", desc: "The form opens WhatsApp with everything below pre-filled. Add a reference photo if you have one.", Icon: MessageCircle },
+  { title: "We confirm design & price", desc: "We reply with what's achievable, the right weight and a firm quote — before anything is baked.", Icon: ClipboardCheck },
+  { title: "Baked fresh & handed over", desc: "Made on your date, ready for pickup or delivery exactly when you need it.", Icon: Truck },
+];
+
+const ASSURANCES = [
+  "No payment taken on this form",
+  "Quote confirmed before we bake",
+  "Eggless & flavour substitutions on request",
+];
 
 function todayISODate() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// "2026-08-20" → "Thu, 20 Aug 2026". Parsed from the parts rather than
+// `new Date(string)` so the date never shifts a day across timezones.
+function formatLongDate(iso) {
+  if (!iso) return null;
+  const [y, m, d] = String(iso).split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  const date = new Date(y, m - 1, d);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 }
 
 export default function CustomCake() {
@@ -49,6 +66,8 @@ export default function CustomCake() {
   const watchedWeight = watch("weight");
   const watchedOccasion = watch("occasion");
   const watchedShape = watch("shape");
+  const watchedTheme = watch("theme");
+  const watchedDate = watch("deliveryDate");
 
   useEffect(() => {
     getPublicContent().then((data) => setSettings(data.settings || {})).catch(() => {});
@@ -89,82 +108,54 @@ export default function CustomCake() {
     }).catch(() => {});
   }
 
-  // Compute cake preview scale based on weight
-  const weightScale = { "500g": 0.7, "1kg": 0.85, "1.5kg": 1, "2kg+": 1.15 };
-  const cakeScale = weightScale[watchedWeight] || 0.85;
+  // The live spec the customer is building. Rendered twice — as the sticky
+  // desktop rail and as a final recap directly above the mobile submit button
+  // — so no one sends a request they haven't been able to read back.
+  const summary = [
+    { label: "Occasion", value: watchedOccasion },
+    { label: "Needed by", value: formatLongDate(watchedDate) },
+    { label: "Size", value: watchedWeight },
+    { label: "Shape", value: SHAPES.find((s) => s.value === watchedShape)?.label },
+    { label: "Theme", value: watchedTheme },
+  ];
 
   return (
     <>
       <PageHeader
         eyebrow="Made to Order"
         title="Request a Custom Cake"
-        description="Tell us about your occasion and vision — we'll follow up on WhatsApp with a quote."
+        description="Tell us about your occasion and we'll come back on WhatsApp with a design and a firm quote. It takes about two minutes."
       />
+
+      {/* ═══ WHAT HAPPENS NEXT ═══ */}
+      <section className="border-b border-blush/50 bg-ivory">
+        <div className="max-w-5xl mx-auto px-5 md:px-8 py-8 md:py-10">
+          <ol className="grid gap-6 md:grid-cols-3 md:gap-8">
+            {NEXT_STEPS.map((step, i) => (
+              <ScrollReveal as="li" key={step.title} delay={i * 70} distance={16} className="flex gap-4">
+                <span className="shrink-0 w-11 h-11 rounded-2xl bg-blush-soft border border-blush/60 flex items-center justify-center relative">
+                  <step.Icon className="w-5 h-5 text-rose-deep" strokeWidth={1.75} aria-hidden="true" />
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose text-ivory text-[10px] font-bold flex items-center justify-center tabular-nums">
+                    {i + 1}
+                  </span>
+                </span>
+                <div>
+                  <p className="font-display font-semibold text-cocoa text-sm mb-1">{step.title}</p>
+                  <p className="text-sm text-cocoa-soft/70 leading-relaxed">{step.desc}</p>
+                </div>
+              </ScrollReveal>
+            ))}
+          </ol>
+        </div>
+      </section>
 
       <section className="max-w-5xl mx-auto px-5 md:px-8 py-14 md:py-20">
         <div className="grid md:grid-cols-5 gap-8">
-          {/* Cake preview panel */}
+          {/* Live request summary — desktop rail */}
           <ScrollReveal className="md:col-span-2 hidden md:block" direction="left">
-            <div className="sticky top-28 bg-ivory rounded-3xl border border-blush/50 p-8 text-center">
-              <p className="font-script text-xl text-rose-deep mb-4">Your Cake Preview</p>
-
-              {/* Animated cake preview */}
-              <div className="relative w-48 h-48 mx-auto mb-6 flex items-center justify-center">
-                <motion.div
-                  animate={{ scale: cakeScale }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="text-8xl"
-                >
-                  {watchedShape === "heart" ? "💗" : "🎂"}
-                </motion.div>
-
-                {/* Occasion decorator */}
-                <AnimatePresence mode="wait">
-                  {watchedOccasion && (
-                    <motion.div
-                      key={watchedOccasion}
-                      initial={{ opacity: 0, scale: 0.5, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute -top-2 -right-2 text-3xl"
-                    >
-                      {OCCASION_ICONS[watchedOccasion] || "🎉"}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Selection summary */}
-              <div className="space-y-2 text-sm text-cocoa-soft/70">
-                {watchedWeight && (
-                  <motion.p
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-2 justify-center"
-                  >
-                    <Cake className="w-4 h-4 text-rose" /> {watchedWeight}
-                  </motion.p>
-                )}
-                {watchedOccasion && (
-                  <motion.p
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-2 justify-center"
-                  >
-                    <Heart className="w-4 h-4 text-rose" /> {watchedOccasion}
-                  </motion.p>
-                )}
-                {watchedShape && (
-                  <motion.p
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-2 justify-center"
-                  >
-                    <Star className="w-4 h-4 text-rose" /> {SHAPES.find(s => s.value === watchedShape)?.label || watchedShape}
-                  </motion.p>
-                )}
-              </div>
+            <div className="sticky top-28 space-y-4">
+              <RequestSummary summary={summary} />
+              <AssurancePanel />
             </div>
           </ScrollReveal>
 
@@ -258,13 +249,13 @@ export default function CustomCake() {
                           key={s.value}
                           type="button"
                           onClick={() => field.onChange(field.value === s.value ? "" : s.value)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-300 ${
+                          className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-300 ${
                             field.value === s.value
                               ? "bg-rose text-ivory border-rose shadow-sm shadow-rose/20"
                               : "border-blush text-cocoa-soft hover:border-rose/60 bg-ivory"
                           }`}
                         >
-                          <span className="text-base">{s.icon}</span> {s.label}
+                          {s.label}
                         </button>
                       ))}
                     </div>
@@ -320,17 +311,78 @@ export default function CustomCake() {
                 {fileName && <p className="text-xs text-cocoa-soft/70 mt-1">Selected: {fileName} — please attach it in WhatsApp when you send your request.</p>}
               </Field>
 
+              {/* Mobile recap — the desktop rail is hidden below `md`, so
+                  without this a phone user submits without ever seeing their
+                  own selections written back to them. */}
+              <div className="md:hidden pt-2">
+                <RequestSummary summary={summary} />
+              </div>
+
               <button
                 type="submit"
                 className="w-full bg-rose text-ivory font-semibold py-3.5 rounded-full hover:bg-rose-deep hover:shadow-md hover:shadow-rose/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
               >
                 Request Quote on WhatsApp
               </button>
+
+              <p className="flex items-center justify-center gap-2 text-xs text-cocoa-soft/60 text-center">
+                <ShieldCheck className="w-4 h-4 text-rose shrink-0" strokeWidth={1.75} />
+                No payment is taken here — this only starts the conversation.
+              </p>
             </form>
+
+            {/* Assurances follow the form on mobile (the desktop rail already
+                carries them alongside it) */}
+            <div className="md:hidden mt-6">
+              <AssurancePanel />
+            </div>
           </ScrollReveal>
         </div>
       </section>
     </>
+  );
+}
+
+/* ═══ LIVE REQUEST SUMMARY ═══ */
+// Reads the customer's selections back to them as a clean spec sheet. Rows
+// stay in place with an em-dash placeholder rather than appearing one by one,
+// so the panel never jumps height while the form is being filled in.
+function RequestSummary({ summary }) {
+  const filled = summary.filter((row) => row.value).length;
+
+  return (
+    <div className="bg-ivory rounded-3xl border border-blush/50 overflow-hidden">
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-blush/50 bg-blush-soft/40">
+        <ClipboardList className="w-4 h-4 text-rose-deep shrink-0" strokeWidth={1.75} aria-hidden="true" />
+        <p className="font-display font-semibold text-cocoa text-sm flex-1">Your Request</p>
+        <span className="text-xs text-cocoa-soft/55 tabular-nums">{filled}/{summary.length}</span>
+      </div>
+
+      <dl className="divide-y divide-blush/40">
+        {summary.map((row) => (
+          <div key={row.label} className="flex items-baseline justify-between gap-4 px-6 py-3">
+            <dt className="text-xs uppercase tracking-wider text-cocoa-soft/50 shrink-0">{row.label}</dt>
+            <dd className={`text-sm text-right ${row.value ? "font-semibold text-cocoa" : "text-cocoa-soft/35"}`}>
+              {row.value || "—"}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+/* ═══ ASSURANCE PANEL ═══ */
+function AssurancePanel() {
+  return (
+    <ul className="bg-blush-soft/50 rounded-3xl border border-blush/50 px-6 py-5 space-y-3">
+      {ASSURANCES.map((line) => (
+        <li key={line} className="flex items-start gap-2.5 text-sm text-cocoa-soft/80 leading-snug">
+          <BadgeCheck className="w-4 h-4 text-rose shrink-0 mt-0.5" strokeWidth={1.75} aria-hidden="true" />
+          {line}
+        </li>
+      ))}
+    </ul>
   );
 }
 

@@ -11,6 +11,7 @@ import Menu from "./pages/Menu";
 import CustomCake from "./pages/CustomCake";
 import FestivalSpecials from "./pages/FestivalSpecials";
 import Gallery from "./pages/Gallery";
+import Reviews from "./pages/Reviews";
 import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminApp from "./admin/AdminApp";
@@ -54,6 +55,7 @@ function AnimatedRoutes() {
           <Route path="/custom-cake" element={<CustomCake />} />
           <Route path="/festival-specials" element={<FestivalSpecials />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/reviews" element={<Reviews />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         </Routes>
