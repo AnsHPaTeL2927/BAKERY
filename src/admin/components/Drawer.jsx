@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import useIsMobile from '../hooks/useIsMobile';
 import BottomSheet from './BottomSheet';
+import { swipeManager } from '../utils/swipeManager';
 
 // Slide-in-from-the-right panel for read-only detail views (e.g. Order
 // Details), using the same overlay + motion pattern as AdminLayout's mobile
@@ -13,6 +15,12 @@ import BottomSheet from './BottomSheet';
 // (and any caller that doesn't opt in) render exactly as before.
 export default function Drawer({ open, title, onClose, children, widthClass = 'w-full max-w-lg', mobileBottomSheet = false, footer }) {
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (open) {
+      swipeManager.close();
+    }
+  }, [open]);
 
   if (mobileBottomSheet && isMobile) {
     return (

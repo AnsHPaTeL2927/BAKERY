@@ -39,6 +39,8 @@ export default function AdminSettings() {
   const [faviconFile, setFaviconFile] = useState(null);
   const [existingLogo, setExistingLogo] = useState(null);
   const [existingFavicon, setExistingFavicon] = useState(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
+  const [removeFavicon, setRemoveFavicon] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -56,6 +58,8 @@ export default function AdminSettings() {
           setForm({ ...EMPTY_FORM, ...settings });
           setExistingLogo(settings.logo);
           setExistingFavicon(settings.favicon);
+          setRemoveLogo(false);
+          setRemoveFavicon(false);
         }
       })
       .catch((err) => setError(err.message))
@@ -124,7 +128,9 @@ export default function AdminSettings() {
       const fd = new FormData();
       Object.entries(form).forEach(([key, value]) => fd.append(key, value ?? ''));
       if (logoFile) fd.append('logo', logoFile);
+      else if (removeLogo) fd.append('removeLogo', 'true');
       if (faviconFile) fd.append('favicon', faviconFile);
+      else if (removeFavicon) fd.append('removeFavicon', 'true');
 
       const { settings } = await updateSettings(fd);
       setForm({ ...EMPTY_FORM, ...settings });
@@ -132,10 +138,11 @@ export default function AdminSettings() {
       setExistingFavicon(settings.favicon);
       setLogoFile(null);
       setFaviconFile(null);
+      setRemoveLogo(false);
+      setRemoveFavicon(false);
       // Reflect the new favicon in the browser tab immediately — no reload needed.
       applyFavicon(settings.favicon, settings.updatedAt);
 
-      handleSaveWhatsAppSettings();
       setSuccess('Settings updated successfully.');
     } catch (err) {
       setError(err.message);
@@ -189,10 +196,36 @@ export default function AdminSettings() {
       {activeTab === 'general' && (
         <form onSubmit={handleSubmit} className="grid gap-4 rounded-3xl border border-admin-border bg-admin-card p-6 shadow-sm md:grid-cols-2">
           <div>
-            <ImageUploader label="Logo" hint="300x300" initialUrl={existingLogo} onChange={setLogoFile} />
+            <ImageUploader
+              label="Logo"
+              hint="300x300"
+              initialUrl={existingLogo}
+              onChange={(file) => {
+                setLogoFile(file);
+                setRemoveLogo(false);
+              }}
+              onRemove={() => {
+                setLogoFile(null);
+                setExistingLogo(null);
+                setRemoveLogo(true);
+              }}
+            />
           </div>
           <div>
-            <ImageUploader label="Favicon" hint="64x64" initialUrl={existingFavicon} onChange={setFaviconFile} />
+            <ImageUploader
+              label="Favicon"
+              hint="64x64"
+              initialUrl={existingFavicon}
+              onChange={(file) => {
+                setFaviconFile(file);
+                setRemoveFavicon(false);
+              }}
+              onRemove={() => {
+                setFaviconFile(null);
+                setExistingFavicon(null);
+                setRemoveFavicon(true);
+              }}
+            />
           </div>
           <TextField label="Site Name" required value={form.siteName} onChange={(e) => setForm({ ...form, siteName: e.target.value })} />
           <TextField label="Tagline" value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} />

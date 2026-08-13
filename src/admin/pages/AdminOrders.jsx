@@ -50,6 +50,7 @@ import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
 import EmptyState from '../components/EmptyState';
 import ButtonLoader from '../../components/loading/ButtonLoader';
+import Skeleton from '../../components/loading/Skeleton';
 import { TextField, TextAreaField, SelectField } from '../components/FormField';
 import DatePicker from '../../components/DatePicker';
 import ThemedSelect from '../../components/ThemedSelect';
@@ -148,15 +149,19 @@ function OrderStatCard({ card, value, active, onSelect }) {
     <button
       type="button"
       onClick={() => onSelect(card.key)}
-      className={`flex items-center gap-3 rounded-2xl border bg-admin-card p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-        active ? 'border-admin-primary ring-2 ring-admin-primary/25' : 'border-admin-border'
+      // Mobile: compact number+label only (matches the design's Orders stat strip
+      // exactly — no icon there). Desktop (sm:+): original icon-card, unchanged.
+      className={`flex w-full items-center gap-2.5 rounded-2xl border bg-admin-card p-3 text-left transition-all duration-200 hover:-translate-y-0.5 sm:gap-3 sm:p-4 sm:shadow-xs sm:hover:shadow-md ${
+        active
+          ? 'border-admin-primary shadow-[0_0_0_3px_rgba(217,76,123,0.14)] sm:shadow-xs sm:ring-2 sm:ring-admin-primary/25'
+          : 'border-admin-border'
       }`}
     >
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${card.iconClass}`}>
+      <span className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:flex ${card.iconClass}`}>
         <Icon className="h-5 w-5" />
       </span>
-      <div className="min-w-0">
-        <div className="overflow-hidden text-2xl font-bold tabular-nums text-admin-text">
+      <div className="min-w-0 flex-1">
+        <div className="overflow-hidden text-xl font-extrabold tabular-nums text-admin-text sm:text-2xl">
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.p
               key={value ?? 0}
@@ -169,7 +174,9 @@ function OrderStatCard({ card, value, active, onSelect }) {
             </motion.p>
           </AnimatePresence>
         </div>
-        <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${card.badgeClass}`}>{card.label}</span>
+        <span className={`inline-block max-w-full truncate rounded-full px-2 py-0.5 text-[10.5px] font-semibold whitespace-nowrap ${card.badgeClass}`}>
+          {card.label}
+        </span>
       </div>
     </button>
   );
@@ -177,8 +184,8 @@ function OrderStatCard({ card, value, active, onSelect }) {
 
 function OrderStatCardSkeleton() {
   return (
-    <div className="flex animate-pulse items-center gap-3 rounded-2xl border border-admin-border bg-admin-card p-4">
-      <span className="h-10 w-10 shrink-0 rounded-xl bg-admin-bg" />
+    <div className="flex w-full animate-pulse items-center gap-3 rounded-2xl border border-admin-border bg-admin-card px-3.5 py-3 sm:p-4">
+      <span className="hidden h-10 w-10 shrink-0 rounded-xl bg-admin-bg sm:block" />
       <div className="min-w-0 flex-1 space-y-2">
         <div className="h-6 w-10 rounded-md bg-admin-bg" />
         <div className="h-4 w-16 rounded-full bg-admin-bg" />
@@ -593,10 +600,12 @@ const CUSTOM_CAKE_OPTION = 'Custom Cake';
 
 function ProductCombobox({ value, onChange, onSelectProduct, products, error }) {
   const [query, setQuery] = useState(value || '');
+  const [sheetSearch, setSheetSearch] = useState('');
   const inputRef = useRef(null);
   const panelRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState({});
+  const isMobile = useIsMobile();
 
   useEffect(() => setQuery(value || ''), [value]);
 
@@ -615,28 +624,36 @@ function ProductCombobox({ value, onChange, onSelectProduct, products, error }) 
   function calcPanelPos() {
     if (!inputRef.current) return;
     const rect = inputRef.current.getBoundingClientRect();
-    const panelH = 250;
+    const panelH = 260;
     const vpH = window.innerHeight;
     const spaceBelow = vpH - rect.bottom;
     const goUp = spaceBelow < panelH + 12 && rect.top >= panelH + 12;
     let top = goUp ? rect.top - panelH - 6 : rect.bottom + 4;
     top = Math.max(8, Math.min(top, vpH - panelH - 8));
+    const width = Math.max(320, rect.width);
+    let left = rect.left;
+    if (left + width > window.innerWidth - 12) {
+      left = Math.max(12, window.innerWidth - width - 12);
+    }
+
     setPanelStyle({
       position: 'fixed',
       top: `${top}px`,
-      left: `${rect.left}px`,
-      width: `${rect.width}px`,
+      left: `${left}px`,
+      width: `${width}px`,
       zIndex: 9999,
     });
   }
 
+  const activeSearchQuery = isMobile ? sheetSearch : query;
+
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = activeSearchQuery.trim().toLowerCase();
     if (!q) return products;
     return products.filter(
       (p) => p.name.toLowerCase().includes(q) || (p.category?.name && p.category.name.toLowerCase().includes(q))
     );
-  }, [products, query]);
+  }, [products, activeSearchQuery]);
 
   function handleSelect(p) {
     if (p === CUSTOM_CAKE_OPTION) {
@@ -649,6 +666,96 @@ function ProductCombobox({ value, onChange, onSelectProduct, products, error }) 
       onSelectProduct?.(p);
     }
     setOpen(false);
+  }
+
+  if (isMobile) {
+    return (
+      <>
+        <div className="relative" onClick={() => { setSheetSearch(''); setOpen(true); }}>
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-muted" />
+          <input
+            readOnly
+            value={query}
+            placeholder="Select product…"
+            className={`w-full cursor-pointer rounded-xl border bg-admin-card py-2.5 pl-9 pr-3 text-sm font-semibold text-admin-text shadow-sm transition-all focus:outline-none ${
+              error ? 'border-rose-500' : 'border-admin-border'
+            }`}
+          />
+        </div>
+
+        <BottomSheet
+          open={open}
+          title="Select Product"
+          onClose={() => setOpen(false)}
+        >
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-muted" />
+              <input
+                value={sheetSearch}
+                onChange={(e) => setSheetSearch(e.target.value)}
+                placeholder="Search by product name or category…"
+                className="w-full rounded-2xl border border-admin-border bg-admin-bg py-3 pl-10 pr-4 text-sm font-medium text-admin-text placeholder:text-admin-muted focus:border-admin-primary focus:outline-none"
+              />
+            </div>
+
+            <div className="max-h-[55vh] overflow-y-auto space-y-2 pr-0.5">
+              <button
+                type="button"
+                onClick={() => handleSelect(CUSTOM_CAKE_OPTION)}
+                className="flex w-full items-center gap-3 rounded-2xl p-3 text-left hover:bg-admin-bg transition-colors border border-rose-100 bg-rose-50/50"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600 font-bold text-sm">
+                  🎂
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-rose-600">{CUSTOM_CAKE_OPTION}</p>
+                  <p className="text-xs text-admin-muted">Custom bakery order / other item</p>
+                </div>
+              </button>
+
+              {filtered.map((p) => {
+                const firstPrice = p.priceByWeight ? Object.values(p.priceByWeight)[0] : p.price;
+                const primaryImg = p.images?.find((img) => img.isPrimary)?.url || p.image;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handleSelect(p)}
+                    className="flex w-full items-center justify-between gap-3.5 rounded-2xl p-3 text-left hover:bg-admin-bg transition-colors border border-admin-border/50 bg-admin-card"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {primaryImg ? (
+                        <img src={primaryImg} alt="" className="h-11 w-11 rounded-xl object-cover border border-admin-border/50 shrink-0 bg-admin-bg" />
+                      ) : (
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-admin-primary/10 text-admin-primary font-bold text-sm">
+                          🎂
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-admin-text truncate">{p.name}</p>
+                        <p className="text-xs text-admin-muted truncate mt-0.5">{p.category?.name || 'Cakes'}</p>
+                      </div>
+                    </div>
+                    {firstPrice && (
+                      <span className="shrink-0 rounded-full bg-admin-primary/10 px-3 py-1 text-xs font-bold text-admin-primary">
+                        ₹{firstPrice}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+
+              {filtered.length === 0 && (
+                <div className="py-8 text-center text-sm text-admin-muted">
+                  No matching products found.
+                </div>
+              )}
+            </div>
+          </div>
+        </BottomSheet>
+      </>
+    );
   }
 
   return (
@@ -736,11 +843,6 @@ function ProductCombobox({ value, onChange, onSelectProduct, products, error }) 
 const EMPTY_FORM = {
   customerName: '',
   phone: '',
-  productName: '',
-  weight: '',
-  flavour: '',
-  quantity: 1,
-  totalAmount: '',
   discount: 0,
   advancePaid: 0,
   orderType: 'PICKUP',
@@ -751,6 +853,13 @@ const EMPTY_FORM = {
   address: '',
   notes: '',
 };
+
+// One row in the repeatable "Order" section — multiple products, each with
+// its own weight/flavour/quantity/price, replacing the old single-product
+// fields. `product` (the matched catalog product, if any) is client-side
+// only — stripped before the payload is sent — kept on the row purely so
+// the weight/flavour dropdown options can be derived per item.
+const EMPTY_ORDER_ITEM = { productName: '', weight: '', flavour: '', quantity: 1, unitPrice: 0, note: '', product: null };
 
 export default function AdminOrders() {
   const isMobile = useIsMobile();
@@ -795,21 +904,53 @@ export default function AdminOrders() {
   const [products, setProducts] = useState([]);
   const productNameOptions = useMemo(() => Array.from(new Set(products.map((p) => p.name))).sort(), [products]);
   const [orderStats, setOrderStats] = useState(null);
-  const [unitPrice, setUnitPrice] = useState(0);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [orderItems, setOrderItems] = useState([{ ...EMPTY_ORDER_ITEM }]);
+  const itemsSubtotal = orderItems.reduce((sum, it) => sum + (Number(it.unitPrice) || 0) * (Number(it.quantity) || 0), 0);
 
-  const weightOptions = useMemo(() => {
-    if (!selectedProduct) return [];
-    const weights = Array.isArray(selectedProduct.weights) ? selectedProduct.weights : [];
-    const priceByWeight = selectedProduct.priceByWeight || {};
+  function weightOptionsFor(item) {
+    if (!item.product) return [];
+    const weights = Array.isArray(item.product.weights) ? item.product.weights : [];
+    const priceByWeight = item.product.priceByWeight || {};
     return weights.map((w) => ({ value: w, label: priceByWeight[w] ? `${w} — ₹${priceByWeight[w]}` : w }));
-  }, [selectedProduct]);
+  }
 
-  const flavourOptions = useMemo(() => {
-    if (!selectedProduct) return [];
-    const flavours = Array.isArray(selectedProduct.flavours) ? selectedProduct.flavours : [];
+  function flavourOptionsFor(item) {
+    if (!item.product) return [];
+    const flavours = Array.isArray(item.product.flavours) ? item.product.flavours : [];
     return flavours.map((f) => ({ value: f, label: f }));
-  }, [selectedProduct]);
+  }
+
+  function addOrderItem() {
+    setOrderItems((prev) => [...prev, { ...EMPTY_ORDER_ITEM }]);
+  }
+
+  function removeOrderItem(index) {
+    setOrderItems((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
+  }
+
+  function updateOrderItem(index, patch) {
+    setOrderItems((prev) => prev.map((it, i) => (i === index ? { ...it, ...patch } : it)));
+  }
+
+  function handleItemProductSelect(index, prod) {
+    if (!prod) {
+      updateOrderItem(index, { product: null });
+      return;
+    }
+    const weights = Array.isArray(prod.weights) ? prod.weights : [];
+    const flavours = Array.isArray(prod.flavours) ? prod.flavours : [];
+    const priceByWeight = prod.priceByWeight || {};
+    const firstWeight = weights[0] || '';
+    const price = firstWeight ? Number(priceByWeight[firstWeight]) || 0 : Number(prod.price) || 0;
+    updateOrderItem(index, { productName: prod.name, weight: firstWeight, flavour: flavours[0] || '', unitPrice: price, product: prod });
+  }
+
+  function handleItemWeightChange(index, weight) {
+    const item = orderItems[index];
+    const priceByWeight = item.product?.priceByWeight || {};
+    const price = Number(priceByWeight[weight]) || 0;
+    updateOrderItem(index, { weight, unitPrice: price > 0 ? price : item.unitPrice });
+  }
 
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
@@ -940,10 +1081,9 @@ export default function AdminOrders() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setOrderItems([{ ...EMPTY_ORDER_ITEM }]);
     setFormErrors({});
     setError('');
-    setUnitPrice(0);
-    setSelectedProduct(null);
     setModal({ open: true, mode: 'create', id: null });
   }
 
@@ -951,11 +1091,6 @@ export default function AdminOrders() {
     setForm({
       customerName: item.customerName,
       phone: item.phone,
-      productName: item.productName,
-      weight: item.weight || '',
-      flavour: item.flavour || '',
-      quantity: item.quantity,
-      totalAmount: item.totalAmount,
       discount: item.discount || 0,
       advancePaid: item.advancePaid,
       orderType: item.orderType,
@@ -968,59 +1103,40 @@ export default function AdminOrders() {
     });
     setFormErrors({});
     setError('');
-    const matched = products.find((p) => p.name === item.productName);
-    const pPrice = matched ? (matched.priceByWeight ? Object.values(matched.priceByWeight)[0] : matched.price) : 0;
-    setUnitPrice(pPrice || (item.quantity ? item.totalAmount / item.quantity : 0));
-    setSelectedProduct(matched || null);
+
+    if (Array.isArray(item.items) && item.items.length > 0) {
+      setOrderItems(
+        item.items.map((it) => ({
+          productName: it.productName,
+          weight: it.weight || '',
+          flavour: it.flavour || '',
+          quantity: it.quantity,
+          unitPrice: Number(it.unitPrice),
+          note: it.note || '',
+          product: products.find((p) => p.name === it.productName) || null,
+        })),
+      );
+    } else {
+      // Legacy single-product order (created before multi-item support) —
+      // upgrades seamlessly to a 1-item list; saving it writes real items.
+      const matched = products.find((p) => p.name === item.productName);
+      const unitPrice = item.quantity ? Number(item.totalAmount) / Number(item.quantity) : Number(item.totalAmount) || 0;
+      setOrderItems([
+        {
+          productName: item.productName,
+          weight: item.weight || '',
+          flavour: item.flavour || '',
+          quantity: item.quantity,
+          unitPrice,
+          note: '',
+          product: matched || null,
+        },
+      ]);
+    }
     setModal({ open: true, mode: 'edit', id: item.id });
   }
 
-  function handleSelectProduct(prod) {
-    setSelectedProduct(prod || null);
-    if (!prod) {
-      setUnitPrice(0);
-      return;
-    }
-    const weights = Array.isArray(prod.weights) ? prod.weights : [];
-    const flavours = Array.isArray(prod.flavours) ? prod.flavours : [];
-    const priceByWeight = prod.priceByWeight || {};
-    const firstWeight = weights[0] || '';
-    const price = firstWeight ? Number(priceByWeight[firstWeight]) || 0 : Number(prod.price) || 0;
-    setUnitPrice(price);
-    setForm((prev) => {
-      const q = Number(prev.quantity) || 1;
-      return {
-        ...prev,
-        weight: firstWeight,
-        flavour: flavours[0] || '',
-        totalAmount: price > 0 ? price * q : prev.totalAmount,
-      };
-    });
-  }
-
-  function handleWeightChange(weight) {
-    const priceByWeight = selectedProduct?.priceByWeight || {};
-    const price = Number(priceByWeight[weight]) || 0;
-    setUnitPrice(price);
-    setForm((prev) => {
-      const q = Number(prev.quantity) || 1;
-      return { ...prev, weight, totalAmount: price > 0 ? price * q : prev.totalAmount };
-    });
-  }
-
-  function handleQuantityChange(newQtyStr) {
-    const q = Math.max(1, Number(newQtyStr) || 1);
-    if (unitPrice > 0) {
-      setForm((prev) => ({ ...prev, quantity: newQtyStr, totalAmount: unitPrice * q }));
-    } else {
-      setForm((prev) => ({ ...prev, quantity: newQtyStr }));
-    }
-  }
-
-  const remainingAmount = Math.max(
-    0,
-    (Number(form.totalAmount) || 0) - (Number(form.discount) || 0) - (Number(form.advancePaid) || 0),
-  );
+  const remainingAmount = Math.max(0, itemsSubtotal - (Number(form.discount) || 0) - (Number(form.advancePaid) || 0));
 
   function validateForm() {
     const errs = {};
@@ -1030,10 +1146,13 @@ export default function AdminOrders() {
     } else if (!/^[0-9+()\s-]{7,20}$/.test(form.phone.trim())) {
       errs.phone = 'Please enter a valid phone number';
     }
-    if (!form.productName?.trim()) errs.productName = 'Please select a cake or product';
+    const validItems = orderItems.filter((it) => it.productName?.trim());
+    if (validItems.length === 0) {
+      errs.items = 'Add at least one product';
+    } else if (validItems.some((it) => Number(it.quantity) < 1 || it.unitPrice === '' || Number(it.unitPrice) < 0)) {
+      errs.items = 'Check the quantity and price on each product';
+    }
     if (!form.pickupDatetime) errs.pickupDatetime = 'Pickup/Delivery date & time is required';
-    if (Number(form.quantity) < 1) errs.quantity = 'Quantity must be at least 1';
-    if (form.totalAmount === '' || Number(form.totalAmount) < 0) errs.totalAmount = 'Total amount is required';
     if (form.orderType === 'DELIVERY' && !form.address?.trim()) errs.address = 'Delivery address is required';
     return errs;
   }
@@ -1053,10 +1172,18 @@ export default function AdminOrders() {
     try {
       const payload = {
         ...form,
-        quantity: Number(form.quantity),
-        totalAmount: Number(form.totalAmount),
         discount: Math.max(0, Number(form.discount) || 0),
         advancePaid: Math.max(0, Number(form.advancePaid) || 0),
+        items: orderItems
+          .filter((it) => it.productName?.trim())
+          .map((it) => ({
+            productName: it.productName.trim(),
+            weight: it.weight || '',
+            flavour: it.flavour || '',
+            quantity: Number(it.quantity) || 1,
+            unitPrice: Number(it.unitPrice) || 0,
+            note: it.note || '',
+          })),
       };
 
       if (modal.mode === 'create') {
@@ -1233,19 +1360,33 @@ export default function AdminOrders() {
     const timeLabel = new Date(item.pickupDatetime).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
     const phoneDigits = (item.phone || '').replace(/\D/g, '');
 
+    const itemList = Array.isArray(item.items) && item.items.length > 0
+      ? item.items
+      : [
+          {
+            productName: item.productName,
+            weight: item.weight,
+            flavour: item.flavour,
+            quantity: item.quantity || 1,
+            unitPrice: item.totalAmount ? Number(item.totalAmount) / (item.quantity || 1) : 0,
+            lineTotal: Number(item.totalAmount) || 0,
+          },
+        ];
+
+    const totalProductTypes = itemList.length;
+    const totalUnits = itemList.reduce((sum, it) => sum + (Number(it.quantity) || 1), 0);
+
     return (
-      <div className="overflow-hidden rounded-[22px] border border-admin-border bg-admin-card shadow-xs" onClick={() => setViewing(item)}>
+      <div className="overflow-hidden rounded-[24px] border border-admin-border bg-admin-card shadow-xs transition-shadow duration-200 hover:shadow-md" onClick={() => setViewing(item)}>
         {/* Header: invoice # + order-type badge + amount */}
         <div className="flex items-center gap-2.5 border-b border-admin-border/60 px-4 py-3.5">
-          <span className="font-display text-base font-semibold text-admin-text">
+          <span className="font-display text-base font-bold text-admin-text">
             {item.orderNumber ? item.orderNumber.replace('ORD-', 'INV-') : '—'}
           </span>
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-              isDelivery ? 'bg-admin-primary/10 text-admin-primary' : 'bg-rose-50 text-rose-700'
-            }`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700"
           >
-            {isDelivery ? <Truck className="h-3 w-3" /> : <Store className="h-3 w-3" />}
+            {isDelivery ? <Truck className="h-3.5 w-3.5" /> : <Store className="h-3.5 w-3.5" />}
             {isDelivery ? 'Delivery' : 'Pickup'}
           </span>
           <span className="flex-1" />
@@ -1253,7 +1394,7 @@ export default function AdminOrders() {
         </div>
 
         {/* Body */}
-        <div className="flex flex-col gap-3 px-4 py-3.5" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-col gap-3.5 px-4 py-3.5" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-[15px] font-bold text-admin-text">{item.customerName}</p>
@@ -1261,30 +1402,56 @@ export default function AdminOrders() {
             </div>
             <a
               href={`tel:${phoneDigits}`}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-admin-border text-admin-text"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-admin-border text-admin-text transition-colors hover:bg-admin-bg"
               aria-label="Call customer"
             >
-              <Phone className="h-4.5 w-4.5" />
+              <Phone className="h-4 w-4" />
             </a>
             <button
               type="button"
               onClick={() => handleDirectWhatsApp(item)}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-admin-border text-emerald-600"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-admin-border text-emerald-600 transition-colors hover:bg-emerald-50"
               aria-label="Message on WhatsApp"
             >
-              <MessageCircle className="h-4.5 w-4.5" />
+              <MessageCircle className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="flex items-center gap-3 rounded-2xl bg-admin-bg p-3">
-            <div className="flex h-11.5 w-11.5 shrink-0 items-center justify-center rounded-2xl bg-admin-border text-rose-deep">
-              <Cake className="h-5 w-5" />
+          {/* ITEMS Box */}
+          <div className="rounded-2xl border border-rose-100/60 bg-rose-50/40 p-3.5 space-y-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold uppercase tracking-wider text-admin-muted">ITEMS</span>
+              <span className="font-semibold text-admin-primary">
+                {totalProductTypes} {totalProductTypes === 1 ? 'product' : 'products'} · {totalUnits} {totalUnits === 1 ? 'unit' : 'units'}
+              </span>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-admin-text">{item.productName}</p>
-              <p className="truncate text-xs text-admin-muted">
-                {[item.weight, item.flavour, `Qty ${item.quantity}`].filter(Boolean).join(' · ')}
-              </p>
+
+            <div className={`space-y-2.5 ${totalProductTypes > 3 ? 'max-h-[175px] overflow-y-auto pr-1 scrollbar-thin' : ''}`}>
+              {itemList.map((it, idx) => {
+                const priceEach = Number(it.unitPrice) || 0;
+                const lineTotal = Number(it.lineTotal) || priceEach * (Number(it.quantity) || 1);
+                const details = [it.weight, it.flavour, priceEach > 0 ? `₹${priceEach}${it.quantity > 1 ? ' each' : ''}` : null].filter(Boolean).join(' · ');
+
+                return (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-admin-primary/10 text-admin-primary">
+                      <Cake className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-admin-text">{it.productName}</p>
+                      {details && <p className="truncate text-xs text-admin-muted mt-0.5">{details}</p>}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="rounded-full bg-admin-primary/10 px-2 py-0.5 text-xs font-bold text-admin-primary">
+                        ×{it.quantity || 1}
+                      </span>
+                      <span className="text-sm font-extrabold text-admin-text min-w-[55px] text-right">
+                        ₹{lineTotal.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -1314,14 +1481,14 @@ export default function AdminOrders() {
           <button
             type="button"
             onClick={() => setViewing(item)}
-            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-admin-primary text-sm font-bold text-white"
+            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-admin-primary text-sm font-bold text-white transition-colors hover:bg-admin-primary-hover"
           >
             <Eye className="h-4 w-4" /> View
           </button>
           <button
             type="button"
             onClick={() => openEdit(item)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-admin-border text-admin-text"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-admin-border text-admin-text transition-colors hover:bg-admin-bg"
             aria-label="Edit order"
           >
             <Pencil className="h-4 w-4" />
@@ -1329,7 +1496,7 @@ export default function AdminOrders() {
           <button
             type="button"
             onClick={() => handleInvoiceDownload(item)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-admin-border text-admin-text"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-admin-border text-admin-text transition-colors hover:bg-admin-bg"
             aria-label="Download invoice"
           >
             <FileText className="h-4 w-4" />
@@ -1366,15 +1533,15 @@ export default function AdminOrders() {
       {statsError ? (
         <OrderStatsError onRetry={refreshStats} />
       ) : (
-        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 md:grid-cols-4 xl:grid-cols-7">
+        <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto scroll-pl-4 px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 md:grid-cols-4 xl:grid-cols-7">
           {statsLoading
             ? STAT_CARDS.map((card) => (
-                <div key={card.key || 'total'} className="w-36 shrink-0 snap-start sm:w-auto sm:shrink">
+                <div key={card.key || 'total'} className="w-[118px] shrink-0 snap-start sm:w-full sm:shrink">
                   <OrderStatCardSkeleton />
                 </div>
               ))
             : STAT_CARDS.map((card) => (
-                <div key={card.key || 'total'} className="w-36 shrink-0 snap-start sm:w-auto sm:shrink">
+                <div key={card.key || 'total'} className="w-[118px] shrink-0 snap-start sm:w-full sm:shrink">
                   <OrderStatCard
                     card={card}
                     value={card.key === '' ? orderStats.total : orderStats[card.key.toLowerCase()]}
@@ -1622,130 +1789,28 @@ export default function AdminOrders() {
         );
       })()}
 
-      {/* Orders Table — ACTIONS COLUMN FIRST (renders as a card list below 640px via renderCard) */}
-      <DataTable
-        theme="admin"
-        sticky
-        zebra
-        spacious
-        actionsPosition="start"
-        minWidthClass="min-w-0"
-        renderCard={renderOrderCard}
-        loading={loading}
-        items={items}
-        renderEmpty={
-          <EmptyState
-            icon={ClipboardList}
-            title="No orders found"
-            message="Log an order taken over WhatsApp, phone, or in person."
-            actionLabel="Create First Order"
-            onAction={openCreate}
-          />
-        }
-        renderActions={(item) => (
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              title="View Order Details"
-              onClick={() => setViewing(item)}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-admin-border text-admin-text hover:bg-admin-primary/10 hover:text-admin-primary transition-colors"
-            >
-              <Eye className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              title="Send WhatsApp Invoice"
-              onClick={() => handleDirectWhatsApp(item)}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-admin-border text-emerald-600 hover:bg-emerald-50 transition-colors"
-            >
-              <MessageCircle className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              title="Edit Order"
-              onClick={() => openEdit(item)}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-admin-border text-admin-text hover:bg-admin-bg transition-colors"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              title="Delete Order"
-              onClick={() => setConfirmDelete(item.id)}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-        columns={[
-          {
-            key: 'orderNumber',
-            label: 'Invoice No',
-            render: (i) => (
-              <span className="font-mono text-xs font-bold text-admin-text">
-                {i.orderNumber ? i.orderNumber.replace('ORD-', 'INV-') : '—'}
-              </span>
-            ),
-          },
-          {
-            key: 'customerName',
-            label: 'Customer',
-            render: (i) => (
-              <div>
-                <p className="font-semibold text-admin-text">{i.customerName}</p>
-                <p className="text-xs text-admin-muted">{i.phone}</p>
-              </div>
-            ),
-          },
-          {
-            key: 'productName',
-            label: 'Cake / Product',
-            render: (i) => (
-              <div>
-                <p className="font-semibold text-admin-text">{i.productName}</p>
-                {i.weight && <p className="text-xs text-admin-muted">{i.weight}</p>}
-              </div>
-            ),
-          },
-          {
-            key: 'pickupDatetime',
-            label: 'Delivery Date & Time',
-            render: (i) => (
-              <div>
-                <p className="text-admin-text font-medium">
-                  {new Date(i.pickupDatetime).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
-                </p>
-                <p className="text-xs text-admin-muted">
-                  {new Date(i.pickupDatetime).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} ({i.orderType})
-                </p>
-              </div>
-            ),
-          },
-          { key: 'totalAmount', label: 'Amount', render: (i) => `₹${Number(i.totalAmount).toFixed(2)}` },
-          {
-            key: 'status',
-            label: 'Order Status',
-            render: (i) => (
-              <QuickStatusDropdown
-                order={i}
-                onRequestChange={handleRequestStatusChange}
-                loadingId={updatingId}
-              />
-            ),
-          },
-          {
-            key: 'paymentStatus',
-            label: 'Payment Status',
-            render: (i) => (
-              <PaymentStatusDropdown
-                order={i}
-                onUpdate={handleQuickPaymentStatusChange}
-              />
-            ),
-          },
-        ]}
-      />
+      {/* Orders List / Grid — Responsive card grid across Mobile, Tablet, and Desktop */}
+      {loading ? (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} theme="admin" className="h-64 w-full rounded-[24px]" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={ClipboardList}
+          title="No orders found"
+          message="Log an order taken over WhatsApp, phone, or in person."
+          actionLabel="Create First Order"
+          onAction={openCreate}
+        />
+      ) : (
+        <div className="grid gap-4.5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((item) => (
+            <div key={item.id}>{renderOrderCard(item)}</div>
+          ))}
+        </div>
+      )}
 
       <Pagination theme="admin" page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
@@ -1753,17 +1818,22 @@ export default function AdminOrders() {
       <Modal
         open={modal.open}
         title={modal.mode === 'create' ? 'New Order' : 'Edit Order'}
-        subtitle="Create and manage a customer order"
+        subtitle="Step 1 of 1"
         onClose={() => setModal({ ...modal, open: false })}
         wide
         footer={
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs text-admin-muted font-medium">* Fields marked with an asterisk are required</span>
+          <div className="flex items-center justify-between gap-4 w-full">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-admin-muted">TOTAL</p>
+              <p className="text-xl font-extrabold text-admin-text">
+                ₹{(Number(form.totalAmount) || itemsSubtotal).toLocaleString()}
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setModal({ ...modal, open: false })}
-                className="rounded-xl border border-admin-border px-5 py-2 text-sm font-semibold text-admin-text hover:bg-admin-bg transition-colors"
+                className="rounded-2xl border border-admin-border px-4 py-3 text-sm font-semibold text-admin-text hover:bg-admin-bg transition-colors"
               >
                 Cancel
               </button>
@@ -1771,9 +1841,16 @@ export default function AdminOrders() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={saving}
-                className="rounded-xl bg-admin-primary px-6 py-2 text-sm font-semibold text-white hover:bg-admin-primary-hover disabled:opacity-60 transition-colors shadow-sm flex items-center gap-2"
+                className="flex items-center justify-center gap-2 rounded-2xl bg-admin-primary px-7 py-3 text-sm font-bold text-white shadow-md shadow-admin-primary/25 hover:bg-admin-primary-hover disabled:opacity-60 transition-colors"
               >
-                {saving ? <ButtonLoader /> : modal.mode === 'create' ? 'Save Order' : 'Update Order'}
+                {saving ? (
+                  <ButtonLoader />
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 stroke-[3]" />
+                    <span>{modal.mode === 'create' ? 'Create order' : 'Update order'}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -1783,14 +1860,14 @@ export default function AdminOrders() {
           {error && <p className="rounded-2xl bg-admin-danger/10 p-3 text-sm text-admin-danger">{error}</p>}
 
           {/* SECTION 1 — CUSTOMER DETAILS */}
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-1.5">
+          <div className="rounded-2xl border border-admin-border/60 bg-admin-card p-4 space-y-3">
+            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-2">
               <User className="h-4 w-4 text-admin-primary" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">Customer</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">CUSTOMER</h3>
             </div>
-            <div className="grid gap-3.5 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <TextField
-                label="Customer Name"
+                label="Customer name"
                 required
                 value={form.customerName}
                 onChange={(e) => {
@@ -1798,10 +1875,10 @@ export default function AdminOrders() {
                   if (formErrors.customerName) setFormErrors({ ...formErrors, customerName: null });
                 }}
                 error={formErrors.customerName}
-                placeholder="e.g. Patel Ansh"
+                placeholder="Ansh Patel"
               />
               <TextField
-                label="Phone Number"
+                label="Phone"
                 required
                 value={form.phone}
                 onChange={(e) => {
@@ -1809,91 +1886,152 @@ export default function AdminOrders() {
                   if (formErrors.phone) setFormErrors({ ...formErrors, phone: null });
                 }}
                 error={formErrors.phone}
-                placeholder="e.g. 9510532922"
+                placeholder="95105 32922"
               />
             </div>
           </div>
 
-          {/* SECTION 2 — ORDER DETAILS */}
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-1.5">
-              <Cake className="h-4 w-4 text-admin-primary" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">Order</h3>
+          {/* SECTION 2 — ORDER / Products (repeatable — multi-item order) */}
+          <div className="rounded-2xl border border-admin-border/60 bg-admin-card p-4 space-y-3.5">
+            <div className="flex items-center justify-between border-b border-admin-border/60 pb-2">
+              <div className="flex items-center gap-2">
+                <Cake className="h-4 w-4 text-admin-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">ORDER</h3>
+              </div>
+              <span className="text-xs font-semibold text-admin-primary">
+                {orderItems.length} {orderItems.length === 1 ? 'product' : 'products'} · {orderItems.reduce((s, i) => s + (Number(i.quantity) || 1), 0)} units
+              </span>
             </div>
-            <div className="grid gap-3.5 sm:grid-cols-2 md:grid-cols-4">
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs font-semibold text-admin-text">
-                  Cake / Product <span className="text-admin-primary">*</span>
-                </label>
-                <ProductCombobox
-                  value={form.productName}
-                  onChange={(name) => {
-                    setForm({ ...form, productName: name });
-                    if (formErrors.productName) setFormErrors({ ...formErrors, productName: null });
-                  }}
-                  onSelectProduct={handleSelectProduct}
-                  products={products}
-                  error={formErrors.productName}
-                />
-                {formErrors.productName && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.productName}</p>}
-              </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-admin-text">Weight / Size</label>
-                {selectedProduct && weightOptions.length > 0 ? (
-                  <ThemedSelect
-                    theme="admin"
-                    value={form.weight}
-                    onChange={handleWeightChange}
-                    options={weightOptions}
-                    placeholder="Select weight"
-                  />
-                ) : (
-                  <TextField
-                    value={form.weight}
-                    onChange={(e) => setForm({ ...form, weight: e.target.value })}
-                    placeholder="e.g. 500g"
-                  />
-                )}
-              </div>
+            {formErrors.items && <p className="text-[11px] font-semibold text-rose-600">{formErrors.items}</p>}
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-admin-text">Flavour</label>
-                {selectedProduct && flavourOptions.length > 0 ? (
-                  <ThemedSelect
-                    theme="admin"
-                    value={form.flavour}
-                    onChange={(v) => setForm({ ...form, flavour: v })}
-                    options={flavourOptions}
-                    placeholder="Select flavour"
-                  />
-                ) : (
-                  <TextField
-                    value={form.flavour}
-                    onChange={(e) => setForm({ ...form, flavour: e.target.value })}
-                    placeholder="e.g. Chocolate Truffle"
-                  />
-                )}
-              </div>
+            <div className="space-y-3">
+              {orderItems.map((item, index) => {
+                const totalItemPrice = (Number(item.unitPrice) || 0) * (Number(item.quantity) || 1);
+                const availableWeights = item.product && weightOptionsFor(item).length > 0 ? weightOptionsFor(item) : null;
 
-              <SelectField
-                label="Order Type"
-                required
-                value={form.orderType}
-                onChange={(e) => setForm({ ...form, orderType: e.target.value })}
-              >
-                <option value="PICKUP">Pickup</option>
-                <option value="DELIVERY">Delivery</option>
-              </SelectField>
+                return (
+                  <div key={index} className="rounded-2xl border border-rose-100 bg-rose-50/30 p-3.5 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-admin-primary/10 text-admin-primary">
+                          <Cake className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <ProductCombobox
+                            value={item.productName}
+                            onChange={(name) => updateOrderItem(index, { productName: name })}
+                            onSelectProduct={(prod) => handleItemProductSelect(index, prod)}
+                            products={products}
+                          />
+                          {item.unitPrice ? (
+                            <p className="text-xs text-admin-muted mt-1">
+                              {[item.weight, `₹${item.unitPrice} each`].filter(Boolean).join(' · ')}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                      {orderItems.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeOrderItem(index)}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-100/60 transition-colors"
+                          title="Delete product"
+                        >
+                          <Trash2 className="h-4.5 w-4.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      {/* Weight / size select */}
+                      <div className="flex-1 min-w-[120px]">
+                        {availableWeights ? (
+                          <ThemedSelect
+                            theme="admin"
+                            value={item.weight}
+                            onChange={(w) => handleItemWeightChange(index, w)}
+                            options={availableWeights}
+                            placeholder="Select weight"
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={item.weight}
+                            onChange={(e) => updateOrderItem(index, { weight: e.target.value })}
+                            placeholder="Size / weight"
+                            className="w-full rounded-xl border border-admin-border bg-white px-3 py-2 text-sm text-admin-text"
+                          />
+                        )}
+                      </div>
+
+                      {/* Quantity Stepper */}
+                      <div className="flex h-10 items-center overflow-hidden rounded-xl border border-admin-border bg-white px-1">
+                        <button
+                          type="button"
+                          onClick={() => updateOrderItem(index, { quantity: Math.max(1, Number(item.quantity || 1) - 1) })}
+                          className="flex h-8 w-8 items-center justify-center text-admin-primary hover:bg-admin-primary/10 rounded-lg text-lg font-bold"
+                          aria-label="Decrease quantity"
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center text-sm font-extrabold text-admin-text">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => updateOrderItem(index, { quantity: Number(item.quantity || 1) + 1 })}
+                          className="flex h-8 w-8 items-center justify-center text-admin-primary hover:bg-admin-primary/10 rounded-lg text-lg font-bold"
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Line total price */}
+                      <div className="text-right ml-auto">
+                        <span className="text-base font-extrabold text-admin-text">₹{totalItemPrice.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    {/* Item Note */}
+                    <div>
+                      <input
+                        type="text"
+                        value={item.note}
+                        onChange={(e) => updateOrderItem(index, { note: e.target.value })}
+                        placeholder='Item note — "Happy Birthday Ansh" on top'
+                        className="w-full rounded-xl border border-admin-border/70 bg-white px-3.5 py-2 text-xs text-admin-text placeholder:text-admin-muted"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+
+            <button
+              type="button"
+              onClick={addOrderItem}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-admin-primary bg-admin-primary/5 text-xs font-bold text-admin-primary transition-colors hover:bg-admin-primary/10"
+            >
+              <Plus className="h-4 w-4" /> Add another product
+            </button>
+
+            <SelectField
+              label="Order Type"
+              required
+              value={form.orderType}
+              onChange={(e) => setForm({ ...form, orderType: e.target.value })}
+            >
+              <option value="PICKUP">Pickup</option>
+              <option value="DELIVERY">Delivery</option>
+            </SelectField>
           </div>
 
-          {/* SECTION 3 — DELIVERY / PICKUP */}
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-1.5">
+          {/* SECTION 3 — ADDRESS */}
+          <div className="rounded-2xl border border-admin-border/60 bg-admin-card p-4 space-y-3">
+            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-2">
               <CalendarClock className="h-4 w-4 text-admin-primary" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">
-                {form.orderType === 'DELIVERY' ? 'Delivery' : 'Pickup'}
+                {form.orderType === 'DELIVERY' ? 'DELIVERY' : 'PICKUP'}
               </h3>
             </div>
             <div className="grid gap-3.5 sm:grid-cols-2">
@@ -1920,7 +2058,7 @@ export default function AdminOrders() {
 
               {form.orderType === 'DELIVERY' && (
                 <TextAreaField
-                  label="Delivery Address"
+                  label="Address"
                   required
                   rows={2}
                   value={form.address}
@@ -1929,22 +2067,54 @@ export default function AdminOrders() {
                     if (formErrors.address) setFormErrors({ ...formErrors, address: null });
                   }}
                   error={formErrors.address}
-                  placeholder="Street name, landmark, area…"
+                  placeholder="14 Shanti Residency, Bopal, Ahmedabad 380058"
                 />
               )}
             </div>
           </div>
 
           {/* SECTION 4 — PAYMENT */}
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-1.5">
+          <div className="rounded-2xl border border-admin-border/60 bg-admin-card p-4 space-y-3.5">
+            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-2">
               <IndianRupee className="h-4 w-4 text-admin-primary" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">Payment</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">PAYMENT</h3>
             </div>
 
-            <div className="grid gap-3.5 sm:grid-cols-2 md:grid-cols-4">
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <TextField
+                label="Total"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={form.totalAmount || itemsSubtotal}
+                onChange={(e) => {
+                  setForm({ ...form, totalAmount: e.target.value });
+                  if (formErrors.totalAmount) setFormErrors({ ...formErrors, totalAmount: null });
+                }}
+                error={formErrors.totalAmount}
+                placeholder="₹1,445"
+              />
+              <TextField
+                label="Advance"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.advancePaid}
+                onChange={(e) => setForm({ ...form, advancePaid: e.target.value })}
+                placeholder="₹200"
+              />
+            </div>
+
+            {/* Remaining Box */}
+            <div className="flex items-center justify-between rounded-2xl bg-rose-50 border border-rose-100 p-3.5">
+              <span className="text-xs font-bold text-rose-700 uppercase tracking-wider">Remaining</span>
+              <span className="text-lg font-extrabold text-rose-700">₹{remainingAmount.toLocaleString()}</span>
+            </div>
+
+            <div className="grid gap-3.5 sm:grid-cols-2">
               <SelectField
-                label="Payment Status"
+                label="Payment status"
                 required
                 value={form.paymentStatus}
                 onChange={(e) => setForm({ ...form, paymentStatus: e.target.value })}
@@ -1966,73 +2136,21 @@ export default function AdminOrders() {
                 <option value="BANK_TRANSFER">Bank Transfer</option>
                 <option value="OTHER">Other</option>
               </SelectField>
-
-              <TextField
-                label="Quantity"
-                type="number"
-                min="1"
-                required
-                value={form.quantity}
-                onChange={(e) => handleQuantityChange(e.target.value)}
-                error={formErrors.quantity}
-              />
-
-              <TextField
-                label="Total Amount"
-                type="number"
-                min="0"
-                step="0.01"
-                required
-                value={form.totalAmount}
-                onChange={(e) => {
-                  setForm({ ...form, totalAmount: e.target.value });
-                  if (formErrors.totalAmount) setFormErrors({ ...formErrors, totalAmount: null });
-                }}
-                error={formErrors.totalAmount}
-                placeholder="₹0.00"
-              />
-            </div>
-
-            <div className="grid gap-3 grid-cols-3 p-3.5 rounded-2xl bg-admin-bg border border-admin-border/60">
-              <TextField
-                label="Discount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.discount}
-                onChange={(e) => setForm({ ...form, discount: e.target.value })}
-                placeholder="₹0.00"
-              />
-              <TextField
-                label="Advance Paid"
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.advancePaid}
-                onChange={(e) => setForm({ ...form, advancePaid: e.target.value })}
-                placeholder="₹0.00"
-              />
-              <div>
-                <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-admin-muted">Remaining</span>
-                <p className="rounded-xl border border-admin-border bg-white px-3 py-2 text-sm font-bold text-admin-primary">
-                  ₹{remainingAmount.toFixed(2)}
-                </p>
-              </div>
             </div>
           </div>
 
-          {/* SECTION 5 — ADDITIONAL INFORMATION */}
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-1.5">
+          {/* SECTION 5 — NOTES */}
+          <div className="rounded-2xl border border-admin-border/60 bg-admin-card p-4 space-y-3">
+            <div className="flex items-center gap-2 border-b border-admin-border/60 pb-2">
               <StickyNote className="h-4 w-4 text-admin-primary" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">Notes</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">NOTES</h3>
             </div>
             <TextAreaField
-              label="Notes / Instructions"
+              label="Notes"
               rows={2}
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="Cake message, allergies, special delivery notes…"
+              placeholder="Message on cake, allergies, delivery instructions…"
             />
           </div>
         </form>
@@ -2080,11 +2198,55 @@ export default function AdminOrders() {
               </div>
             </div>
 
+            {/* Items Box in Drawer */}
+            <div className="rounded-2xl border border-rose-100/80 bg-rose-50/40 p-4 space-y-3">
+              <div className="flex items-center justify-between text-xs border-b border-rose-100/80 pb-2">
+                <span className="font-bold uppercase tracking-wider text-admin-muted">ITEMS</span>
+                <span className="font-semibold text-admin-primary">
+                  {(viewing.items && viewing.items.length > 0 ? viewing.items.length : 1)} products · {(viewing.items && viewing.items.length > 0 ? viewing.items.reduce((sum, it) => sum + (it.quantity || 1), 0) : viewing.quantity || 1)} units
+                </span>
+              </div>
+              <div className={`space-y-3 ${viewing.items && viewing.items.length > 3 ? 'max-h-[220px] overflow-y-auto pr-1 scrollbar-thin' : ''}`}>
+                {(viewing.items && viewing.items.length > 0
+                  ? viewing.items
+                  : [
+                      {
+                        productName: viewing.productName,
+                        weight: viewing.weight,
+                        flavour: viewing.flavour,
+                        quantity: viewing.quantity,
+                        unitPrice: viewing.totalAmount ? Number(viewing.totalAmount) / (viewing.quantity || 1) : 0,
+                        lineTotal: Number(viewing.totalAmount) || 0,
+                      },
+                    ]
+                ).map((it, idx) => (
+                  <div key={idx} className="flex items-start justify-between gap-3 text-sm">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-admin-primary/10 text-admin-primary mt-0.5">
+                        <Cake className="h-4.5 w-4.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-admin-text">{it.productName}</p>
+                        <p className="text-xs text-admin-muted mt-0.5">
+                          {[it.weight, it.flavour, it.unitPrice ? `₹${it.unitPrice} each` : null].filter(Boolean).join(' · ')}
+                        </p>
+                        {it.note && <p className="text-xs text-admin-primary mt-1 bg-white p-2 rounded-xl border border-rose-100 font-medium">Note: {it.note}</p>}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="rounded-full bg-admin-primary/10 px-2.5 py-0.5 text-xs font-bold text-admin-primary inline-block mb-1">
+                        ×{it.quantity}
+                      </span>
+                      <p className="font-extrabold text-admin-text">
+                        ₹{(Number(it.lineTotal) || Number(it.unitPrice) * Number(it.quantity) || 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4 rounded-2xl bg-admin-bg p-4 text-sm">
-              <Field label="Cake / Product" value={viewing.productName} />
-              <Field label="Weight" value={viewing.weight || '—'} />
-              <Field label="Flavour" value={viewing.flavour || '—'} />
-              <Field label="Quantity" value={viewing.quantity} />
               <Field label="Delivery Type" value={viewing.orderType} />
               <Field label="Delivery Date & Time" value={formatDateTime(viewing.pickupDatetime)} />
             </div>

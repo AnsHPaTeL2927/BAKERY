@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GripVertical } from 'lucide-react';
 import TableSkeleton from '../../components/loading/TableSkeleton';
 import Skeleton from '../../components/loading/Skeleton';
 import useIsMobile from '../hooks/useIsMobile';
+import { swipeManager } from '../utils/swipeManager';
 
 export default function DataTable({
   columns,
@@ -24,6 +25,10 @@ export default function DataTable({
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    swipeManager.close();
+  }, [items, loading]);
 
   function handleDrop(index) {
     if (dragIndex !== null && dragIndex !== index) {

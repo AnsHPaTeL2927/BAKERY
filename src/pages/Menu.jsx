@@ -11,7 +11,7 @@ export default function Menu() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get("category") || "all";
   const [active, setActive] = useState(initialCategory);
-  const [content, setContent] = useState({ categories: [], products: [] });
+  const [content, setContent] = useState({ categories: [], products: [], settings: {} });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,6 +22,7 @@ export default function Menu() {
 
   const categories = content.categories || [];
   const products = content.products || [];
+  const whatsapp = content.settings?.whatsapp;
 
   useEffect(() => {
     setActive(searchParams.get("category") || "all");
@@ -96,7 +97,7 @@ export default function Menu() {
             >
               {filtered.map((p, i) => (
                 <ScrollReveal key={p.id} delay={i * 60} distance={16}>
-                  <ProductCard product={p} />
+                  <ProductCard product={p} whatsapp={whatsapp} />
                 </ScrollReveal>
               ))}
             </motion.div>

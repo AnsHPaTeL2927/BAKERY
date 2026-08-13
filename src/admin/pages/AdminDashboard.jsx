@@ -44,6 +44,7 @@ import {
   Store,
   AlertTriangle,
   Globe,
+  Cake,
 } from 'lucide-react';
 import { getDashboard, productsApi, messagesApi } from '../services/adminApi';
 import { useToast } from '../components/ToastProvider';
@@ -54,8 +55,8 @@ import AnimatedNumber from '../components/AnimatedNumber';
 import Skeleton from '../../components/loading/Skeleton';
 import ActivityTimeline from '../components/ActivityTimeline';
 import StatusBadge from '../components/StatusBadge';
-import Thumbnail from '../components/Thumbnail';
 import EmptyState from '../components/EmptyState';
+import CardListItem from '../components/CardListItem';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -193,7 +194,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="min-w-0 space-y-6 overflow-x-hidden">
       {/* Title */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -213,11 +214,11 @@ export default function AdminDashboard() {
       {/* Hero: Today's Snapshot */}
       <motion.div
         variants={itemVariants}
-        className="relative overflow-hidden rounded-admin border border-admin-border bg-linear-to-br from-admin-primary to-admin-primary-hover p-6 text-white shadow-lg md:p-8"
+        className="relative min-w-0 overflow-hidden rounded-admin border border-admin-border bg-linear-to-br from-admin-primary to-admin-primary-hover p-4.5 text-white shadow-lg sm:p-6 md:p-8"
       >
         <Sparkles className="absolute -right-6 -top-6 h-32 w-32 text-white/10" />
         <p className="text-sm font-medium uppercase tracking-wide text-white/80">Today's Business Overview</p>
-        <div className="mt-5 grid grid-cols-2 gap-6 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-2 text-white/80">
               <Users className="h-4 w-4" />
@@ -266,7 +267,7 @@ export default function AdminDashboard() {
       {/* Order overview */}
       <motion.div variants={itemVariants}>
         <h2 className="mb-3 font-display text-lg font-semibold text-admin-text">Order Overview</h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
           <StatCard icon={ClipboardList} label="Total Orders" value={stats.orders.total} />
           <StatCard icon={Clock} label="Pending" value={stats.orders.pending} />
           <StatCard icon={ChefHat} label="Preparing" value={stats.orders.preparing} />
@@ -279,7 +280,7 @@ export default function AdminDashboard() {
       </motion.div>
 
       {/* Order reminders */}
-      <motion.div variants={itemVariants} className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
+      <motion.div variants={itemVariants} className="min-w-0 rounded-admin border border-admin-border bg-admin-card p-4.5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
         <div className="flex items-center gap-2">
           <CalendarClock className="h-5 w-5 text-admin-primary" />
           <h2 className="font-display text-lg font-semibold text-admin-text">Order Reminders</h2>
@@ -313,7 +314,7 @@ export default function AdminDashboard() {
       </motion.div>
 
       {/* KPI Cards */}
-      <motion.div variants={itemVariants} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div variants={itemVariants} className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <KpiCard icon={Users} label="Total Visitors" value={stats.cards.totalVisitors} trend={derived.visitorsTrend} sparklineData={derived.visitorsSparkline} color="#D94C7B" />
         <KpiCard icon={ShoppingBag} label="Order Clicks" value={stats.cards.orderClicks} trend={derived.orderClicksTrend} sparklineData={derived.orderClicksSparkline} color="#22C55E" />
         <KpiCard icon={MessageCircle} label="WhatsApp Leads" value={stats.cards.whatsappClicks} trend={derived.whatsappClicksTrend} sparklineData={derived.whatsappSparkline} color="#F59E0B" />
@@ -322,9 +323,9 @@ export default function AdminDashboard() {
 
       {/* Large area chart + summary */}
       <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md lg:col-span-2">
+        <div className="min-w-0 overflow-hidden rounded-admin border border-admin-border bg-admin-card p-4.5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6 lg:col-span-2">
           <h2 className="font-display text-lg font-semibold text-admin-text">Visitor Traffic — Last 30 Days</h2>
-          <div className="mt-4 h-72">
+          <div className="mt-4 h-72 w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.visitorsSeries}>
                 <defs>
@@ -361,7 +362,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
+        <div className="min-w-0 rounded-admin border border-admin-border bg-admin-card p-4.5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
           <h2 className="font-display text-lg font-semibold text-admin-text">Visitor Summary</h2>
           <div className="mt-4 space-y-4">
             {[
@@ -389,10 +390,10 @@ export default function AdminDashboard() {
 
       {/* Engagement trend + Top viewed products */}
       <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
+        <div className="min-w-0 overflow-hidden rounded-admin border border-admin-border bg-admin-card p-4.5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
           <h2 className="font-display text-lg font-semibold text-admin-text">Engagement Trend</h2>
           <p className="text-xs text-admin-muted">Order, WhatsApp &amp; call clicks — last 30 days</p>
-          <div className="mt-4 h-72">
+          <div className="mt-4 h-72 w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={stats.clicksSeries}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" vertical={false} />
@@ -418,10 +419,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
+        <div className="min-w-0 overflow-hidden rounded-admin border border-admin-border bg-admin-card p-4.5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
           <h2 className="font-display text-lg font-semibold text-admin-text">Top Viewed Products</h2>
           <p className="text-xs text-admin-muted">By product page views</p>
-          <div className="mt-4 h-72">
+          <div className="mt-4 h-72 w-full min-w-0 overflow-hidden">
             {stats.topProducts.length === 0 ? (
               <EmptyState message="Not enough product views yet." />
             ) : (
@@ -443,7 +444,7 @@ export default function AdminDashboard() {
       </motion.div>
 
       {/* Compact stat row */}
-      <motion.div variants={itemVariants} className="grid gap-4 sm:grid-cols-3">
+      <motion.div variants={itemVariants} className="grid gap-3 sm:gap-4 sm:grid-cols-3">
         <StatCard icon={Images} label="Gallery Views" value={stats.cards.galleryViews} />
         <StatCard icon={Eye} label="Product Views" value={stats.cards.productViews} />
         <StatCard icon={Mail} label="Unread Messages" value={unreadMessages} />
@@ -451,29 +452,47 @@ export default function AdminDashboard() {
 
       {/* Popular products + Quick actions */}
       <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md lg:col-span-2">
+        <div className="min-w-0 rounded-admin border border-admin-border bg-admin-card p-4.5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6 lg:col-span-2">
           <h2 className="font-display text-lg font-semibold text-admin-text">Popular Products</h2>
           {stats.topProducts.length === 0 ? (
             <EmptyState message="No product views recorded yet." />
           ) : (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 flex flex-col gap-3">
               {stats.topProducts.map((p, index) => {
                 const product = productMap[p.productId];
+                const imageSrc = product?.image || p.image;
                 return (
-                  <div key={p.productId} className="flex items-center gap-3 rounded-2xl border border-admin-border p-3 transition-colors duration-200 hover:bg-admin-bg/60">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-primary/10 text-xs font-bold text-admin-primary">
-                      {index + 1}
-                    </span>
-                    <Thumbnail src={product?.image} alt={p.name} />
+                  <div
+                    key={p.productId}
+                    className="flex items-center gap-3.5 rounded-2xl border border-admin-border bg-admin-card p-3.5 shadow-2xs"
+                  >
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt={p.name}
+                        className="h-12 w-12 shrink-0 rounded-xl object-cover bg-admin-bg"
+                      />
+                    ) : (
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-admin-bg text-admin-muted">
+                        <Cake className="h-5 w-5 text-admin-muted" />
+                      </span>
+                    )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-admin-text">{p.name}</p>
-                      <p className="truncate text-xs text-admin-muted">{product?.category?.name || 'Uncategorised'}</p>
+                      <p className="truncate text-xs text-admin-muted mt-0.5">
+                        {product?.category?.name || 'Uncategorised'}
+                      </p>
+                      {product?.status && (
+                        <div className="mt-1.5">
+                          <StatusBadge status={product.status} />
+                        </div>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-admin-text">{p.views}</p>
-                      <p className="text-[11px] text-admin-muted">views</p>
+                    <div className="shrink-0 text-right">
+                      <span className="text-xs font-bold text-admin-muted whitespace-nowrap">
+                        #{index + 1} · {p.views} views
+                      </span>
                     </div>
-                    {product?.status && <StatusBadge status={product.status} />}
                   </div>
                 );
               })}
@@ -481,19 +500,17 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
+        <div className="min-w-0 rounded-admin border border-admin-border bg-admin-card p-4.5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
           <h2 className="font-display text-lg font-semibold text-admin-text">Quick Actions</h2>
-          {/* Below sm: horizontal snap-scroll row (same pattern as Orders' stat strip)
-              instead of a 4-row 2-col grid — sm: and up is the original grid, unchanged. */}
-          <div className="-mx-1 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
+          <div className="mt-4 grid grid-cols-2 gap-3">
             {QUICK_ACTIONS.map((action) => (
               <Link
                 key={action.label}
                 to={action.to}
-                className="flex w-24 shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border border-admin-border p-4 text-center text-xs font-semibold text-admin-text transition-colors hover:border-admin-primary hover:bg-admin-primary/5 sm:w-auto sm:shrink"
+                className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-admin-border bg-admin-card p-4 text-center text-xs font-semibold text-admin-text transition-all hover:border-admin-primary hover:bg-admin-primary/5 active:scale-98 shadow-2xs"
               >
                 <action.icon className="h-5 w-5 text-admin-primary" />
-                {action.label}
+                <span className="leading-tight">{action.label}</span>
               </Link>
             ))}
           </div>
@@ -501,7 +518,7 @@ export default function AdminDashboard() {
       </motion.div>
 
       {/* Recent activity */}
-      <motion.div variants={itemVariants} className="rounded-admin border border-admin-border bg-admin-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
+      <motion.div variants={itemVariants} className="min-w-0 rounded-admin border border-admin-border bg-admin-card p-4.5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
         <h2 className="font-display text-lg font-semibold text-admin-text">Recent Activity</h2>
         <div className="mt-4">
           <ActivityTimeline items={stats.recentActivity} />

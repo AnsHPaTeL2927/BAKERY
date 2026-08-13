@@ -11,8 +11,16 @@ import CardSkeleton from "../components/loading/CardSkeleton";
 import ScrollReveal from "../components/ScrollReveal";
 import ParallaxLayer from "../components/ParallaxLayer";
 import AnimatedButton from "../components/AnimatedButton";
+import HeroCakeAccent from "../components/HeroCakeAccent";
+import useCountdown from "../hooks/useCountdown";
 import heroDefault from "../assets/hero-default.svg";
 import customCakeDefault from "../assets/custom-cake-default.svg";
+
+// An internal path (starts with "/") should route through React Router;
+// anything else (wa.me links, tel:, external URLs) is a plain anchor.
+function isInternalLink(link) {
+  return typeof link === "string" && link.startsWith("/");
+}
 
 const icons = [Heart, Leaf, Sparkles, ChefHat, Star, Clock, ShieldCheck];
 
@@ -51,8 +59,15 @@ export default function Home() {
     { title: "Fresh Daily", detail: "Baked to order, never sitting in a display case." },
     { title: "Hygienic Kitchen", detail: "Clean process from mixing bowl to delivery box." },
   ];
-  const activeOffer = festivalOffers.find((o) => o.active);
+  // Date-aware: an offer past its own `endDate` never renders here, even if
+  // an admin forgot to flip its "active" toggle off (see server's getOffers).
+  const activeOffer = festivalOffers.find((o) => o.isCurrentlyActive ?? o.active);
   const bestSellers = products.filter((p) => p.featured).slice(0, 6);
+  // No products flagged "featured" yet shouldn't mean an empty Best Sellers
+  // grid — fall back to whatever is in the live catalog so the section
+  // always has something worth showing.
+  const bestSellersDisplay = bestSellers.length > 0 ? bestSellers : products.slice(0, 6);
+  const bestSellerTeaser = bestSellers.slice(0, 3);
   const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
 
   return (
@@ -67,16 +82,27 @@ export default function Home() {
 
       <IcingDivider className="text-blush" />
 
-      {/* ═══ FESTIVAL OFFER BANNER ═══ */}
-      {activeOffer && (
+      {/* ═══ DYNAMIC OFFER BANNER ═══ */}
+      {/* Three states: loading (skeleton), an active offer (urgency), or —
+          the common case — no offer running, which must never look like a
+          missing/broken section, so it transforms into evergreen marketing
+          content instead. See OfferFallbackBanner below. */}
+      {loading ? (
+        <div className="max-w-6xl mx-auto px-5 md:px-8 py-14">
+          <Skeleton className="h-64 md:h-80 rounded-[2rem]" />
+        </div>
+      ) : activeOffer ? (
         <ScrollReveal className="max-w-6xl mx-auto px-5 md:px-8 py-14">
           <div className="relative rounded-[2rem] overflow-hidden bg-rose-deep text-ivory grid md:grid-cols-2 items-center group">
             <div className="p-8 md:p-12 relative z-10">
               <p className="font-script text-3xl text-blush mb-1">{activeOffer.festival}</p>
               <h2 className="font-display font-semibold text-2xl md:text-4xl">{activeOffer.title}</h2>
               <p className="mt-3 text-ivory/85 max-w-sm">{activeOffer.description}</p>
-              <div className="mt-5 inline-flex items-center gap-2 bg-gold text-cocoa font-bold px-4 py-1.5 rounded-full text-sm badge-float">
-                {activeOffer.discount}
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <div className="inline-flex items-center gap-2 bg-gold text-cocoa font-bold px-4 py-1.5 rounded-full text-sm badge-float">
+                  {activeOffer.discount}
+                </div>
+                <OfferCountdown endDate={activeOffer.endDate} />
               </div>
               <div className="mt-6">
                 <AnimatedButton
@@ -96,6 +122,8 @@ export default function Home() {
             </div>
           </div>
         </ScrollReveal>
+      ) : (
+        <OfferFallbackBanner products={bestSellerTeaser} />
       )}
 
       {/* ═══ CATEGORIES ═══ */}
@@ -103,55 +131,113 @@ export default function Home() {
         <ScrollReveal>
           <SectionTitle eyebrow="What We Bake" title="Explore Our Categories" />
         </ScrollReveal>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="rounded-2xl border border-blush/60 bg-ivory p-4 text-center">
-                  <Skeleton className="mb-3 aspect-square w-full rounded-xl" />
-                  <Skeleton className="mx-auto h-3 w-2/3" />
-                </div>
-              ))
-            : categories.map((c, i) => (
-                <ScrollReveal key={c.slug || c.id} delay={i * 60} distance={20}>
-                  <Link
-                    to={`/menu?category=${c.slug || c.id}`}
-                    className="group bg-ivory rounded-2xl border border-blush/50 p-4 text-center card-hover block"
-                  >
-                    <div className="w-full aspect-square rounded-xl img-zoom-container mb-3 relative overflow-hidden">
-                      <SafeImage
-                        src={c.image}
-                        alt={c.name}
-                        loading="lazy"
-                        blurLoad
-                        showSkeleton
-                        containerClassName="w-full h-full"
-                        className="w-full h-full object-cover img-zoom-target"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-cocoa/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
-                    </div>
-                    <p className="font-display font-semibold text-cocoa text-sm">{c.name}</p>
-                  </Link>
-                </ScrollReveal>
-              ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-blush/60 bg-ivory p-4 text-center">
+                <Skeleton className="mb-3 aspect-square w-full rounded-xl" />
+                <Skeleton className="mx-auto h-3 w-2/3" />
+              </div>
+            ))}
+          </div>
+        ) : categories.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
+            {categories.map((c, i) => (
+              <ScrollReveal key={c.slug || c.id} delay={i * 60} distance={20}>
+                <Link
+                  to={`/menu?category=${c.slug || c.id}`}
+                  className="group bg-ivory rounded-2xl border border-blush/50 p-4 text-center card-hover block h-full"
+                >
+                  <div className="w-full aspect-square rounded-xl img-zoom-container mb-3 relative overflow-hidden">
+                    <SafeImage
+                      src={c.image}
+                      alt={c.name}
+                      loading="lazy"
+                      blurLoad
+                      showSkeleton
+                      containerClassName="w-full h-full"
+                      className="w-full h-full object-cover img-zoom-target"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-cocoa/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                  </div>
+                  <p className="font-display font-semibold text-cocoa text-sm">{c.name}</p>
+                  {c.description && (
+                    <p className="mt-1 text-xs text-cocoa-soft/65 leading-snug line-clamp-2">{c.description}</p>
+                  )}
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
+        ) : (
+          // No categories configured yet — a bare/broken-looking grid would
+          // undercut trust, so this collapses into a single discovery CTA.
+          <ScrollReveal className="mt-10 text-center rounded-[2rem] border border-blush/50 bg-ivory py-14 px-6">
+            <p className="text-4xl mb-3" aria-hidden="true">🍰</p>
+            <p className="font-display font-semibold text-cocoa text-lg mb-2">Fresh Bakes, Ready to Explore</p>
+            <p className="text-cocoa-soft/70 max-w-sm mx-auto mb-6">
+              Browse our full menu of homemade cakes and treats — new categories are added all the time.
+            </p>
+            <AnimatedButton to="/menu" arrow>
+              View Full Menu
+            </AnimatedButton>
+          </ScrollReveal>
+        )}
       </section>
 
       {/* ═══ BEST SELLERS ═══ */}
       <section className="bg-blush-soft/50 py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-5 md:px-8">
           <ScrollReveal>
-            <SectionTitle eyebrow="Customer Favourites" title="Best Sellers" />
+            <SectionTitle
+              eyebrow="Customer Favourites"
+              title="Our Most Loved Cakes ❤️"
+              description="The cakes our customers keep coming back for."
+            />
           </ScrollReveal>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-            {loading
-              ? Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
-              : bestSellers.map((p, i) => (
-                  <ScrollReveal key={p.id} delay={i * 80}>
-                    <ProductCard product={p} />
-                  </ScrollReveal>
-                ))}
-          </div>
-          {!loading && bestSellers.length > 0 && (
+
+          {loading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+              {Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}
+            </div>
+          ) : bestSellersDisplay.length > 0 ? (
+            // Horizontal snap-scroll on mobile (one strong card at a time,
+            // thumb-reachable) — a real grid from tablet up, 4-6 visible
+            // depending on how many best sellers are actually configured.
+            <div
+              className="mt-10 flex gap-5 overflow-x-auto pb-2 -mx-5 px-5 snap-x snap-mandatory scrollbar-hide
+                         sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3"
+            >
+              {bestSellersDisplay.map((p, i) => (
+                <ScrollReveal
+                  key={p.id}
+                  delay={i * 80}
+                  className="shrink-0 w-[75%] snap-start sm:w-auto sm:shrink"
+                >
+                  <ProductCard product={p} whatsapp={settings.whatsapp} />
+                </ScrollReveal>
+              ))}
+            </div>
+          ) : (
+            // Catalog is genuinely empty — still give people a reason to
+            // reach out rather than showing nothing at all.
+            <ScrollReveal className="mt-10 text-center rounded-[2rem] border border-blush/50 bg-ivory py-14 px-6">
+              <p className="text-4xl mb-3" aria-hidden="true">🧁</p>
+              <p className="font-display font-semibold text-cocoa text-lg mb-2">Fresh Batches Coming Very Soon</p>
+              <p className="text-cocoa-soft/70 max-w-sm mx-auto mb-6">
+                Our menu is being updated — message us on WhatsApp and we'll tell you what's fresh out of the oven today.
+              </p>
+              <AnimatedButton
+                href={waLink("Hi! What cakes do you have available today?")}
+                target="_blank"
+                rel="noopener noreferrer"
+                arrow
+              >
+                Ask on WhatsApp
+              </AnimatedButton>
+            </ScrollReveal>
+          )}
+
+          {!loading && bestSellersDisplay.length > 0 && (
             <ScrollReveal className="text-center mt-10">
               <AnimatedButton to="/menu" variant="secondary" arrow>
                 View Full Menu
@@ -324,6 +410,74 @@ export default function Home() {
   );
 }
 
+/* ═══ OFFER COUNTDOWN BADGE ═══ */
+function OfferCountdown({ endDate }) {
+  const remaining = useCountdown(endDate);
+  if (!remaining) return null;
+  return (
+    <span className="text-sm font-semibold text-ivory bg-ivory/15 px-3 py-1.5 rounded-full">
+      {remaining.days}d {remaining.hours}h left
+    </span>
+  );
+}
+
+/* ═══ OFFER BANNER — EVERGREEN FALLBACK ═══ */
+// Shown instead of the offer banner whenever nothing is currently running.
+// Same panel treatment as the real offer (so nothing about the page layout
+// jumps), but the message and CTA are always-true marketing, never a
+// "no offers" placeholder.
+function OfferFallbackBanner({ products }) {
+  const hasProducts = products.length > 0;
+  return (
+    <ScrollReveal className="max-w-6xl mx-auto px-5 md:px-8 py-14">
+      <div className="relative rounded-[2rem] overflow-hidden bg-rose-deep text-ivory grid md:grid-cols-2 items-center">
+        <div className="p-8 md:p-12 relative z-10">
+          <p className="font-script text-3xl text-blush mb-1">Something Sweet Is Always Baking</p>
+          <h2 className="font-display font-semibold text-2xl md:text-4xl">Our Customers' Favourites ❤️</h2>
+          <p className="mt-3 text-ivory/85 max-w-sm leading-relaxed">
+            Discover the cakes our customers keep coming back for — freshly baked, every single day.
+          </p>
+          <div className="mt-6">
+            <AnimatedButton
+              to="/menu"
+              variant="secondary"
+              className="!border-ivory !text-ivory hover:!bg-ivory/15"
+              arrow
+            >
+              Shop Best Sellers
+            </AnimatedButton>
+          </div>
+        </div>
+        <div className="h-56 md:h-full p-6 md:p-10 flex items-center">
+          {hasProducts ? (
+            <div className="grid grid-cols-3 gap-3 w-full">
+              {products.map((p) => (
+                <Link
+                  key={p.id}
+                  to={p.category ? `/menu?category=${p.category}` : "/menu"}
+                  className="rounded-2xl overflow-hidden aspect-square img-zoom-container border-2 border-ivory/15 block"
+                >
+                  <SafeImage
+                    src={p.image}
+                    alt={p.name}
+                    loading="lazy"
+                    containerClassName="w-full h-full"
+                    className="w-full h-full object-cover img-zoom-target"
+                  />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-6xl opacity-80" aria-hidden="true">
+              🎂
+            </div>
+          )}
+        </div>
+      </div>
+    </ScrollReveal>
+  );
+}
+
 /* ═══ HERO SECTION ═══ */
 function HeroSection({ banners, settings, waLink, loading }) {
   const [current, setCurrent] = useState(0);
@@ -334,9 +488,14 @@ function HeroSection({ banners, settings, waLink, loading }) {
 
   const hasBanners = banners.length > 0;
   const hasMultiple = banners.length > 1;
-  const heroImage = hasBanners ? banners[current]?.image : heroDefault;
-  const heroTitle = banners[current]?.title;
-  const heroSubtitle = banners[current]?.subtitle;
+  const activeBanner = hasBanners ? banners[current] : null;
+  const heroImage = hasBanners ? activeBanner?.image : heroDefault;
+  const heroTitle = activeBanner?.title;
+  const heroSubtitle = activeBanner?.subtitle;
+  // Only treat the banner's own CTA as the primary hero action when the
+  // admin has actually configured both a label and a destination for it —
+  // otherwise fall back to the evergreen "Explore Cakes" CTA below.
+  const campaignCta = activeBanner?.ctaText && activeBanner?.ctaLink ? activeBanner : null;
 
   // Autoplay carousel
   useEffect(() => {
@@ -439,16 +598,28 @@ function HeroSection({ banners, settings, waLink, loading }) {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="mt-8 flex flex-wrap gap-4"
           >
+            {campaignCta ? (
+              <AnimatedButton
+                {...(isInternalLink(campaignCta.ctaLink)
+                  ? { to: campaignCta.ctaLink }
+                  : { href: campaignCta.ctaLink, target: "_blank", rel: "noopener noreferrer" })}
+                arrow
+              >
+                {campaignCta.ctaText}
+              </AnimatedButton>
+            ) : (
+              <AnimatedButton to="/menu" variant="secondary" arrow>
+                Explore Cakes
+              </AnimatedButton>
+            )}
             <AnimatedButton
               href={waLink("Hi! I'd like to place an order with Cakes by Tulsi.")}
               target="_blank"
               rel="noopener noreferrer"
+              variant={campaignCta ? "secondary" : "primary"}
               arrow
             >
               Order on WhatsApp
-            </AnimatedButton>
-            <AnimatedButton to="/menu" variant="secondary" arrow>
-              View Menu
             </AnimatedButton>
           </motion.div>
         </motion.div>
@@ -473,6 +644,12 @@ function HeroSection({ banners, settings, waLink, loading }) {
           <div className="absolute -bottom-4 -left-6 w-8 h-8 rounded-full bg-rose/25 animate-float-slow hidden md:block" aria-hidden="true"
             style={{ transform: `translate3d(${mousePos.x * 18}px, ${mousePos.y * 12}px, 0)`, animationDelay: "1s" }}
           />
+
+          {/* Premium decorative 3D-style cake accent — CSS-only, GPU-cheap,
+              tilts toward the cursor on desktop, static under reduced-motion */}
+          <div className="absolute -bottom-6 -left-5 w-20 h-20 sm:-bottom-8 sm:-left-8 sm:w-28 sm:h-28 md:-bottom-10 md:-left-10 md:w-36 md:h-36 z-10">
+            <HeroCakeAccent mousePos={mousePos} className="w-full h-full" />
+          </div>
 
           {/* Main image with crossfade */}
           <div className="relative rounded-[3rem] overflow-hidden shadow-2xl shadow-cocoa/10 aspect-[4/3]">
@@ -624,11 +801,14 @@ function TestimonialsSection({ reviews }) {
 }
 
 /* ═══ SECTION TITLE ═══ */
-function SectionTitle({ eyebrow, title }) {
+function SectionTitle({ eyebrow, title, description }) {
   return (
     <div className="text-center">
       <p className="font-script text-2xl md:text-3xl text-rose-deep mb-1">{eyebrow}</p>
       <h2 className="font-display font-semibold text-2xl md:text-4xl text-cocoa">{title}</h2>
+      {description && (
+        <p className="mt-3 text-cocoa-soft/70 max-w-md mx-auto leading-relaxed">{description}</p>
+      )}
     </div>
   );
 }

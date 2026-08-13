@@ -4,38 +4,39 @@ import { getPublicContent } from "../services/api";
 import SafeImage from "../components/SafeImage";
 import ScrollReveal from "../components/ScrollReveal";
 import AnimatedButton from "../components/AnimatedButton";
-
-function useCountdown(endDate) {
-  const [remaining, setRemaining] = useState(getRemaining());
-
-  function getRemaining() {
-    const diff = new Date(endDate).getTime() - Date.now();
-    if (diff <= 0) return null;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    return { days, hours };
-  }
-
-  useEffect(() => {
-    const id = setInterval(() => setRemaining(getRemaining()), 60000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endDate]);
-
-  return remaining;
-}
+import ProductCard from "../components/ProductCard";
+import Skeleton from "../components/loading/Skeleton";
+import useCountdown from "../hooks/useCountdown";
 
 export default function FestivalSpecials() {
   const [content, setContent] = useState({ offers: [], products: [], settings: {} });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getPublicContent().then(setContent).catch(() => {});
+    getPublicContent()
+      .then(setContent)
+      .finally(() => setLoading(false));
   }, []);
 
   const festivalOffers = content.offers || [];
   const products = content.products || [];
   const settings = content.settings || {};
-  const active = festivalOffers.filter((o) => o.active);
+
+  // Date-aware: an offer past its own endDate never shows here, even if an
+  // admin forgot to flip its "active" toggle off (server computes this).
+  const active = festivalOffers
+    .filter((o) => o.isCurrentlyActive ?? o.active)
+    .sort((a, b) => a.priority - b.priority);
+
+  // Admin-configured campaigns whose start date hasn't arrived yet — shown
+  // as "Coming Soon" teasers. Never invented; only rendered if configured.
+  const upcoming = festivalOffers
+    .filter((o) => o.isUpcoming)
+    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    .slice(0, 3);
+
+  const bestSellers = products.filter((p) => p.featured).slice(0, 6);
+  const bestSellersDisplay = bestSellers.length > 0 ? bestSellers : products.slice(0, 6);
 
   return (
     <>
@@ -46,24 +47,121 @@ export default function FestivalSpecials() {
       />
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20 space-y-16">
-        {active.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-5xl mb-4">🎉</p>
-            <p className="text-cocoa-soft/70 text-lg">No festival offers are running right now — check back soon!</p>
-          </div>
-        )}
-        {active
-          .sort((a, b) => a.priority - b.priority)
-          .map((offer, i) => (
+        {loading ? (
+          <Skeleton className="h-72 md:h-96 rounded-[2rem]" />
+        ) : active.length > 0 ? (
+          active.map((offer, i) => (
             <ScrollReveal key={offer.id} delay={i * 100}>
               <FestivalBlock offer={offer} products={products} whatsapp={settings.whatsapp} />
             </ScrollReveal>
-          ))}
+          ))
+        ) : (
+          <EvergreenFestivalFallback
+            bestSellers={bestSellersDisplay}
+            upcoming={upcoming}
+            whatsapp={settings.whatsapp}
+          />
+        )}
       </section>
     </>
   );
 }
 
+/* ═══ NO ACTIVE CAMPAIGN — EVERGREEN DISCOVERY ═══ */
+// Never shows a bare "no festival offers" message. Instead: a warm brand
+// statement, any admin-scheduled upcoming campaigns (only if configured),
+// the best-selling catalogue, and a Custom Cake CTA — this page's own,
+// distinct from the homepage's Custom Cake section.
+function EvergreenFestivalFallback({ bestSellers, upcoming, whatsapp }) {
+  const waLink = (message) => `https://wa.me/${whatsapp || "918780652597"}?text=${encodeURIComponent(message)}`;
+
+  return (
+    <div className="space-y-16">
+      <ScrollReveal className="text-center max-w-xl mx-auto">
+        <p className="text-5xl mb-4" aria-hidden="true">🎉</p>
+        <h2 className="font-display font-semibold text-2xl md:text-3xl text-cocoa mb-3">
+          Sweet Moments, All Year Round ❤️
+        </h2>
+        <p className="text-cocoa-soft/70 leading-relaxed">
+          No special festival collection is running right now, but there's always something worth celebrating.
+        </p>
+      </ScrollReveal>
+
+      {upcoming.length > 0 && (
+        <div>
+          <p className="text-center font-script text-2xl text-rose-deep mb-6">Coming Soon</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {upcoming.map((offer, i) => (
+              <ScrollReveal key={offer.id} delay={i * 80} distance={12}>
+                <div className="relative rounded-2xl overflow-hidden border border-blush/50 bg-ivory card-hover">
+                  <div className="h-32 img-zoom-container">
+                    <SafeImage
+                      src={offer.banner}
+                      alt={offer.title}
+                      containerClassName="w-full h-full"
+                      className="w-full h-full object-cover img-zoom-target opacity-90"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <span className="inline-block text-[11px] font-bold uppercase tracking-wide text-rose-deep bg-blush-soft px-2.5 py-1 rounded-full mb-2">
+                      Coming Soon
+                    </span>
+                    <p className="font-script text-lg text-rose-deep leading-tight">{offer.festival}</p>
+                    <p className="font-display font-semibold text-cocoa">{offer.title}</p>
+                    <p className="text-xs text-cocoa-soft/60 mt-1">
+                      Starts {new Date(offer.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {bestSellers.length > 0 && (
+        <div>
+          <p className="text-center font-script text-2xl text-rose-deep mb-1">Customer Favourites</p>
+          <h3 className="text-center font-display font-semibold text-2xl text-cocoa mb-8">Our Most Loved Cakes ❤️</h3>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bestSellers.map((p, i) => (
+              <ScrollReveal key={p.id} delay={i * 80}>
+                <ProductCard product={p} whatsapp={whatsapp} />
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <ScrollReveal className="relative rounded-[2rem] overflow-hidden bg-cocoa text-cream p-8 md:p-12 text-center">
+        <p className="font-script text-2xl text-blush mb-2">Made Just for You</p>
+        <h3 className="font-display font-semibold text-2xl md:text-3xl mb-3">
+          Can't Find Exactly What You're Looking For?
+        </h3>
+        <p className="text-cream/70 max-w-md mx-auto mb-6 leading-relaxed">
+          Tell us what you're imagining and we'll help create something special.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <AnimatedButton to="/custom-cake" arrow>
+            Create Your Custom Cake
+          </AnimatedButton>
+          <AnimatedButton
+            href={waLink("Hi! I'd like to order a cake with Cakes by Tulsi.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="secondary"
+            className="!border-cream/40 !text-cream hover:!bg-cream/10"
+            arrow
+          >
+            Order on WhatsApp
+          </AnimatedButton>
+        </div>
+      </ScrollReveal>
+    </div>
+  );
+}
+
+/* ═══ ACTIVE FESTIVAL BLOCK ═══ */
 function FestivalBlock({ offer, products, whatsapp }) {
   const countdown = useCountdown(offer.endDate);
   const relatedProducts = products.filter((p) => p.featured).slice(0, 3);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Star, Cake, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Star, Cake, RotateCcw, Eye, EyeOff, SlidersHorizontal } from 'lucide-react';
 import { productsApi, categoriesApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import CardListItem from '../components/CardListItem';
@@ -14,6 +14,8 @@ import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, TextAreaField, SelectField, CheckboxField } from '../components/FormField';
 import imageFallback from '../../assets/image-fallback.svg';
 import ThemedSelect from '../../components/ThemedSelect';
+import useIsMobile from '../hooks/useIsMobile';
+import BottomSheet from '../components/BottomSheet';
 
 const EMPTY_FILTERS = { categoryId: '', status: '', featured: '', available: '', minPrice: '', maxPrice: '', sort: '' };
 
@@ -41,6 +43,7 @@ const EMPTY_FORM = {
 };
 
 export default function AdminProducts() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -63,7 +66,9 @@ export default function AdminProducts() {
 
   const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
   const hasActiveFilters = Boolean(search || Object.values(filters).some(Boolean));
+  const activeSheetFilterCount = [filters.categoryId, filters.status, filters.featured, filters.available, filters.minPrice, filters.maxPrice, filters.sort].filter(Boolean).length;
 
   async function load() {
     setLoading(true);
@@ -266,6 +271,7 @@ export default function AdminProducts() {
   function renderProductCard(item) {
     return (
       <CardListItem
+        id={item.id}
         theme="public"
         image={item.image}
         icon={Cake}
@@ -296,30 +302,54 @@ export default function AdminProducts() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Menu Management</p>
-          <h1 className="font-display text-3xl font-semibold text-cocoa">Products</h1>
+          <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Menu Management</p>
+          <h1 className="font-display text-3xl font-semibold text-admin-text">Products</h1>
         </div>
         <button
           type="button"
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
+          className="flex items-center gap-2 rounded-xl bg-admin-primary px-5 py-2.5 font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-sm"
         >
           <Plus className="h-4 w-4" /> New Product
         </button>
       </div>
 
-      {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
+      {error && <p className="rounded-2xl bg-admin-danger/10 p-3 text-sm text-admin-danger">{error}</p>}
 
-      <SearchInput value={search} onChange={setSearch} placeholder="Search products…" />
+      {/* Desktop: search + inline filters. Mobile: search + Filters funnel button. */}
+      <div className="hidden flex-wrap items-center gap-3 sm:flex">
+        <SearchInput value={search} onChange={setSearch} placeholder="Search products…" />
+      </div>
+      <div className="flex items-center gap-2.5 sm:hidden">
+        <div className="flex-1">
+          <SearchInput value={search} onChange={setSearch} placeholder="Search products…" />
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowFilters(true)}
+          className="relative flex h-11.5 min-w-11.5 shrink-0 items-center justify-center rounded-2xl border border-admin-primary bg-admin-primary/8 px-3 text-admin-primary"
+          aria-label="Filters"
+        >
+          <SlidersHorizontal className="h-4.5 w-4.5" />
+          {activeSheetFilterCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-admin-bg bg-admin-primary px-1 text-[11px] font-extrabold text-white">
+              {activeSheetFilterCount}
+            </span>
+          )}
+        </button>
+      </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-blush/60 bg-white p-4">
+      {/* Desktop inline filter bar */}
+      <div className="hidden flex-wrap items-center gap-3 rounded-2xl border border-admin-border/60 bg-admin-card p-4 sm:flex">
         <ThemedSelect
+          theme="admin"
           className="w-40"
           value={filters.categoryId}
           onChange={(v) => updateFilter('categoryId', v)}
           options={[{ value: '', label: 'All Categories' }, ...categories.map((c) => ({ value: String(c.id), label: c.name }))]}
         />
         <ThemedSelect
+          theme="admin"
           className="w-36"
           value={filters.status}
           onChange={(v) => updateFilter('status', v)}
@@ -331,6 +361,7 @@ export default function AdminProducts() {
           ]}
         />
         <ThemedSelect
+          theme="admin"
           className="w-40"
           value={filters.featured}
           onChange={(v) => updateFilter('featured', v)}
@@ -341,6 +372,7 @@ export default function AdminProducts() {
           ]}
         />
         <ThemedSelect
+          theme="admin"
           className="w-44"
           value={filters.available}
           onChange={(v) => updateFilter('available', v)}
@@ -357,19 +389,20 @@ export default function AdminProducts() {
             value={filters.minPrice}
             onChange={(e) => updateFilter('minPrice', e.target.value)}
             placeholder="Min ₹"
-            className="w-20 rounded-2xl border border-blush px-3 py-2 text-xs text-cocoa"
+            className="w-20 rounded-2xl border border-admin-border px-3 py-2 text-xs text-admin-text"
           />
-          <span className="text-xs text-cocoa-soft/60">–</span>
+          <span className="text-xs text-admin-muted">–</span>
           <input
             type="number"
             min="0"
             value={filters.maxPrice}
             onChange={(e) => updateFilter('maxPrice', e.target.value)}
             placeholder="Max ₹"
-            className="w-20 rounded-2xl border border-blush px-3 py-2 text-xs text-cocoa"
+            className="w-20 rounded-2xl border border-admin-border px-3 py-2 text-xs text-admin-text"
           />
         </div>
         <ThemedSelect
+          theme="admin"
           className="w-40"
           value={filters.sort}
           onChange={(v) => updateFilter('sort', v)}
@@ -383,14 +416,170 @@ export default function AdminProducts() {
           <button
             type="button"
             onClick={resetFilters}
-            className="flex items-center gap-1.5 rounded-full border border-blush px-3.5 py-1.5 text-xs font-semibold text-rose-deep hover:bg-blush-soft transition-colors"
+            className="flex items-center gap-1.5 rounded-xl border border-admin-border px-3.5 py-2.5 text-sm font-semibold text-admin-muted hover:bg-admin-bg hover:text-admin-text transition-colors"
           >
-            <RotateCcw className="h-3.5 w-3.5" /> Reset Filters
+            <RotateCcw className="h-4 w-4" /> Reset Filters
           </button>
         )}
       </div>
 
+      {/* Mobile filter BottomSheet — same pattern as Orders module */}
+      <BottomSheet
+        open={showFilters && isMobile}
+        title="Filters"
+        onClose={() => setShowFilters(false)}
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                resetFilters();
+                setShowFilters(false);
+              }}
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-admin-border bg-admin-card py-3 text-sm font-bold text-admin-text"
+            >
+              <RotateCcw className="h-4 w-4" /> Reset all
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFilters(false)}
+              className="flex flex-[1.4] items-center justify-center rounded-2xl bg-admin-primary py-3 text-sm font-bold text-white"
+            >
+              Apply filters
+            </button>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-admin-muted">Category</p>
+            <div className="flex flex-wrap gap-2">
+              {[{ value: '', label: 'All' }, ...categories.map((c) => ({ value: String(c.id), label: c.name }))].map((opt) => (
+                <button
+                  key={opt.value || 'all'}
+                  type="button"
+                  onClick={() => updateFilter('categoryId', opt.value)}
+                  className={`h-10 rounded-full px-4 text-sm font-semibold transition-colors ${
+                    filters.categoryId === opt.value
+                      ? 'bg-admin-primary/10 text-admin-primary'
+                      : 'border border-admin-border bg-admin-card text-admin-muted'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-admin-muted">Status</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: '', label: 'All' },
+                { value: 'LIVE', label: 'Live' },
+                { value: 'DRAFT', label: 'Draft' },
+                { value: 'HIDDEN', label: 'Hidden' },
+              ].map((opt) => (
+                <button
+                  key={opt.value || 'all'}
+                  type="button"
+                  onClick={() => updateFilter('status', opt.value)}
+                  className={`h-10 rounded-full px-4 text-sm font-semibold transition-colors ${
+                    filters.status === opt.value
+                      ? 'bg-admin-primary/10 text-admin-primary'
+                      : 'border border-admin-border bg-admin-card text-admin-muted'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-admin-muted">Featured</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: '', label: 'Any' },
+                { value: 'true', label: 'Featured' },
+                { value: 'false', label: 'Not Featured' },
+              ].map((opt) => (
+                <button
+                  key={opt.value || 'any'}
+                  type="button"
+                  onClick={() => updateFilter('featured', opt.value)}
+                  className={`h-10 rounded-full px-4 text-sm font-semibold transition-colors ${
+                    filters.featured === opt.value
+                      ? 'bg-admin-primary/10 text-admin-primary'
+                      : 'border border-admin-border bg-admin-card text-admin-muted'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-admin-muted">Availability</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: '', label: 'Any' },
+                { value: 'true', label: 'Available' },
+                { value: 'false', label: 'Unavailable' },
+              ].map((opt) => (
+                <button
+                  key={opt.value || 'any'}
+                  type="button"
+                  onClick={() => updateFilter('available', opt.value)}
+                  className={`h-10 rounded-full px-4 text-sm font-semibold transition-colors ${
+                    filters.available === opt.value
+                      ? 'bg-admin-primary/10 text-admin-primary'
+                      : 'border border-admin-border bg-admin-card text-admin-muted'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-admin-muted">Price range</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                value={filters.minPrice}
+                onChange={(e) => updateFilter('minPrice', e.target.value)}
+                placeholder="Min ₹"
+                className="w-full rounded-xl border border-admin-border bg-admin-bg px-3 py-2.5 text-sm text-admin-text"
+              />
+              <span className="text-xs text-admin-muted">–</span>
+              <input
+                type="number"
+                min="0"
+                value={filters.maxPrice}
+                onChange={(e) => updateFilter('maxPrice', e.target.value)}
+                placeholder="Max ₹"
+                className="w-full rounded-xl border border-admin-border bg-admin-bg px-3 py-2.5 text-sm text-admin-text"
+              />
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-admin-muted">Sort</p>
+            <ThemedSelect
+              theme="admin"
+              value={filters.sort}
+              onChange={(v) => updateFilter('sort', v)}
+              options={[
+                { value: '', label: 'Default' },
+                { value: 'newest', label: 'Newest First' },
+                { value: 'oldest', label: 'Oldest First' },
+              ]}
+            />
+          </div>
+        </div>
+      </BottomSheet>
+
       <DataTable
+        theme="admin"
         loading={loading}
         items={items}
         renderCard={renderProductCard}
@@ -416,11 +605,11 @@ export default function AdminProducts() {
             <button
               type="button"
               onClick={() => handleStatusToggle(item)}
-              className="rounded-full border border-blush px-3 py-1 text-xs font-semibold text-cocoa hover:bg-blush-soft"
+              className="rounded-full border border-admin-border px-3 py-1 text-xs font-semibold text-admin-text hover:bg-admin-bg"
             >
               {item.status === 'LIVE' ? 'Hide' : 'Publish'}
             </button>
-            <button type="button" onClick={() => openEdit(item)} className="rounded-full border border-blush p-1.5 text-cocoa hover:bg-blush-soft">
+            <button type="button" onClick={() => openEdit(item)} className="rounded-full border border-admin-border p-1.5 text-admin-text hover:bg-admin-bg">
               <Pencil className="h-4 w-4" />
             </button>
             <button
@@ -434,7 +623,7 @@ export default function AdminProducts() {
         )}
       />
 
-      <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
+      <Pagination theme="admin" page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Product' : 'Edit Product'} onClose={() => setModal({ ...modal, open: false })} wide>
         <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">

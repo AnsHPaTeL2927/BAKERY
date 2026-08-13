@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Image as ImageIcon, Eye, EyeOff, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, Image as ImageIcon, Eye, EyeOff, ChevronUp, ChevronDown, ArrowUpDown } from 'lucide-react';
 import { bannersApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import CardListItem from '../components/CardListItem';
@@ -24,6 +24,7 @@ export default function AdminBanners() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reorderMode, setReorderMode] = useState(false);
 
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
@@ -140,6 +141,7 @@ export default function AdminBanners() {
   function renderBannerCard(item, index) {
     return (
       <CardListItem
+        id={item.id}
         theme="public"
         image={item.image}
         icon={ImageIcon}
@@ -147,7 +149,7 @@ export default function AdminBanners() {
         subtitle={item.subtitle || '—'}
         badge={<StatusBadge status={item.status} />}
         primaryActions={
-          !search
+          reorderMode && !search
             ? [
                 { icon: ChevronUp, label: 'Move Up', onClick: () => moveItem(index, -1) },
                 { icon: ChevronDown, label: 'Move Down', onClick: () => moveItem(index, 1) },
@@ -172,16 +174,31 @@ export default function AdminBanners() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Home Page</p>
-          <h1 className="font-display text-3xl font-semibold text-cocoa">Hero Banners</h1>
+          <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Home Page</p>
+          <h1 className="font-display text-3xl font-semibold text-admin-text">Hero Banners</h1>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
-        >
-          <Plus className="h-4 w-4" /> New Banner
-        </button>
+        <div className="flex items-center gap-2.5">
+          {!search && items.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setReorderMode((v) => !v)}
+              className={`flex h-11 items-center gap-1.5 rounded-2xl border px-3.5 text-sm font-semibold transition-colors sm:hidden ${
+                reorderMode
+                  ? 'border-admin-primary bg-admin-primary text-white'
+                  : 'border-admin-border bg-admin-card text-admin-text hover:bg-admin-bg'
+              }`}
+            >
+              <ArrowUpDown className="h-4 w-4" /> {reorderMode ? 'Done' : 'Reorder'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={openCreate}
+            className="flex items-center gap-2 rounded-xl bg-admin-primary px-5 py-2.5 font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-sm"
+          >
+            <Plus className="h-4 w-4" /> New Banner
+          </button>
+        </div>
       </div>
 
       {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}

@@ -1,13 +1,25 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { swipeManager } from '../utils/swipeManager';
 
 // The mobile counterpart to Modal — used for lighter, quicker interactions
 // (change status, filters, action menus, pickers) where a full-screen or
 // centered dialog would be overkill. Slides up from the bottom, respects the
 // iPhone home-indicator safe area, and keeps a sticky footer slot for
 // Reset/Apply or Confirm-style actions so it never scrolls out of reach.
+//
+// Portal-rendered to document.body so it always layers above sticky headers,
+// navbars, and any ancestor with its own stacking context.
 export default function BottomSheet({ open, title, onClose, children, footer, maxHeightClass = 'max-h-[80vh]' }) {
-  return (
+  useEffect(() => {
+    if (open) {
+      swipeManager.close();
+    }
+  }, [open]);
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -50,6 +62,7 @@ export default function BottomSheet({ open, title, onClose, children, footer, ma
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

@@ -82,12 +82,20 @@ export default function NotificationsDropdown() {
   }, [refresh]);
 
   useEffect(() => {
+    // Desktop only — the panel there is a normal child of rootRef, so an
+    // outside mousedown genuinely means "outside." On mobile, BottomSheet
+    // portals its content straight to document.body (not a DOM descendant
+    // of rootRef), so this same check would misread every tap *inside* the
+    // sheet as an outside click and slam it shut instantly. BottomSheet
+    // already handles its own backdrop-click-to-close, so mobile needs no
+    // listener here at all.
+    if (isMobile) return undefined;
     function handleClickOutside(e) {
       if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isMobile]);
 
   async function markAsRead(msg) {
     setMarkingId(msg.id);

@@ -21,6 +21,7 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 import GlobalSearch from '../components/GlobalSearch';
 import NotificationsDropdown from '../components/NotificationsDropdown';
 import MobileBottomNav from '../components/MobileBottomNav';
+import { swipeManager } from '../utils/swipeManager';
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -91,6 +92,7 @@ export default function AdminLayout({ children }) {
   const isDashboardRoute = location.pathname.startsWith('/admin/dashboard');
 
   useEffect(() => {
+    swipeManager.close();
     setMobileOpen(false);
   }, [location.pathname]);
 
@@ -172,7 +174,7 @@ export default function AdminLayout({ children }) {
       </AnimatePresence>
 
       <div className="md:pl-20 lg:pl-64">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-admin-border bg-admin-card/90 px-4 backdrop-blur md:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-admin-border bg-admin-card px-4 shadow-2xs md:px-6">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
@@ -249,7 +251,7 @@ export default function AdminLayout({ children }) {
           </div>
         </header>
 
-        <main className="p-4 pb-24 md:p-6 md:pb-6 lg:p-8">{children}</main>
+        <main className="w-full min-w-0 p-4 pb-24 md:p-6 md:pb-6 lg:p-8">{children}</main>
       </div>
 
       <MobileBottomNav onOpenMore={() => setMobileOpen(true)} />

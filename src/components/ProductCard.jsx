@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 import { getPublicContent, trackEvent } from "../services/api";
 import SafeImage from "./SafeImage";
 
-export default function ProductCard({ product }) {
-  const [settings, setSettings] = useState({});
+// `whatsapp` should be passed down from the page that renders this card —
+// every page already loads it via its own getPublicContent() call. The
+// self-fetch below only exists as a safety net for any caller that doesn't
+// pass it; every grid of cards independently re-fetching the full public
+// content bundle just for one phone number is exactly the kind of request
+// pile-up that trips the public API's rate limiter.
+export default function ProductCard({ product, whatsapp }) {
+  const [fetchedWhatsapp, setFetchedWhatsapp] = useState(null);
   const [weight, setWeight] = useState(product.weights?.[0] || "");
   const price = product.priceByWeight?.[weight] || product.price || 0;
 
   useEffect(() => {
-    getPublicContent().then((data) => setSettings(data.settings || {})).catch(() => {});
-  }, []);
+    if (whatsapp) return;
+    getPublicContent().then((data) => setFetchedWhatsapp(data.settings?.whatsapp || null)).catch(() => {});
+  }, [whatsapp]);
 
   useEffect(() => {
     trackEvent("PRODUCT_VIEW", product.id);
@@ -18,7 +25,7 @@ export default function ProductCard({ product }) {
   }, []);
 
   const orderMessage = `Hi! I'd like to order:\n${product.name} (${weight}) - ₹${price}`;
-  const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
+  const waLink = (message) => `https://wa.me/${whatsapp || fetchedWhatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
 
   return (
     <div className="group bg-ivory rounded-3xl overflow-hidden border border-blush/50 card-hover flex flex-col relative">
@@ -48,6 +55,25 @@ export default function ProductCard({ product }) {
       {/* Content */}
       <div className="p-5 flex flex-col gap-2 flex-1">
         <h3 className="font-display font-semibold text-lg text-cocoa leading-snug">{product.name}</h3>
+
+        {/* Rating / order-count — only if the catalog actually carries this
+            data for the product; never fabricated. */}
+        {(product.rating || product.reviewCount || product.orderCount) && (
+          <div className="flex items-center gap-1.5 text-xs text-cocoa-soft/70">
+            {product.rating && (
+              <span className="flex items-center gap-0.5 text-gold font-semibold">
+                <Star className="w-3.5 h-3.5 fill-gold" />
+                {Number(product.rating).toFixed(1)}
+              </span>
+            )}
+            {(product.reviewCount || product.orderCount) && (
+              <span>
+                {product.reviewCount ? `(${product.reviewCount} reviews)` : `${product.orderCount}+ ordered`}
+              </span>
+            )}
+          </div>
+        )}
+
         <p className="text-sm text-cocoa-soft/75 line-clamp-2 leading-relaxed">{product.description}</p>
 
         {/* Weight selector */}

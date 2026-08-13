@@ -89,12 +89,15 @@ export default function AdminMessages() {
   }
 
   function renderMessageCard(item) {
+    const dateLabel = new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
     return (
       <CardListItem
+        id={item.id}
         icon={Mail}
         title={item.name}
-        subtitle={item.phone || item.message}
-        meta={<span className="text-xs text-admin-muted">{new Date(item.createdAt).toLocaleDateString()}</span>}
+        subtitle={item.message}
+        meta={<span className="whitespace-nowrap text-xs text-admin-muted">{dateLabel}</span>}
         badge={
           <div className="flex flex-wrap items-center gap-1.5">
             <SourceBadge source={item.source} />

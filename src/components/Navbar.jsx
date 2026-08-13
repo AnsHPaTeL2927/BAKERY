@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getPublicContent } from "../services/api";
+import { resolveBrand } from "../utils/brand";
 
 const links = [
   { to: "/", label: "Home" },
@@ -16,7 +17,8 @@ const links = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const [siteName, setSiteName] = useState("Cakes by Tulsi");
+  const [settings, setSettings] = useState(null);
+  const [logoFailed, setLogoFailed] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const menuRef = useRef(null);
@@ -24,10 +26,16 @@ export default function Navbar() {
   useEffect(() => {
     getPublicContent()
       .then((data) => {
-        if (data.settings?.siteName) setSiteName(data.settings.siteName);
+        if (data.settings) setSettings(data.settings);
       })
       .catch(() => {});
   }, []);
+
+  // Uploaded logo takes priority; falls back to the script-font site name
+  // (and — if the logo URL 404s/fails to load — the same text fallback,
+  // rather than a broken-image icon).
+  const brand = resolveBrand(settings);
+  const showLogoImage = brand.type === "image" && !logoFailed;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -65,9 +73,18 @@ export default function Navbar() {
           className="flex items-center gap-2 transition-transform duration-300 hover:scale-[1.03]"
           onClick={() => setOpen(false)}
         >
-          <span className="font-script text-3xl md:text-4xl text-rose-deep leading-none">
-            {siteName}
-          </span>
+          {showLogoImage ? (
+            <img
+              src={brand.src}
+              alt={brand.alt}
+              className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
+              onError={() => setLogoFailed(true)}
+            />
+          ) : (
+            <span className="font-script text-3xl md:text-4xl text-rose-deep leading-none">
+              {brand.type === "image" ? brand.alt : brand.text}
+            </span>
+          )}
         </NavLink>
 
         {/* Desktop nav */}

@@ -136,6 +136,7 @@ export default function AdminGallery() {
   function renderGalleryCard(item, index) {
     return (
       <CardListItem
+        id={item.id}
         theme="public"
         image={item.image}
         icon={Images}
@@ -143,7 +144,7 @@ export default function AdminGallery() {
         subtitle={item.alt || '—'}
         badge={<StatusBadge status={item.status} />}
         primaryActions={
-          !search
+          reorderMode && !search
             ? [
                 { icon: ChevronUp, label: 'Move Up', onClick: () => moveItem(index, -1) },
                 { icon: ChevronDown, label: 'Move Down', onClick: () => moveItem(index, 1) },
@@ -168,23 +169,27 @@ export default function AdminGallery() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Media</p>
-          <h1 className="font-display text-3xl font-semibold text-cocoa">Gallery</h1>
+          <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Media</p>
+          <h1 className="font-display text-3xl font-semibold text-admin-text">Gallery</h1>
         </div>
         <div className="flex items-center gap-2.5">
           {!search && (
             <button
               type="button"
               onClick={() => setReorderMode((v) => !v)}
-              className="flex h-11 items-center gap-1.5 rounded-2xl border border-rose bg-rose/8 px-3.5 text-sm font-semibold text-rose-deep sm:hidden"
+              className={`flex h-11 items-center gap-1.5 rounded-2xl border px-3.5 text-sm font-semibold transition-colors sm:hidden ${
+                reorderMode
+                  ? 'border-admin-primary bg-admin-primary text-white'
+                  : 'border-admin-border bg-admin-card text-admin-text hover:bg-admin-bg'
+              }`}
             >
-              <ArrowUpDown className="h-4 w-4" /> Reorder
+              <ArrowUpDown className="h-4 w-4" /> {reorderMode ? 'Done' : 'Reorder'}
             </button>
           )}
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
+            className="flex items-center gap-2 rounded-xl bg-admin-primary px-5 py-2.5 font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-sm"
           >
             <Plus className="h-4 w-4" /> New Image
           </button>

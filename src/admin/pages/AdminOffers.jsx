@@ -136,6 +136,7 @@ export default function AdminOffers() {
   function renderOfferCard(item) {
     return (
       <CardListItem
+        id={item.id}
         theme="public"
         image={item.banner}
         icon={Gift}

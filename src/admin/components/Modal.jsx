@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { swipeManager } from '../utils/swipeManager';
 
 // variant="form" (default): full-screen sheet below sm:, centered dialog at
 // sm: and up — used for New/Edit Order, New/Edit Product, etc.
@@ -8,6 +10,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 // be overkill for a yes/no decision.
 export default function Modal({ open, title, subtitle, onClose, children, footer, wide, variant = 'form' }) {
   const isConfirm = variant === 'confirm';
+
+  useEffect(() => {
+    if (open) {
+      swipeManager.close();
+    }
+  }, [open]);
 
   return (
     <AnimatePresence>

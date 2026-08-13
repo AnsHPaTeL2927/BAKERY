@@ -122,6 +122,7 @@ export default function AdminTestimonials() {
   function renderTestimonialCard(item) {
     return (
       <CardListItem
+        id={item.id}
         theme="public"
         image={item.photo}
         icon={MessageSquareQuote}

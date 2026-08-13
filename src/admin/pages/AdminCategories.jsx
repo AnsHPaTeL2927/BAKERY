@@ -12,10 +12,10 @@ import SearchInput from '../components/SearchInput';
 import ImageUploader from '../components/ImageUploader';
 import EmptyState from '../components/EmptyState';
 import ButtonLoader from '../../components/loading/ButtonLoader';
-import { TextField, SelectField } from '../components/FormField';
+import { TextField, TextAreaField, SelectField } from '../components/FormField';
 import useIsMobile from '../hooks/useIsMobile';
 
-const EMPTY_FORM = { name: '', slug: '', status: 'LIVE' };
+const EMPTY_FORM = { name: '', slug: '', description: '', status: 'LIVE' };
 
 export default function AdminCategories() {
   const isMobile = useIsMobile();
@@ -68,7 +68,7 @@ export default function AdminCategories() {
   }
 
   function openEdit(item) {
-    setForm({ name: item.name, slug: item.slug, status: item.status });
+    setForm({ name: item.name, slug: item.slug, description: item.description || '', status: item.status });
     setImageFile(null);
     setExistingImage(item.image);
     setError('');
@@ -139,6 +139,7 @@ export default function AdminCategories() {
   function renderCategoryCard(item, index) {
     return (
       <CardListItem
+        id={item.id}
         theme="public"
         image={item.image}
         icon={LayoutGrid}
@@ -146,7 +147,7 @@ export default function AdminCategories() {
         subtitle={item.slug}
         badge={<StatusBadge status={item.status} />}
         primaryActions={
-          !search
+          reorderMode && !search
             ? [
                 { icon: ChevronUp, label: 'Move Up', onClick: () => moveItem(index, -1) },
                 { icon: ChevronDown, label: 'Move Down', onClick: () => moveItem(index, 1) },
@@ -171,23 +172,27 @@ export default function AdminCategories() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Menu Management</p>
-          <h1 className="font-display text-3xl font-semibold text-cocoa">Categories</h1>
+          <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Menu Management</p>
+          <h1 className="font-display text-3xl font-semibold text-admin-text">Categories</h1>
         </div>
         <div className="flex items-center gap-2.5">
           {!search && (
             <button
               type="button"
               onClick={() => setReorderMode((v) => !v)}
-              className="flex h-11 items-center gap-1.5 rounded-2xl border border-rose bg-rose/8 px-3.5 text-sm font-semibold text-rose-deep sm:hidden"
+              className={`flex h-11 items-center gap-1.5 rounded-2xl border px-3.5 text-sm font-semibold transition-colors sm:hidden ${
+                reorderMode
+                  ? 'border-admin-primary bg-admin-primary text-white'
+                  : 'border-admin-border bg-admin-card text-admin-text hover:bg-admin-bg'
+              }`}
             >
-              <ArrowUpDown className="h-4 w-4" /> Reorder
+              <ArrowUpDown className="h-4 w-4" /> {reorderMode ? 'Done' : 'Reorder'}
             </button>
           )}
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
+            className="flex items-center gap-2 rounded-xl bg-admin-primary px-5 py-2.5 font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-sm"
           >
             <Plus className="h-4 w-4" /> New Category
           </button>
@@ -318,6 +323,13 @@ export default function AdminCategories() {
           {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
           <TextField label="Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <TextField label="Slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+          <TextAreaField
+            label="Short Description"
+            placeholder="Optional — shown under the category on the homepage (e.g. 'Rich, layered, and made for celebrations')"
+            maxLength={240}
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
           <ImageUploader
             label="Category Image"
             dimensions="800 × 800 px"
