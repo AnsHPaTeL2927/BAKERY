@@ -351,9 +351,9 @@ export default function AdminGallery() {
             }}
           />
           {formErrors.image && <p className="-mt-2 text-[11px] font-semibold text-rose-600">{formErrors.image}</p>}
-          <TextField label="Category" value={form.category} error={formErrors.category} onChange={(e) => updateField('category', e.target.value)} />
-          <TextField label="Alt Text" value={form.alt} error={formErrors.alt} onChange={(e) => updateField('alt', e.target.value)} />
-          <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+          <TextField label="Category" description="Tag for gallery filter tab (e.g. Wedding Cakes, Anniversary, Cupcakes)." value={form.category} error={formErrors.category} onChange={(e) => updateField('category', e.target.value)} />
+          <TextField label="Alt Text" description="Short accessibility description of the cake design." value={form.alt} error={formErrors.alt} onChange={(e) => updateField('alt', e.target.value)} />
+          <SelectField label="Status" description="Live images are visible in public gallery grid; Draft/Hidden remain private." value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="LIVE">Live</option>
             <option value="DRAFT">Draft</option>
             <option value="HIDDEN">Hidden</option>

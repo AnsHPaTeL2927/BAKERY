@@ -128,20 +128,22 @@ export default function CustomCake() {
       />
 
       {/* ═══ WHAT HAPPENS NEXT ═══ */}
-      <section className="border-b border-blush/50 bg-ivory">
-        <div className="max-w-5xl mx-auto px-5 md:px-8 py-8 md:py-10">
-          <ol className="grid gap-6 md:grid-cols-3 md:gap-8">
+      <section className="py-6 sm:py-8 bg-blush-soft/25">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8">
+          <ol className="grid gap-3 sm:gap-4 md:grid-cols-3">
             {NEXT_STEPS.map((step, i) => (
-              <ScrollReveal as="li" key={step.title} delay={i * 70} distance={16} className="flex gap-4">
-                <span className="shrink-0 w-11 h-11 rounded-2xl bg-blush-soft border border-blush/60 flex items-center justify-center relative">
-                  <step.Icon className="w-5 h-5 text-rose-deep" strokeWidth={1.75} aria-hidden="true" />
-                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose text-ivory text-[10px] font-bold flex items-center justify-center tabular-nums">
-                    {i + 1}
+              <ScrollReveal as="li" key={step.title} delay={i * 70} distance={16} className="h-full">
+                <div className="flex items-start gap-3.5 bg-ivory/90 hover:bg-ivory rounded-2xl border border-blush/60 p-4 shadow-2xs transition-all h-full">
+                  <span className="shrink-0 w-10 h-10 rounded-xl bg-blush-soft border border-blush/60 flex items-center justify-center relative">
+                    <step.Icon className="w-5 h-5 text-rose-deep" strokeWidth={1.75} aria-hidden="true" />
+                    <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-rose text-ivory text-[10px] font-bold flex items-center justify-center tabular-nums shadow-2xs">
+                      {i + 1}
+                    </span>
                   </span>
-                </span>
-                <div>
-                  <p className="font-display font-semibold text-cocoa text-sm mb-1">{step.title}</p>
-                  <p className="text-sm text-cocoa-soft/70 leading-relaxed">{step.desc}</p>
+                  <div className="min-w-0">
+                    <p className="font-display font-semibold text-cocoa text-sm mb-0.5">{step.title}</p>
+                    <p className="text-xs text-cocoa-soft/70 leading-relaxed">{step.desc}</p>
+                  </div>
                 </div>
               </ScrollReveal>
             ))}
@@ -149,8 +151,8 @@ export default function CustomCake() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-5 md:px-8 py-14 md:py-20">
-        <div className="grid md:grid-cols-5 gap-8">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-14 md:py-20">
+        <div className="grid md:grid-cols-5 gap-6 sm:gap-8">
           {/* Live request summary — desktop rail */}
           <ScrollReveal className="md:col-span-2 hidden md:block" direction="left">
             <div className="sticky top-28 space-y-4">
@@ -167,33 +169,38 @@ export default function CustomCake() {
                   initial={{ opacity: 0, y: -12 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -12 }}
-                  className="mb-8 flex items-center gap-3 bg-blush-soft border border-blush rounded-2xl p-4 text-cocoa-soft"
+                  className="mb-6 flex items-center gap-3 bg-blush-soft border border-blush rounded-2xl p-4 text-cocoa-soft"
                 >
                   <CheckCircle2 className="w-5 h-5 text-rose-deep shrink-0" />
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm">
                     Your request details are ready in WhatsApp — send the message to complete your quote request.
                   </p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="bg-ivory rounded-3xl border border-blush/50 p-6 md:p-8 space-y-5 shadow-sm">
+            <form onSubmit={handleSubmit(onSubmit)} className="bg-ivory rounded-2xl sm:rounded-3xl border border-blush/50 p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 shadow-2xs">
               <Field label="Name" error={errors.name}>
                 <input
                   {...register("name", { required: "Please enter your name" })}
-                  className="input"
+                  className="input text-xs sm:text-sm"
                   placeholder="Your full name"
                 />
               </Field>
 
               <Field label="Phone Number" error={errors.phone}>
                 <input
+                  type="tel"
+                  maxLength={10}
                   {...register("phone", {
                     required: "Please enter a phone number",
-                    pattern: { value: /^[0-9+\-\s]{7,15}$/, message: "Enter a valid phone number" },
+                    pattern: { value: /^[0-9]{10}$/, message: "Phone number must be exactly 10 digits" },
                   })}
-                  className="input"
-                  placeholder="e.g. 9876543210"
+                  onInput={(e) => {
+                    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  }}
+                  className="input text-xs sm:text-sm"
+                  placeholder="10-digit mobile number"
                 />
               </Field>
 
@@ -204,7 +211,7 @@ export default function CustomCake() {
                     required: "Please enter your email",
                     pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Enter a valid email" },
                   })}
-                  className="input"
+                  className="input text-xs sm:text-sm"
                   placeholder="you@example.com"
                 />
               </Field>
@@ -237,21 +244,21 @@ export default function CustomCake() {
                 />
               </Field>
 
-              {/* Shape selector */}
+              {/* Shape selector — clean 2-col on mobile, 4-col on tablet/desktop */}
               <Field label="Cake Shape (optional)">
                 <Controller
                   name="shape"
                   control={control}
                   render={({ field }) => (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {SHAPES.map((s) => (
                         <button
                           key={s.value}
                           type="button"
                           onClick={() => field.onChange(field.value === s.value ? "" : s.value)}
-                          className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-300 ${
+                          className={`w-full px-3 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-semibold transition-all duration-200 text-center flex items-center justify-center ${
                             field.value === s.value
-                              ? "bg-rose text-ivory border-rose shadow-sm shadow-rose/20"
+                              ? "bg-rose text-ivory border-rose shadow-2xs"
                               : "border-blush text-cocoa-soft hover:border-rose/60 bg-ivory"
                           }`}
                         >
@@ -263,21 +270,22 @@ export default function CustomCake() {
                 />
               </Field>
 
+              {/* Cake Weight — clean 4-col grid across all devices */}
               <Field label="Cake Weight" error={errors.weight}>
                 <Controller
                   name="weight"
                   control={control}
                   rules={{ required: "Please select a weight" }}
                   render={({ field }) => (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                       {CAKE_WEIGHTS.map((w) => (
                         <button
                           key={w}
                           type="button"
                           onClick={() => field.onChange(w)}
-                          className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition-all duration-300 ${
+                          className={`w-full px-1.5 py-2 sm:px-4 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-semibold transition-all duration-200 text-center flex items-center justify-center ${
                             field.value === w
-                              ? "bg-rose text-ivory border-rose shadow-sm shadow-rose/20"
+                              ? "bg-rose text-ivory border-rose shadow-2xs"
                               : "border-blush text-cocoa-soft hover:border-rose/60 bg-ivory"
                           }`}
                         >
@@ -292,13 +300,13 @@ export default function CustomCake() {
               <Field label="Theme" error={errors.theme}>
                 <input
                   {...register("theme", { required: "Please describe a theme" })}
-                  className="input"
+                  className="input text-xs sm:text-sm"
                   placeholder="e.g. Floral pastel, superhero, minimalist"
                 />
               </Field>
 
               <Field label="Special Message (optional)">
-                <textarea {...register("message")} className="input min-h-24 resize-none" placeholder="Anything else we should know?" />
+                <textarea {...register("message")} className="input min-h-20 sm:min-h-24 resize-none text-xs sm:text-sm" placeholder="Anything else we should know?" />
               </Field>
 
               <Field label="Reference Image (optional)">
@@ -306,34 +314,32 @@ export default function CustomCake() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
-                  className="text-sm text-cocoa-soft file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:bg-blush file:text-rose-deep file:font-semibold hover:file:bg-blush-soft file:transition-colors file:cursor-pointer"
+                  className="w-full text-xs sm:text-sm text-cocoa-soft file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blush file:text-rose-deep file:font-semibold hover:file:bg-blush-soft file:transition-colors file:cursor-pointer"
                 />
-                {fileName && <p className="text-xs text-cocoa-soft/70 mt-1">Selected: {fileName} — please attach it in WhatsApp when you send your request.</p>}
+                {fileName && <p className="text-[11px] sm:text-xs text-cocoa-soft/70 mt-1">Selected: {fileName} — please attach it in WhatsApp when you send your request.</p>}
               </Field>
 
-              {/* Mobile recap — the desktop rail is hidden below `md`, so
-                  without this a phone user submits without ever seeing their
-                  own selections written back to them. */}
+              {/* Mobile recap */}
               <div className="md:hidden pt-2">
                 <RequestSummary summary={summary} />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-rose text-ivory font-semibold py-3.5 rounded-full hover:bg-rose-deep hover:shadow-md hover:shadow-rose/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+                className="w-full bg-rose text-ivory font-semibold py-3 sm:py-3.5 rounded-full hover:bg-rose-deep hover:shadow-md hover:shadow-rose/20 active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base"
               >
-                Request Quote on WhatsApp
+                <MessageCircle className="w-4 h-4 shrink-0" />
+                <span>Request Quote on WhatsApp</span>
               </button>
 
-              <p className="flex items-center justify-center gap-2 text-xs text-cocoa-soft/60 text-center">
-                <ShieldCheck className="w-4 h-4 text-rose shrink-0" strokeWidth={1.75} />
+              <p className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs text-cocoa-soft/60 text-center">
+                <ShieldCheck className="w-3.5 h-3.5 text-rose shrink-0" strokeWidth={1.75} />
                 No payment is taken here — this only starts the conversation.
               </p>
             </form>
 
-            {/* Assurances follow the form on mobile (the desktop rail already
-                carries them alongside it) */}
-            <div className="md:hidden mt-6">
+            {/* Assurances follow the form on mobile */}
+            <div className="md:hidden mt-4 sm:mt-6">
               <AssurancePanel />
             </div>
           </ScrollReveal>
@@ -344,25 +350,22 @@ export default function CustomCake() {
 }
 
 /* ═══ LIVE REQUEST SUMMARY ═══ */
-// Reads the customer's selections back to them as a clean spec sheet. Rows
-// stay in place with an em-dash placeholder rather than appearing one by one,
-// so the panel never jumps height while the form is being filled in.
 function RequestSummary({ summary }) {
   const filled = summary.filter((row) => row.value).length;
 
   return (
-    <div className="bg-ivory rounded-3xl border border-blush/50 overflow-hidden">
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-blush/50 bg-blush-soft/40">
+    <div className="bg-ivory rounded-2xl sm:rounded-3xl border border-blush/50 overflow-hidden shadow-2xs">
+      <div className="flex items-center gap-2.5 px-4 py-3 sm:px-6 sm:py-4 border-b border-blush/50 bg-blush-soft/40">
         <ClipboardList className="w-4 h-4 text-rose-deep shrink-0" strokeWidth={1.75} aria-hidden="true" />
-        <p className="font-display font-semibold text-cocoa text-sm flex-1">Your Request</p>
-        <span className="text-xs text-cocoa-soft/55 tabular-nums">{filled}/{summary.length}</span>
+        <p className="font-display font-semibold text-cocoa text-xs sm:text-sm flex-1">Your Request</p>
+        <span className="text-[11px] sm:text-xs text-cocoa-soft/65 tabular-nums font-semibold">{filled}/{summary.length}</span>
       </div>
 
       <dl className="divide-y divide-blush/40">
         {summary.map((row) => (
-          <div key={row.label} className="flex items-baseline justify-between gap-4 px-6 py-3">
-            <dt className="text-xs uppercase tracking-wider text-cocoa-soft/50 shrink-0">{row.label}</dt>
-            <dd className={`text-sm text-right ${row.value ? "font-semibold text-cocoa" : "text-cocoa-soft/35"}`}>
+          <div key={row.label} className="flex items-baseline justify-between gap-3 px-4 py-2.5 sm:px-6 sm:py-3">
+            <dt className="text-[10px] sm:text-xs uppercase tracking-wider text-cocoa-soft/60 shrink-0">{row.label}</dt>
+            <dd className={`text-xs sm:text-sm text-right truncate ${row.value ? "font-semibold text-cocoa" : "text-cocoa-soft/35"}`}>
               {row.value || "—"}
             </dd>
           </div>
@@ -375,11 +378,11 @@ function RequestSummary({ summary }) {
 /* ═══ ASSURANCE PANEL ═══ */
 function AssurancePanel() {
   return (
-    <ul className="bg-blush-soft/50 rounded-3xl border border-blush/50 px-6 py-5 space-y-3">
+    <ul className="bg-blush-soft/50 rounded-2xl sm:rounded-3xl border border-blush/50 px-4 py-3.5 sm:px-6 sm:py-5 space-y-2 sm:space-y-3">
       {ASSURANCES.map((line) => (
-        <li key={line} className="flex items-start gap-2.5 text-sm text-cocoa-soft/80 leading-snug">
-          <BadgeCheck className="w-4 h-4 text-rose shrink-0 mt-0.5" strokeWidth={1.75} aria-hidden="true" />
-          {line}
+        <li key={line} className="flex items-start gap-2 text-xs sm:text-sm text-cocoa-soft/80 leading-snug">
+          <BadgeCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose shrink-0 mt-0.5" strokeWidth={1.75} aria-hidden="true" />
+          <span>{line}</span>
         </li>
       ))}
     </ul>

@@ -372,11 +372,12 @@ export default function AdminTestimonials() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
           <ImageUploader label="Photo (optional)" dimensions="500 × 500 px" initialUrl={existingImage} onChange={setImageFile} />
-          <TextField label="Name" required value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
-          <TextAreaField label="Review" required value={form.review} error={formErrors.review} onChange={(e) => updateField('review', e.target.value)} />
+          <TextField label="Name" required description="Full name of the customer providing feedback." value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
+          <TextAreaField label="Review" required description="Customer feedback message shown on site." value={form.review} error={formErrors.review} onChange={(e) => updateField('review', e.target.value)} />
           <div className="grid grid-cols-2 gap-4">
             <SelectField
               label="Rating"
+              description="Star rating (1-5)."
               value={form.rating}
               error={formErrors.rating}
               onChange={(e) => updateField('rating', Number(e.target.value))}
@@ -387,15 +388,15 @@ export default function AdminTestimonials() {
                 </option>
               ))}
             </SelectField>
-            <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            <SelectField label="Status" description="Publication state." value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="LIVE">Live</option>
               <option value="DRAFT">Draft</option>
               <option value="HIDDEN">Hidden</option>
             </SelectField>
           </div>
-          <div className="flex gap-6">
-            <CheckboxField label="Approved" checked={form.approved} onChange={(e) => setForm({ ...form, approved: e.target.checked })} />
-            <CheckboxField label="Featured" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
+          <div className="flex flex-col gap-2">
+            <CheckboxField label="Approved" description="Approved reviews are permitted for public display." checked={form.approved} onChange={(e) => setForm({ ...form, approved: e.target.checked })} />
+            <CheckboxField label="Featured" description="Highlighted on homepage testimonials carousel." checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
           </div>
           <button type="submit" disabled={saving} className="w-full rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60">
             {saving ? <ButtonLoader /> : 'Save Testimonial'}

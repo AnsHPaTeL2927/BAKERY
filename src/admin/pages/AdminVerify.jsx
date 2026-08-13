@@ -49,20 +49,24 @@ export default function AdminVerify() {
         {error && <p className="mt-4 rounded-xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
         {info && <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">{info}</p>}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <input
-            value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            required
-            className="w-full rounded-2xl border border-blush p-3 text-center text-2xl tracking-[0.5em]"
-            placeholder="------"
-            maxLength={6}
-          />
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold text-cocoa uppercase tracking-wider text-center">6-Digit Verification Code</label>
+            <input
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              required
+              className="w-full rounded-2xl border border-blush p-3 text-center text-2xl tracking-[0.5em] focus:border-rose-deep focus:outline-none focus:ring-2 focus:ring-rose-deep/20"
+              placeholder="------"
+              maxLength={6}
+            />
+            <p className="mt-1 text-[11px] text-center text-cocoa-soft/80">Check your email inbox for the 6-digit verification code.</p>
+          </div>
           <button
             type="submit"
             disabled={submitting || otp.length !== 6}
-            className="w-full rounded-2xl bg-cocoa px-4 py-3 font-semibold text-white disabled:opacity-60"
+            className="w-full rounded-2xl bg-cocoa px-4 py-3 font-semibold text-white hover:bg-cocoa-soft transition-colors disabled:opacity-60"
           >
             {submitting ? <ButtonLoader label="Verifying…" /> : 'Verify'}
           </button>

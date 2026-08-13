@@ -276,18 +276,19 @@ export default function AdminOffers() {
             />
             {formErrors.banner && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.banner}</p>}
           </div>
-          <TextField label="Festival" required value={form.festival} error={formErrors.festival} onChange={(e) => updateField('festival', e.target.value)} />
-          <TextField label="Title" required value={form.title} error={formErrors.title} onChange={(e) => updateField('title', e.target.value)} />
+          <TextField label="Festival" required description="Event or campaign title (e.g. Diwali Specials, Valentine Week)." value={form.festival} error={formErrors.festival} onChange={(e) => updateField('festival', e.target.value)} />
+          <TextField label="Title" required description="Main headline of the promotional offer." value={form.title} error={formErrors.title} onChange={(e) => updateField('title', e.target.value)} />
           <TextAreaField
             label="Description"
             required
+            description="Detailed summary of offer conditions, included cakes, or freebies."
             containerClassName="md:col-span-2"
             value={form.description}
             error={formErrors.description}
             onChange={(e) => updateField('description', e.target.value)}
           />
-          <TextField label="Discount Text" required value={form.discount} error={formErrors.discount} onChange={(e) => updateField('discount', e.target.value)} />
-          <TextField label="CTA Text" required value={form.ctaText} error={formErrors.ctaText} onChange={(e) => updateField('ctaText', e.target.value)} />
+          <TextField label="Discount Text" required description="Highlight badge text (e.g. '20% OFF' or 'Flat ₹150 OFF')." value={form.discount} error={formErrors.discount} onChange={(e) => updateField('discount', e.target.value)} />
+          <TextField label="CTA Text" required description="Action button label (e.g. 'Order Festival Cake')." value={form.ctaText} error={formErrors.ctaText} onChange={(e) => updateField('ctaText', e.target.value)} />
           <div>
             <label className="mb-1 block text-xs font-semibold text-admin-text">
               Start Date <span className="text-admin-primary">*</span>
@@ -301,6 +302,7 @@ export default function AdminOffers() {
                 if (formErrors.endDate) setFormErrors((prev) => ({ ...prev, endDate: null }));
               }}
             />
+            <p className="mt-1 text-[11px] text-admin-muted font-normal leading-tight">Offer start date for campaign timer.</p>
             {formErrors.startDate && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.startDate}</p>}
           </div>
           <div>
@@ -314,24 +316,29 @@ export default function AdminOffers() {
               placeholder="Select end date"
               onChange={(date) => updateField('endDate', date)}
             />
+            <p className="mt-1 text-[11px] text-admin-muted font-normal leading-tight">Expiration date when offer closes.</p>
             {formErrors.endDate && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.endDate}</p>}
           </div>
           <TextField
             label="Priority"
             type="number"
+            description="Display ranking (higher priority appears top)."
             value={form.priority}
             onChange={(e) => updateField('priority', Number(e.target.value))}
           />
-          <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+          <SelectField label="Status" description="Publication state on public specials page." value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="LIVE">Live</option>
             <option value="DRAFT">Draft</option>
             <option value="HIDDEN">Hidden</option>
           </SelectField>
-          <CheckboxField
-            label="Active (shown as the current featured offer)"
-            checked={form.active}
-            onChange={(e) => setForm({ ...form, active: e.target.checked })}
-          />
+          <div className="md:col-span-2">
+            <CheckboxField
+              label="Active featured offer"
+              description="Displays as the main active festival banner on the homepage."
+              checked={form.active}
+              onChange={(e) => setForm({ ...form, active: e.target.checked })}
+            />
+          </div>
           <button type="submit" disabled={saving} className="rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60 md:col-span-2">
             {saving ? <ButtonLoader /> : 'Save Offer'}
           </button>

@@ -260,32 +260,35 @@ export default function AdminSettings() {
               }}
             />
           </div>
-          <TextField label="Site Name" required value={form.siteName} error={formErrors.siteName} onChange={(e) => updateField('siteName', e.target.value)} />
-          <TextField label="Tagline" value={form.tagline} onChange={(e) => updateField('tagline', e.target.value)} />
+          <TextField label="Site Name" required description="Brand title displayed on site shell, invoices, and tab title." value={form.siteName} error={formErrors.siteName} onChange={(e) => updateField('siteName', e.target.value)} />
+          <TextField label="Tagline" description="Brand tagline (e.g. Handcrafted Luxury Home Bakery)." value={form.tagline} onChange={(e) => updateField('tagline', e.target.value)} />
           <TextAreaField
             label="Description"
+            description="Site meta summary used for SEO and brand presentation."
             containerClassName="md:col-span-2"
             value={form.description}
             onChange={(e) => updateField('description', e.target.value)}
           />
-          <TextField label="Phone" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} />
+          <TextField label="Phone" description="Store phone number for customer contact." value={form.phone} onChange={(e) => updateField('phone', e.target.value)} />
           <TextField
             label="WhatsApp Number"
+            description="WhatsApp number for order notifications (digits with country code)."
             placeholder="e.g. 918780652597"
             value={form.whatsapp}
             error={formErrors.whatsapp}
             onChange={(e) => updateField('whatsapp', e.target.value)}
           />
-          <TextField label="Email" type="email" value={form.email} error={formErrors.email} onChange={(e) => updateField('email', e.target.value)} />
-          <TextField label="Address" value={form.address} onChange={(e) => updateField('address', e.target.value)} />
+          <TextField label="Email" type="email" description="Official email address for customer inquiry emails." value={form.email} error={formErrors.email} onChange={(e) => updateField('email', e.target.value)} />
+          <TextField label="Address" description="Bakery kitchen/pickup shop address displayed on site footer & invoices." value={form.address} onChange={(e) => updateField('address', e.target.value)} />
           <TextField
             label="Working Hours"
+            description="Store operating days and pickup timings."
             containerClassName="md:col-span-2"
             value={form.hours}
             onChange={(e) => updateField('hours', e.target.value)}
           />
-          <TextField label="Instagram URL" placeholder="https://instagram.com/yourpage" value={form.instagram} error={formErrors.instagram} onChange={(e) => updateField('instagram', e.target.value)} />
-          <TextField label="Facebook URL" placeholder="https://facebook.com/yourpage" value={form.facebook} error={formErrors.facebook} onChange={(e) => updateField('facebook', e.target.value)} />
+          <TextField label="Instagram URL" description="Link to Instagram page." placeholder="https://instagram.com/yourpage" value={form.instagram} error={formErrors.instagram} onChange={(e) => updateField('instagram', e.target.value)} />
+          <TextField label="Facebook URL" description="Link to Facebook page." placeholder="https://facebook.com/yourpage" value={form.facebook} error={formErrors.facebook} onChange={(e) => updateField('facebook', e.target.value)} />
           <button
             type="submit"
             disabled={saving}

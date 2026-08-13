@@ -74,57 +74,72 @@ export default function AdminForgotPassword() {
 
         {step === 'request' ? (
           <form onSubmit={handleRequestCode} className="mt-6 space-y-4">
-            <input
-              type="email"
-              required
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-2xl border border-blush p-3"
-              placeholder="Admin email"
-            />
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-cocoa">Admin Email Address</label>
+              <input
+                type="email"
+                required
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-2xl border border-blush p-3 text-sm focus:border-rose-deep focus:outline-none focus:ring-2 focus:ring-rose-deep/20"
+                placeholder="Admin email"
+              />
+              <p className="mt-1 text-[11px] text-cocoa-soft/80">Enter your registered admin email address to receive password reset OTP.</p>
+            </div>
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-2xl bg-rose px-4 py-3 font-semibold text-white disabled:opacity-60"
+              className="w-full rounded-2xl bg-rose px-4 py-3 font-semibold text-white hover:bg-rose-deep transition-colors disabled:opacity-60"
             >
               {submitting ? <ButtonLoader label="Sending code…" /> : 'Send Reset Code'}
             </button>
           </form>
         ) : (
           <form onSubmit={handleResetPassword} className="mt-6 space-y-4">
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              required
-              className="w-full rounded-2xl border border-blush p-3 text-center text-2xl tracking-[0.5em]"
-              placeholder="------"
-              maxLength={6}
-            />
-            <input
-              type="password"
-              required
-              autoComplete="new-password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-2xl border border-blush p-3"
-              placeholder="New password"
-            />
-            <input
-              type="password"
-              required
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-2xl border border-blush p-3"
-              placeholder="Confirm new password"
-            />
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold text-cocoa uppercase tracking-wider text-center">6-Digit Reset Code</label>
+              <input
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                className="w-full rounded-2xl border border-blush p-3 text-center text-2xl tracking-[0.5em] focus:border-rose-deep focus:outline-none focus:ring-2 focus:ring-rose-deep/20"
+                placeholder="------"
+                maxLength={6}
+              />
+              <p className="mt-1 text-[11px] text-center text-cocoa-soft/80">6-digit reset OTP sent to {email}.</p>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-cocoa">New Password</label>
+              <input
+                type="password"
+                required
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full rounded-2xl border border-blush p-3 text-sm focus:border-rose-deep focus:outline-none focus:ring-2 focus:ring-rose-deep/20"
+                placeholder="New password (min 8 chars)"
+              />
+              <p className="mt-1 text-[11px] text-cocoa-soft/80">Minimum 8 characters required.</p>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-cocoa">Confirm New Password</label>
+              <input
+                type="password"
+                required
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full rounded-2xl border border-blush p-3 text-sm focus:border-rose-deep focus:outline-none focus:ring-2 focus:ring-rose-deep/20"
+                placeholder="Re-enter new password"
+              />
+            </div>
             <button
               type="submit"
               disabled={submitting || code.length !== 6}
-              className="w-full rounded-2xl bg-cocoa px-4 py-3 font-semibold text-white disabled:opacity-60"
+              className="w-full rounded-2xl bg-cocoa px-4 py-3 font-semibold text-white hover:bg-cocoa-soft transition-colors disabled:opacity-60"
             >
               {submitting ? <ButtonLoader label="Resetting…" /> : 'Reset Password'}
             </button>

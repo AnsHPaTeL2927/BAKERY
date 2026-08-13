@@ -43,28 +43,36 @@ export default function AdminLogin() {
         )}
         {error && <p className="mt-4 rounded-xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <input
-            type="email"
-            required
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-2xl border border-blush p-3"
-            placeholder="Email"
-          />
-          <input
-            type="password"
-            required
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-2xl border border-blush p-3"
-            placeholder="Password"
-          />
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-cocoa">Admin Email Address</label>
+            <input
+              type="email"
+              required
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-2xl border border-blush p-3 text-sm focus:border-rose-deep focus:outline-none focus:ring-2 focus:ring-rose-deep/20"
+              placeholder="e.g. admin@cakesbytulsi.com"
+            />
+            <p className="mt-1 text-[11px] text-cocoa-soft/80">Registered admin email associated with your staff account.</p>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-cocoa">Password</label>
+            <input
+              type="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-2xl border border-blush p-3 text-sm focus:border-rose-deep focus:outline-none focus:ring-2 focus:ring-rose-deep/20"
+              placeholder="••••••••"
+            />
+            <p className="mt-1 text-[11px] text-cocoa-soft/80">Your confidential admin portal password.</p>
+          </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-2xl bg-rose px-4 py-3 font-semibold text-white disabled:opacity-60"
+            className="w-full rounded-2xl bg-rose px-4 py-3 font-semibold text-white hover:bg-rose-deep transition-colors disabled:opacity-60"
           >
             {submitting ? <ButtonLoader label="Sending code…" /> : 'Continue'}
           </button>

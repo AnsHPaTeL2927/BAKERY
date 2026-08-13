@@ -138,23 +138,26 @@ export default function Home() {
           missing/broken section, so it transforms into evergreen marketing
           content instead. See OfferFallbackBanner below. */}
       {loading ? (
-        <div className="max-w-6xl mx-auto px-5 md:px-8 py-14">
-          <Skeleton className="h-64 md:h-80 rounded-[2rem]" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 md:py-14">
+          <Skeleton className="h-64 sm:h-80 rounded-3xl sm:rounded-[2.5rem]" />
         </div>
       ) : activeOffer ? (
-        <ScrollReveal className="max-w-6xl mx-auto px-5 md:px-8 py-14">
-          <div className="relative rounded-[2rem] overflow-hidden bg-rose-deep text-ivory grid md:grid-cols-2 items-center group">
-            <div className="p-8 md:p-12 relative z-10">
-              <p className="font-script text-3xl text-blush mb-1">{activeOffer.festival}</p>
-              <h2 className="font-display font-semibold text-2xl md:text-4xl">{activeOffer.title}</h2>
-              <p className="mt-3 text-ivory/85 max-w-sm">{activeOffer.description}</p>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <div className="inline-flex items-center gap-2 bg-gold text-cocoa font-bold px-4 py-1.5 rounded-full text-sm">
+        <ScrollReveal className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 md:py-14">
+          <div className="relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-rose-deep via-rose-deep to-[#7E2844] text-ivory grid lg:grid-cols-12 items-center group shadow-md border border-rose/30">
+            {/* Ambient backdrop */}
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-gold/15 blur-3xl pointer-events-none" />
+
+            <div className="p-6 sm:p-9 lg:p-12 lg:col-span-7 relative z-10">
+              <p className="font-script text-2xl sm:text-3xl text-blush mb-1 tracking-wide">{activeOffer.festival}</p>
+              <h2 className="font-display font-semibold text-2xl sm:text-3xl md:text-4xl leading-tight">{activeOffer.title}</h2>
+              <p className="mt-2.5 sm:mt-3 text-ivory/85 text-xs sm:text-sm md:text-base max-w-lg leading-relaxed">{activeOffer.description}</p>
+              <div className="mt-4 sm:mt-5 flex flex-wrap items-center gap-2.5 sm:gap-3">
+                <div className="inline-flex items-center gap-2 bg-gold text-cocoa font-bold px-3.5 py-1.5 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm shadow-xs">
                   {activeOffer.discount}
                 </div>
                 <OfferCountdown endDate={activeOffer.endDate} />
               </div>
-              <div className="mt-6">
+              <div className="mt-5 sm:mt-7">
                 <AnimatedButton
                   href={waLink(`Hi! I'd like to pre-order for ${activeOffer.festival} (${activeOffer.discount}).`)}
                   target="_blank"
@@ -167,8 +170,10 @@ export default function Home() {
                 </AnimatedButton>
               </div>
             </div>
-            <div className="h-56 md:h-full img-zoom-container">
+
+            <div className="h-52 sm:h-64 lg:h-full lg:min-h-[280px] lg:col-span-5 img-zoom-container relative">
               <SafeImage src={activeOffer.banner} alt="" className="w-full h-full object-cover opacity-90 img-zoom-target" />
+              <div className="absolute inset-0 bg-gradient-to-t from-cocoa/40 via-transparent to-transparent lg:hidden" />
             </div>
           </div>
         </ScrollReveal>
@@ -177,28 +182,28 @@ export default function Home() {
       )}
 
       {/* ═══ CATEGORIES ═══ */}
-      <section className="max-w-6xl mx-auto px-5 md:px-8 py-8 md:py-16">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-12 md:py-16">
         <ScrollReveal>
           <SectionTitle eyebrow="What We Bake" title="Explore Our Categories" />
         </ScrollReveal>
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mt-6 sm:mt-10">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-blush/60 bg-ivory p-4 text-center">
-                <Skeleton className="mb-3 aspect-square w-full rounded-xl" />
+              <div key={i} className="rounded-xl sm:rounded-2xl border border-blush/60 bg-ivory p-2.5 sm:p-4 text-center">
+                <Skeleton className="mb-2 aspect-square w-full rounded-lg sm:rounded-xl" />
                 <Skeleton className="mx-auto h-3 w-2/3" />
               </div>
             ))}
           </div>
         ) : categories.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mt-6 sm:mt-10">
             {categories.map((c, i) => (
-              <ScrollReveal key={c.slug || c.id} delay={i * 60} distance={20}>
+              <ScrollReveal key={c.slug || c.id} delay={i * 50} distance={16}>
                 <Link
                   to={`/menu?category=${c.slug || c.id}`}
-                  className="group bg-ivory rounded-2xl border border-blush/50 p-4 text-center card-hover block h-full"
+                  className="group bg-ivory rounded-xl sm:rounded-2xl border border-blush/50 p-2.5 sm:p-4 text-center card-hover block h-full"
                 >
-                  <div className="w-full aspect-square rounded-xl img-zoom-container mb-3 relative overflow-hidden">
+                  <div className="w-full aspect-square rounded-lg sm:rounded-xl img-zoom-container mb-2 sm:mb-3 relative overflow-hidden bg-cream-deep/30">
                     <SafeImage
                       src={c.image}
                       alt={c.name}
@@ -208,23 +213,21 @@ export default function Home() {
                       containerClassName="w-full h-full"
                       className="w-full h-full object-cover img-zoom-target"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-cocoa/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-cocoa/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                  <p className="font-display font-semibold text-cocoa text-sm">{c.name}</p>
+                  <p className="font-display font-semibold text-cocoa text-xs sm:text-sm line-clamp-1">{c.name}</p>
                   {c.description && (
-                    <p className="mt-1 text-xs text-cocoa-soft/65 leading-snug line-clamp-2">{c.description}</p>
+                    <p className="mt-0.5 text-[11px] sm:text-xs text-cocoa-soft/65 leading-snug line-clamp-1 hidden sm:block">{c.description}</p>
                   )}
                 </Link>
               </ScrollReveal>
             ))}
           </div>
         ) : (
-          // No categories configured yet — a bare/broken-looking grid would
-          // undercut trust, so this collapses into a single discovery CTA.
-          <ScrollReveal className="mt-10 text-center rounded-[2rem] border border-blush/50 bg-ivory py-14 px-6">
-            <Sparkles className="w-9 h-9 text-rose/40 mx-auto mb-4" strokeWidth={1.5} aria-hidden="true" />
-            <p className="font-display font-semibold text-cocoa text-lg mb-2">Fresh Bakes, Ready to Explore</p>
-            <p className="text-cocoa-soft/70 max-w-sm mx-auto mb-6">
+          <ScrollReveal className="mt-6 sm:mt-10 text-center rounded-3xl border border-blush/50 bg-ivory py-10 sm:py-14 px-5">
+            <Sparkles className="w-8 h-8 sm:w-9 sm:h-9 text-rose/40 mx-auto mb-3" strokeWidth={1.5} aria-hidden="true" />
+            <p className="font-display font-semibold text-cocoa text-base sm:text-lg mb-2">Fresh Bakes, Ready to Explore</p>
+            <p className="text-cocoa-soft/70 text-xs sm:text-sm max-w-sm mx-auto mb-5">
               Browse our full menu of homemade cakes and treats — new categories are added all the time.
             </p>
             <AnimatedButton to="/menu" arrow>
@@ -235,8 +238,8 @@ export default function Home() {
       </section>
 
       {/* ═══ BEST SELLERS ═══ */}
-      <section className="bg-blush-soft/50 py-16 md:py-24">
-        <div className="max-w-6xl mx-auto px-5 md:px-8">
+      <section className="bg-blush-soft/50 py-10 sm:py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
           <ScrollReveal>
             <SectionTitle
               eyebrow="Customer Favourites"
@@ -246,34 +249,22 @@ export default function Home() {
           </ScrollReveal>
 
           {loading ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 mt-6 sm:mt-10">
               {Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : bestSellersDisplay.length > 0 ? (
-            // Horizontal snap-scroll on mobile (one strong card at a time,
-            // thumb-reachable) — a real grid from tablet up, 4-6 visible
-            // depending on how many best sellers are actually configured.
-            <div
-              className="mt-10 flex gap-5 overflow-x-auto pb-2 -mx-5 px-5 snap-x snap-mandatory scrollbar-hide
-                         sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3"
-            >
+            <div className="mt-6 sm:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
               {bestSellersDisplay.map((p, i) => (
-                <ScrollReveal
-                  key={p.id}
-                  delay={i * 80}
-                  className="shrink-0 w-[75%] snap-start sm:w-auto sm:shrink"
-                >
+                <ScrollReveal key={p.id} delay={i * 60} distance={16}>
                   <ProductCard product={p} whatsapp={settings.whatsapp} />
                 </ScrollReveal>
               ))}
             </div>
           ) : (
-            // Catalog is genuinely empty — still give people a reason to
-            // reach out rather than showing nothing at all.
-            <ScrollReveal className="mt-10 text-center rounded-[2rem] border border-blush/50 bg-ivory py-14 px-6">
-              <ChefHat className="w-9 h-9 text-rose/40 mx-auto mb-4" strokeWidth={1.5} aria-hidden="true" />
-              <p className="font-display font-semibold text-cocoa text-lg mb-2">Fresh Batches Coming Very Soon</p>
-              <p className="text-cocoa-soft/70 max-w-sm mx-auto mb-6">
+            <ScrollReveal className="mt-6 sm:mt-10 text-center rounded-3xl border border-blush/50 bg-ivory py-10 sm:py-14 px-5">
+              <ChefHat className="w-8 h-8 sm:w-9 sm:h-9 text-rose/40 mx-auto mb-3" strokeWidth={1.5} aria-hidden="true" />
+              <p className="font-display font-semibold text-cocoa text-base sm:text-lg mb-2">Fresh Batches Coming Very Soon</p>
+              <p className="text-cocoa-soft/70 text-xs sm:text-sm max-w-sm mx-auto mb-5">
                 Our menu is being updated — message us on WhatsApp and we'll tell you what's fresh out of the oven today.
               </p>
               <AnimatedButton
@@ -288,7 +279,7 @@ export default function Home() {
           )}
 
           {!loading && bestSellersDisplay.length > 0 && (
-            <ScrollReveal className="text-center mt-10">
+            <ScrollReveal className="text-center mt-6 sm:mt-10">
               <AnimatedButton to="/menu" variant="secondary" arrow>
                 View Full Menu
               </AnimatedButton>
@@ -298,21 +289,21 @@ export default function Home() {
       </section>
 
       {/* ═══ WHY CHOOSE US ═══ */}
-      <section className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-10 sm:py-16 md:py-24">
         <ScrollReveal>
           <SectionTitle eyebrow="The Tulsi Difference" title="Why Choose Us" />
         </ScrollReveal>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5 mt-6 sm:mt-10">
           {whyChooseUs.map((item, i) => {
             const Icon = icons[i % icons.length];
             return (
-              <ScrollReveal key={item.title} delay={i * 60} distance={20}>
-                <div className="bg-ivory rounded-2xl border border-blush/50 p-6 text-center card-hover h-full">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blush to-blush-soft flex items-center justify-center mx-auto mb-4">
-                    <Icon className="w-6 h-6 text-rose-deep" />
+              <ScrollReveal key={item.title} delay={i * 50} distance={16}>
+                <div className="bg-ivory rounded-xl sm:rounded-2xl border border-blush/50 p-3.5 sm:p-6 text-center card-hover h-full flex flex-col items-center justify-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blush to-blush-soft flex items-center justify-center mb-2 sm:mb-4 shrink-0">
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-rose-deep" />
                   </div>
-                  <p className="font-display font-semibold text-cocoa mb-1">{item.title}</p>
-                  <p className="text-sm text-cocoa-soft/70 leading-relaxed">{item.detail}</p>
+                  <p className="font-display font-semibold text-cocoa text-xs sm:text-base mb-0.5 sm:mb-1">{item.title}</p>
+                  <p className="text-[11px] sm:text-sm text-cocoa-soft/70 leading-tight sm:leading-relaxed">{item.detail}</p>
                 </div>
               </ScrollReveal>
             );
@@ -327,16 +318,16 @@ export default function Home() {
       <CustomCakeSection waLink={waLink} />
 
       {/* ═══ GALLERY PREVIEW ═══ */}
-      <section className="max-w-6xl mx-auto px-5 md:px-8 pb-16 md:pb-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pb-10 sm:pb-16 md:pb-24">
         <ScrollReveal>
           <SectionTitle eyebrow="A Peek Inside" title="Gallery" />
         </ScrollReveal>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-4 mt-6 sm:mt-10">
           {loading
-            ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-2xl" />)
-            : galleryImages.slice(0, 8).map((g, i) => (
-                <ScrollReveal key={g.id} delay={i * 50} distance={16}>
-                  <div className="rounded-2xl overflow-hidden aspect-square img-zoom-container">
+            ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl sm:rounded-2xl" />)
+            : galleryImages.slice(0, 6).map((g, i) => (
+                <ScrollReveal key={g.id} delay={i * 40} distance={12}>
+                  <div className="rounded-xl sm:rounded-2xl overflow-hidden aspect-square img-zoom-container bg-cream-deep/30">
                     <SafeImage
                       src={g.image}
                       alt={g.alt || g.title}
@@ -351,7 +342,7 @@ export default function Home() {
               ))}
         </div>
         {!loading && galleryImages.length > 0 && (
-          <ScrollReveal className="text-center mt-10">
+          <ScrollReveal className="text-center mt-6 sm:mt-10">
             <AnimatedButton to="/gallery" variant="secondary" arrow>
               View Full Gallery
             </AnimatedButton>
@@ -376,26 +367,27 @@ export default function Home() {
           <div className="absolute -top-16 right-[12%] w-72 h-72 rounded-full bg-blush/40 blur-3xl" />
           <div className="absolute -bottom-20 left-[8%] w-64 h-64 rounded-full bg-rose/10 blur-3xl" />
         </ParallaxLayer>
-        <div className="relative max-w-6xl mx-auto px-5 md:px-8 py-20 md:py-32 text-center">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-12 sm:py-20 md:py-32 text-center">
           <ScrollReveal>
-            <p className="font-script text-3xl md:text-4xl text-rose-deep mb-3">Ready to Order?</p>
-            <h2 className="font-display font-semibold text-3xl md:text-5xl text-cocoa max-w-2xl mx-auto leading-tight">
+            <p className="font-script text-2xl sm:text-3xl md:text-4xl text-rose-deep mb-2">Ready to Order?</p>
+            <h2 className="font-display font-semibold text-2xl sm:text-4xl md:text-5xl text-cocoa max-w-2xl mx-auto leading-tight">
               Make Every Celebration Sweeter
             </h2>
-            <p className="mt-4 text-cocoa-soft/70 max-w-md mx-auto text-lg">
+            <p className="mt-3 sm:mt-4 text-cocoa-soft/70 max-w-md mx-auto text-sm sm:text-lg">
               Message us on WhatsApp and let's plan your next celebration.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-xs sm:max-w-none mx-auto">
               <AnimatedButton
                 href={waLink("Hi! I'd like to place an order with Cakes by Tulsi.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 size="lg"
+                className="w-full sm:w-auto justify-center"
                 arrow
               >
                 Order Your Cake
               </AnimatedButton>
-              <AnimatedButton to="/custom-cake" variant="secondary" size="lg" arrow>
+              <AnimatedButton to="/custom-cake" variant="secondary" size="lg" className="w-full sm:w-auto justify-center" arrow>
                 Create Custom Cake
               </AnimatedButton>
             </div>
@@ -425,39 +417,50 @@ function TrustBar({ averageRating, reviewCount, loading }) {
   ].filter(Boolean);
 
   return (
-    <section className="border-y border-blush/50 bg-ivory">
-      <div className="max-w-6xl mx-auto px-5 md:px-8">
+    <section className="py-6 sm:py-9 bg-blush-soft/25 relative z-10 overflow-hidden">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
         {loading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4.5">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="py-7 px-4">
+              <div key={i} className="bg-ivory/80 rounded-2xl p-4 border border-blush/40">
                 <Skeleton className="h-4 w-24 mb-2" />
                 <Skeleton className="h-3 w-32" />
               </div>
             ))}
           </div>
         ) : (
-          <ul className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-blush/40">
-            {items.map(({ key, Icon, title, detail, to }) => {
+          <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4.5">
+            {items.map(({ key, Icon, title, detail, to }, i) => {
               const body = (
                 <>
-                  <Icon className="w-5 h-5 text-rose shrink-0 mt-0.5" strokeWidth={1.75} aria-hidden="true" />
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-blush-soft/80 flex items-center justify-center shrink-0 text-rose group-hover:scale-110 group-hover:rotate-[6deg] group-hover:bg-rose group-hover:text-ivory transition-all duration-300 ease-out shadow-2xs">
+                    <Icon className="w-4.5 h-4.5 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:scale-105" strokeWidth={1.75} aria-hidden="true" />
+                  </div>
                   <span className="min-w-0">
-                    <span className="block font-display font-semibold text-cocoa text-sm md:text-base leading-snug">{title}</span>
-                    <span className="block text-xs md:text-sm text-cocoa-soft/65 leading-snug mt-0.5">{detail}</span>
+                    <span className="block font-display font-semibold text-cocoa text-xs sm:text-sm md:text-base leading-tight sm:leading-snug group-hover:text-rose-deep transition-colors duration-300">
+                      {title}
+                    </span>
+                    <span className="block text-[11px] sm:text-xs md:text-sm text-cocoa-soft/70 group-hover:text-cocoa leading-tight sm:leading-snug mt-0.5 sm:mt-1 transition-colors duration-300">
+                      {detail}
+                    </span>
                   </span>
                 </>
               );
               return (
-                <li key={key} className="py-6 px-4 md:px-6">
+                <ScrollReveal as="li" key={key} delay={i * 70} distance={16} className="h-full">
                   {to ? (
-                    <Link to={to} className="flex items-start gap-3 group transition-colors hover:text-rose-deep">
+                    <Link
+                      to={to}
+                      className="group flex items-start gap-2.5 sm:gap-3.5 bg-ivory/90 hover:bg-ivory rounded-2xl sm:rounded-3xl border border-blush/60 p-3.5 sm:p-5 shadow-2xs hover:shadow-md hover:shadow-rose/10 hover:border-rose/50 hover:-translate-y-1 sm:hover:-translate-y-1.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 ease-out h-full"
+                    >
                       {body}
                     </Link>
                   ) : (
-                    <div className="flex items-start gap-3">{body}</div>
+                    <div className="group flex items-start gap-2.5 sm:gap-3.5 bg-ivory/90 hover:bg-ivory rounded-2xl sm:rounded-3xl border border-blush/60 p-3.5 sm:p-5 shadow-2xs hover:shadow-md hover:shadow-rose/10 hover:border-rose/50 hover:-translate-y-1 sm:hover:-translate-y-1.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 ease-out h-full">
+                      {body}
+                    </div>
                   )}
-                </li>
+                </ScrollReveal>
               );
             })}
           </ul>
@@ -479,39 +482,38 @@ function ProcessSection() {
         <div className="absolute bottom-10 right-10 w-56 h-56 rounded-full bg-gold blur-3xl" />
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-28">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-10 sm:py-16 md:py-28">
         <ScrollReveal>
-          <div className="text-center mb-12 md:mb-16">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blush mb-3">Our Process</p>
-            <h2 className="font-display font-semibold text-2xl md:text-4xl text-cream">From Kitchen to Celebration</h2>
-            <p className="mt-4 text-cream/60 max-w-lg mx-auto leading-relaxed">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blush mb-2 sm:mb-3">Our Process</p>
+            <h2 className="font-display font-semibold text-2xl sm:text-3xl md:text-4xl text-cream">From Kitchen to Celebration</h2>
+            <p className="mt-2.5 sm:mt-4 text-cream/60 text-xs sm:text-sm md:text-base max-w-lg mx-auto leading-relaxed">
               Five steps, every single order — so you know exactly what you're paying for.
             </p>
           </div>
         </ScrollReveal>
 
         <div className="relative">
-          {/* Vertical rail (mobile/tablet) becomes a horizontal one on desktop.
-              Lives outside the <ol> — an <ol> may only contain <li>. */}
+          {/* Vertical rail (mobile/tablet) becomes a horizontal one on desktop. */}
           <span
             aria-hidden="true"
-            className="absolute left-[27px] top-4 bottom-4 w-px bg-cream/15 lg:left-0 lg:right-0 lg:top-7 lg:bottom-auto lg:h-px lg:w-auto lg:mx-[10%]"
+            className="absolute left-[21px] sm:left-[27px] top-4 bottom-4 w-px bg-cream/15 lg:left-0 lg:right-0 lg:top-7 lg:bottom-auto lg:h-px lg:w-auto lg:mx-[10%]"
           />
 
-          <ol className="relative grid gap-8 lg:grid-cols-5 lg:gap-6">
+          <ol className="relative grid gap-6 sm:gap-8 lg:grid-cols-5 lg:gap-6">
             {processSteps.map((step, i) => (
-              <ScrollReveal as="li" key={step.title} delay={i * 90} distance={20} className="relative">
-                <div className="flex gap-5 lg:flex-col lg:items-center lg:text-center lg:gap-0">
+              <ScrollReveal as="li" key={step.title} delay={i * 70} distance={16} className="relative">
+                <div className="flex gap-4 sm:gap-5 lg:flex-col lg:items-center lg:text-center lg:gap-0">
                   {/* Numbered icon medallion */}
-                  <span className="relative shrink-0 w-14 h-14 rounded-2xl bg-cocoa border border-cream/15 flex items-center justify-center lg:mx-auto">
-                    <step.Icon className="w-6 h-6 text-blush" strokeWidth={1.5} aria-hidden="true" />
-                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose text-ivory text-[11px] font-bold flex items-center justify-center tabular-nums">
+                  <span className="relative shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-cocoa border border-cream/15 flex items-center justify-center lg:mx-auto shadow-2xs">
+                    <step.Icon className="w-5 h-5 sm:w-6 sm:h-6 text-blush" strokeWidth={1.5} aria-hidden="true" />
+                    <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-rose text-ivory text-[10px] sm:text-[11px] font-bold flex items-center justify-center tabular-nums shadow-2xs">
                       {i + 1}
                     </span>
                   </span>
-                  <div className="pt-1 lg:pt-5">
-                    <p className="font-display font-semibold text-cream text-base mb-1.5">{step.title}</p>
-                    <p className="text-cream/60 text-sm leading-relaxed lg:px-1">{step.desc}</p>
+                  <div className="pt-0.5 lg:pt-5">
+                    <p className="font-display font-semibold text-cream text-sm sm:text-base mb-1">{step.title}</p>
+                    <p className="text-cream/65 text-xs sm:text-sm leading-relaxed lg:px-1">{step.desc}</p>
                   </div>
                 </div>
               </ScrollReveal>
@@ -536,9 +538,9 @@ function CustomCakeSection({ waLink }) {
   ];
 
   return (
-    <section className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24">
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-10 sm:py-16 md:py-24">
       <ScrollReveal>
-        <div className="relative rounded-[2rem] overflow-hidden bg-cocoa text-cream">
+        <div className="relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden bg-cocoa text-cream shadow-md border border-cream/10">
           <ParallaxLayer speed={0.05} className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-rose/10 blur-3xl" />
             <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-gold/10 blur-2xl" />
@@ -546,46 +548,46 @@ function CustomCakeSection({ waLink }) {
 
           <div className="relative grid lg:grid-cols-2">
             {/* Copy + journey */}
-            <div className="p-7 sm:p-10 lg:p-12 order-2 lg:order-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blush mb-3">Custom Orders</p>
+            <div className="p-5 sm:p-8 lg:p-12 order-1 lg:order-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blush mb-2 sm:mb-3">Custom Orders</p>
               <h2 className="font-display font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight">
                 Your Occasion, Baked to Your Brief
               </h2>
-              <p className="mt-4 text-cream/70 leading-relaxed max-w-md">
+              <p className="mt-2.5 sm:mt-4 text-cream/70 text-xs sm:text-sm md:text-base leading-relaxed max-w-md">
                 Birthdays, anniversaries, weddings, baby showers and corporate gifting — describe what you have in mind and
                 we'll turn it into a cake, with the price agreed up front.
               </p>
 
               {/* Ordering journey */}
-              <ol className="mt-8 space-y-5">
+              <ol className="mt-6 sm:mt-8 space-y-4 sm:space-y-5">
                 {orderSteps.map((step, i) => (
-                  <li key={step.title} className="flex gap-4">
-                    <span className="shrink-0 w-10 h-10 rounded-xl bg-cream/10 border border-cream/15 flex items-center justify-center">
-                      <step.Icon className="w-[18px] h-[18px] text-blush" strokeWidth={1.75} aria-hidden="true" />
+                  <li key={step.title} className="flex gap-3.5 sm:gap-4">
+                    <span className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-cream/10 border border-cream/15 flex items-center justify-center shadow-2xs">
+                      <step.Icon className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-blush" strokeWidth={1.75} aria-hidden="true" />
                     </span>
                     <div className="pt-0.5">
-                      <p className="font-semibold text-cream text-sm">
+                      <p className="font-semibold text-cream text-xs sm:text-sm">
                         <span className="text-blush/70 tabular-nums mr-1.5">{String(i + 1).padStart(2, "0")}</span>
                         {step.title}
                       </p>
-                      <p className="text-cream/60 text-sm leading-relaxed mt-0.5">{step.desc}</p>
+                      <p className="text-cream/60 text-xs sm:text-sm leading-relaxed mt-0.5">{step.desc}</p>
                     </div>
                   </li>
                 ))}
               </ol>
 
               {/* Objection handling */}
-              <ul className="mt-8 space-y-2.5 border-t border-cream/10 pt-6">
+              <ul className="mt-6 sm:mt-8 space-y-2 border-t border-cream/10 pt-5 sm:pt-6">
                 {assurances.map((line) => (
-                  <li key={line} className="flex items-start gap-2.5 text-sm text-cream/70">
+                  <li key={line} className="flex items-start gap-2 text-xs sm:text-sm text-cream/75">
                     <BadgeCheck className="w-4 h-4 text-gold shrink-0 mt-0.5" strokeWidth={1.75} aria-hidden="true" />
-                    {line}
+                    <span>{line}</span>
                   </li>
                 ))}
               </ul>
 
-              <div className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3">
-                <AnimatedButton to="/custom-cake" arrow className="justify-center">
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-3">
+                <AnimatedButton to="/custom-cake" arrow className="justify-center w-full sm:w-auto">
                   Start Your Custom Cake
                 </AnimatedButton>
                 <AnimatedButton
@@ -593,7 +595,7 @@ function CustomCakeSection({ waLink }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   variant="secondary"
-                  className="!border-ivory/40 !text-ivory hover:!bg-ivory/10 justify-center"
+                  className="!border-ivory/40 !text-ivory hover:!bg-ivory/10 justify-center w-full sm:w-auto"
                 >
                   Ask a Question First
                 </AnimatedButton>
@@ -601,7 +603,7 @@ function CustomCakeSection({ waLink }) {
             </div>
 
             {/* Image */}
-            <div className="relative h-56 sm:h-72 lg:h-auto lg:min-h-[560px] img-zoom-container order-1 lg:order-2">
+            <div className="relative h-52 sm:h-72 lg:h-auto lg:min-h-[520px] img-zoom-container order-2 lg:order-2">
               <SafeImage
                 src={customCakeDefault}
                 fallback={customCakeDefault}
@@ -629,7 +631,7 @@ function FaqSection({ waLink }) {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <section className="max-w-3xl mx-auto px-5 md:px-8 py-16 md:py-24">
+    <section className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-10 sm:py-16 md:py-24">
       <ScrollReveal>
         <SectionTitle
           eyebrow="Before You Order"
@@ -638,7 +640,7 @@ function FaqSection({ waLink }) {
         />
       </ScrollReveal>
 
-      <div className="mt-10 divide-y divide-blush/50 border-y border-blush/50">
+      <div className="mt-6 sm:mt-10 divide-y divide-blush/50 border-y border-blush/50">
         {faqs.map((item, i) => {
           const isOpen = openIndex === i;
           return (
@@ -648,13 +650,13 @@ function FaqSection({ waLink }) {
                   type="button"
                   onClick={() => setOpenIndex(isOpen ? -1 : i)}
                   aria-expanded={isOpen}
-                  className="w-full flex items-start justify-between gap-5 py-5 text-left group"
+                  className="w-full flex items-start justify-between gap-4 py-4 sm:py-5 text-left group"
                 >
-                  <span className={`font-display font-semibold text-base md:text-lg transition-colors duration-200 ${isOpen ? "text-rose-deep" : "text-cocoa group-hover:text-rose-deep"}`}>
+                  <span className={`font-display font-semibold text-xs sm:text-base md:text-lg transition-colors duration-200 ${isOpen ? "text-rose-deep" : "text-cocoa group-hover:text-rose-deep"}`}>
                     {item.q}
                   </span>
-                  <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full border border-blush flex items-center justify-center text-rose-deep transition-colors duration-200 group-hover:bg-blush-soft">
-                    {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  <span className="shrink-0 mt-0.5 w-6 h-6 sm:w-7 sm:h-7 rounded-full border border-blush flex items-center justify-center text-rose-deep transition-colors duration-200 group-hover:bg-blush-soft">
+                    {isOpen ? <Minus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                   </span>
                 </button>
               </h3>
@@ -667,7 +669,7 @@ function FaqSection({ waLink }) {
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     className="overflow-hidden"
                   >
-                    <p className="pb-6 pr-10 text-sm md:text-base text-cocoa-soft/80 leading-relaxed">{item.a}</p>
+                    <p className="pb-5 sm:pb-6 pr-6 sm:pr-10 text-xs sm:text-sm md:text-base text-cocoa-soft/80 leading-relaxed">{item.a}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -676,8 +678,8 @@ function FaqSection({ waLink }) {
         })}
       </div>
 
-      <ScrollReveal className="mt-8 text-center" delay={100}>
-        <p className="text-cocoa-soft/70 text-sm">
+      <ScrollReveal className="mt-6 sm:mt-8 text-center" delay={100}>
+        <p className="text-cocoa-soft/70 text-xs sm:text-sm">
           Still have a question?{" "}
           <a
             href={waLink("Hi! I have a question before ordering.")}
@@ -713,15 +715,24 @@ function OfferCountdown({ endDate }) {
 function OfferFallbackBanner({ products }) {
   const hasProducts = products.length > 0;
   return (
-    <ScrollReveal className="max-w-6xl mx-auto px-5 md:px-8 py-14">
-      <div className="relative rounded-[2rem] overflow-hidden bg-rose-deep text-ivory grid md:grid-cols-2 items-center">
-        <div className="p-8 md:p-12 relative z-10">
-          <p className="font-script text-3xl text-blush mb-1">Something Sweet Is Always Baking</p>
-          <h2 className="font-display font-semibold text-2xl md:text-4xl">Our Customers' Favourites</h2>
-          <p className="mt-3 text-ivory/85 max-w-sm leading-relaxed">
+    <ScrollReveal className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 md:py-14">
+      <div className="relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-rose-deep via-rose-deep to-[#7E2844] text-ivory grid lg:grid-cols-12 items-center gap-2 sm:gap-6 shadow-md border border-rose/30">
+        {/* Ambient background glow */}
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-rose/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-gold/10 blur-2xl pointer-events-none" />
+
+        {/* Text Content */}
+        <div className="p-6 sm:p-9 lg:p-12 lg:col-span-7 relative z-10">
+          <p className="font-script text-2xl sm:text-3xl text-blush mb-1 tracking-wide">
+            Something Sweet Is Always Baking
+          </p>
+          <h2 className="font-display font-semibold text-2xl sm:text-3xl md:text-4xl leading-tight">
+            Our Customers' Favourites
+          </h2>
+          <p className="mt-2.5 sm:mt-3 text-ivory/85 text-xs sm:text-sm md:text-base max-w-lg leading-relaxed">
             Discover the cakes our customers keep coming back for — freshly baked, every single day.
           </p>
-          <div className="mt-6">
+          <div className="mt-5 sm:mt-7">
             <AnimatedButton
               to="/menu"
               variant="secondary"
@@ -732,14 +743,17 @@ function OfferFallbackBanner({ products }) {
             </AnimatedButton>
           </div>
         </div>
-        <div className="h-56 md:h-full p-6 md:p-10 flex items-center">
+
+        {/* Product Image Grid */}
+        <div className="p-6 pt-0 sm:p-8 lg:p-10 lg:pl-0 lg:col-span-5 relative z-10 flex items-center justify-center">
           {hasProducts ? (
-            <div className="grid grid-cols-3 gap-3 w-full">
-              {products.map((p) => (
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 w-full max-w-md lg:max-w-none">
+              {products.slice(0, 3).map((p) => (
                 <Link
                   key={p.id}
                   to={p.category ? `/menu?category=${p.category}` : "/menu"}
-                  className="rounded-2xl overflow-hidden aspect-square img-zoom-container border-2 border-ivory/15 block"
+                  className="group/item relative rounded-xl sm:rounded-2xl overflow-hidden aspect-square img-zoom-container border-2 border-ivory/20 shadow-sm block hover:border-ivory/60 transition-all duration-300"
+                  title={p.name}
                 >
                   <SafeImage
                     src={p.image}
@@ -748,12 +762,15 @@ function OfferFallbackBanner({ products }) {
                     containerClassName="w-full h-full"
                     className="w-full h-full object-cover img-zoom-target"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-cocoa/70 via-transparent to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-300 flex items-end p-2">
+                    <span className="text-[10px] font-semibold text-ivory truncate w-full">{p.name}</span>
+                  </div>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center" aria-hidden="true">
-              <ChefHat className="w-20 h-20 text-ivory/25" strokeWidth={1} />
+            <div className="w-full py-8 flex items-center justify-center" aria-hidden="true">
+              <ChefHat className="w-16 h-16 sm:w-20 sm:h-20 text-ivory/25" strokeWidth={1} />
             </div>
           )}
         </div>
@@ -838,20 +855,21 @@ function HeroSection({ banners, settings, waLink, loading }) {
         <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-rose/10 blur-3xl" style={{ animationDelay: "1.5s" }} />
       </div>
 
-      <div className="max-w-6xl mx-auto px-5 md:px-8 pt-16 pb-20 md:pt-24 md:pb-32 grid md:grid-cols-2 gap-10 items-center relative">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-12 sm:pt-14 sm:pb-20 md:pt-24 md:pb-32 grid md:grid-cols-2 gap-8 md:gap-10 items-center relative">
         {/* Text content */}
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{
             transform: `translate3d(${mousePos.x * -4}px, ${mousePos.y * -3}px, 0)`,
           }}
+          className="text-center sm:text-left"
         >
-          <p className="font-script text-2xl md:text-3xl text-rose-deep mb-2">
+          <p className="font-script text-xl sm:text-2xl md:text-3xl text-rose-deep mb-1 sm:mb-2">
             {heroSubtitle || 'Freshly Baked Every Day'}
           </p>
-          <h1 className="font-display font-semibold text-4xl md:text-6xl leading-[1.05] text-cocoa">
+          <h1 className="font-display font-semibold text-3xl sm:text-5xl md:text-6xl leading-[1.1] text-cocoa">
             {heroTitle || (<>
               Homemade Cakes
               <br />
@@ -861,7 +879,7 @@ function HeroSection({ banners, settings, waLink, loading }) {
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 200 20"
-                  className="absolute -bottom-2 left-0 w-full h-4 text-blush"
+                  className="absolute -bottom-1.5 left-0 w-full h-3.5 text-blush"
                 >
                   <path d="M2 15 Q 50 2, 100 12 T 198 10" stroke="currentColor" strokeWidth="6" fill="none" strokeLinecap="round" />
                 </svg>
@@ -871,28 +889,29 @@ function HeroSection({ banners, settings, waLink, loading }) {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="mt-6 text-cocoa-soft/85 text-lg max-w-md leading-relaxed"
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="mt-3 sm:mt-6 text-cocoa-soft/85 text-xs sm:text-base md:text-lg max-w-md mx-auto sm:mx-0 leading-relaxed"
           >
             {settings.description || 'Freshly baked cakes, brownies, chocolates and desserts made for every celebration.'}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="mt-8 flex flex-wrap gap-4"
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-3 w-full max-w-xs sm:max-w-none mx-auto sm:mx-0"
           >
             {campaignCta ? (
               <AnimatedButton
                 {...(isInternalLink(campaignCta.ctaLink)
                   ? { to: campaignCta.ctaLink }
                   : { href: campaignCta.ctaLink, target: "_blank", rel: "noopener noreferrer" })}
+                className="w-full sm:w-auto justify-center"
                 arrow
               >
                 {campaignCta.ctaText}
               </AnimatedButton>
             ) : (
-              <AnimatedButton to="/menu" variant="secondary" arrow>
+              <AnimatedButton to="/menu" variant="secondary" className="w-full sm:w-auto justify-center" arrow>
                 Explore Cakes
               </AnimatedButton>
             )}
@@ -901,6 +920,7 @@ function HeroSection({ banners, settings, waLink, loading }) {
               target="_blank"
               rel="noopener noreferrer"
               variant={campaignCta ? "secondary" : "primary"}
+              className="w-full sm:w-auto justify-center"
               arrow
             >
               Order on WhatsApp
@@ -910,16 +930,16 @@ function HeroSection({ banners, settings, waLink, loading }) {
 
         {/* Hero image with parallax */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.92 }}
+          initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          className="relative"
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+          className="relative mt-2 sm:mt-0 hidden md:block"
           style={{
             transform: `translate3d(${mousePos.x * 8}px, ${mousePos.y * 6}px, 0)`,
           }}
         >
           {/* Decorative shape behind image */}
-          <div className="absolute -inset-4 bg-gradient-to-br from-blush to-blush-soft/60 rounded-[3rem] -rotate-3 transition-transform duration-700" aria-hidden="true" />
+          <div className="absolute -inset-2.5 sm:-inset-4 bg-gradient-to-br from-blush to-blush-soft/60 rounded-2xl sm:rounded-[3rem] -rotate-3 transition-transform duration-700" aria-hidden="true" />
 
           {/* Floating decorative elements */}
           <div className="absolute -top-6 -right-4 w-12 h-12 rounded-full bg-gold/20 animate-float hidden md:block" aria-hidden="true"
@@ -929,21 +949,20 @@ function HeroSection({ banners, settings, waLink, loading }) {
             style={{ transform: `translate3d(${mousePos.x * 18}px, ${mousePos.y * 12}px, 0)`, animationDelay: "1s" }}
           />
 
-          {/* Premium decorative 3D-style cake accent — CSS-only, GPU-cheap,
-              tilts toward the cursor on desktop, static under reduced-motion */}
-          <div className="absolute -bottom-6 -left-5 w-20 h-20 sm:-bottom-8 sm:-left-8 sm:w-28 sm:h-28 md:-bottom-10 md:-left-10 md:w-36 md:h-36 z-10">
+          {/* Premium decorative 3D-style cake accent */}
+          <div className="absolute -bottom-4 -left-3 w-16 h-16 sm:-bottom-8 sm:-left-8 sm:w-28 sm:h-28 md:-bottom-10 md:-left-10 md:w-36 md:h-36 z-10">
             <HeroCakeAccent mousePos={mousePos} className="w-full h-full" />
           </div>
 
           {/* Main image with crossfade */}
-          <div className="relative rounded-[3rem] overflow-hidden shadow-2xl shadow-cocoa/10 aspect-[4/3]">
+          <div className="relative rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-xl sm:shadow-2xl shadow-cocoa/10 aspect-[4/3] bg-cream-deep/20">
             <AnimatePresence mode="wait">
               <motion.div
                 key={current}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 0.6 }}
                 className="absolute inset-0"
               >
                 <SafeImage
@@ -958,7 +977,7 @@ function HeroSection({ banners, settings, waLink, loading }) {
 
           {/* Carousel indicators */}
           {hasMultiple && (
-            <div className="flex items-center justify-center gap-2 mt-5">
+            <div className="flex items-center justify-center gap-2 mt-4 sm:mt-5">
               {banners.map((_, i) => (
                 <button
                   key={i}
@@ -1025,24 +1044,24 @@ function TestimonialsSection({ reviews, averageRating }) {
   };
 
   return (
-    <section className="bg-blush-soft/50 py-16 md:py-24">
-      <div className="max-w-6xl mx-auto px-5 md:px-8">
+    <section className="bg-blush-soft/50 py-10 sm:py-16 md:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
         <ScrollReveal>
           <div className="text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep mb-3">Customer Reviews</p>
-            <h2 className="font-display font-semibold text-2xl md:text-4xl text-cocoa">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep mb-2 sm:mb-3">Customer Reviews</p>
+            <h2 className="font-display font-semibold text-2xl sm:text-3xl md:text-4xl text-cocoa">
               {hasReviews ? "What Our Customers Say" : "Be Our First Review"}
             </h2>
             {hasReviews ? (
-              <div className="mt-5 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-full border border-blush bg-ivory px-5 py-2.5">
-                <span className="font-display font-semibold text-xl text-cocoa tabular-nums">{averageRating.toFixed(1)}</span>
+              <div className="mt-4 sm:mt-5 inline-flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1.5 rounded-full border border-blush bg-ivory px-4 py-2 sm:px-5 sm:py-2.5 shadow-2xs">
+                <span className="font-display font-semibold text-lg sm:text-xl text-cocoa tabular-nums">{averageRating.toFixed(1)}</span>
                 <StarRatingDisplay value={averageRating} size="md" />
-                <span className="text-sm text-cocoa-soft/65">
+                <span className="text-xs sm:text-sm text-cocoa-soft/65">
                   from {reviews.length} review{reviews.length === 1 ? "" : "s"}
                 </span>
               </div>
             ) : (
-              <p className="mt-4 text-cocoa-soft/70 max-w-md mx-auto leading-relaxed">
+              <p className="mt-3 text-cocoa-soft/70 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
                 Ordered from us already? Share how it went — your review helps the next customer decide.
               </p>
             )}
@@ -1050,7 +1069,7 @@ function TestimonialsSection({ reviews, averageRating }) {
         </ScrollReveal>
 
         {hasReviews && (
-          <div className="relative mt-10">
+          <div className="relative mt-6 sm:mt-10">
             {reviews.length > perView && (
               <>
                 <button
@@ -1070,7 +1089,7 @@ function TestimonialsSection({ reviews, averageRating }) {
               </>
             )}
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 px-1">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5 px-1">
               <AnimatePresence mode="wait">
                 {getVisible().map((r, i) => (
                   <motion.article
@@ -1079,28 +1098,28 @@ function TestimonialsSection({ reviews, averageRating }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.35, delay: i * 0.06 }}
-                    className="bg-ivory rounded-2xl border border-blush/50 p-6 relative flex flex-col"
+                    className="bg-ivory rounded-2xl border border-blush/50 p-4 sm:p-6 relative flex flex-col shadow-2xs"
                   >
-                    <Quote className="absolute top-5 right-5 w-7 h-7 text-blush/50" strokeWidth={1.5} aria-hidden="true" />
+                    <Quote className="absolute top-4 right-4 sm:top-5 sm:right-5 w-6 h-6 sm:w-7 sm:h-7 text-blush/50" strokeWidth={1.5} aria-hidden="true" />
                     <StarRatingDisplay value={r.rating || 5} size="sm" />
-                    <p className="mt-4 text-sm text-cocoa-soft/85 leading-relaxed line-clamp-5 flex-1">{r.review}</p>
-                    <div className="flex items-center gap-3 mt-5 pt-5 border-t border-blush/40">
+                    <p className="mt-3 text-xs sm:text-sm text-cocoa-soft/85 leading-relaxed line-clamp-4 sm:line-clamp-5 flex-1">{r.review}</p>
+                    <div className="flex items-center gap-2.5 sm:gap-3 mt-4 sm:mt-5 pt-4 sm:pt-5 border-t border-blush/40">
                       {r.photo ? (
                         <SafeImage
                           src={r.photo}
                           alt=""
-                          containerClassName="w-10 h-10 shrink-0"
-                          className="w-10 h-10 rounded-full object-cover border border-blush/50"
+                          containerClassName="w-9 h-9 sm:w-10 sm:h-10 shrink-0"
+                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-blush/50"
                         />
                       ) : (
                         <span
-                          className="w-10 h-10 shrink-0 rounded-full bg-blush-soft border border-blush/50 flex items-center justify-center font-display font-semibold text-rose-deep"
+                          className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-blush-soft border border-blush/50 flex items-center justify-center font-display font-semibold text-rose-deep text-xs sm:text-sm"
                           aria-hidden="true"
                         >
                           {(r.name || "?").trim().charAt(0).toUpperCase()}
                         </span>
                       )}
-                      <p className="font-semibold text-sm text-cocoa truncate">{r.name}</p>
+                      <p className="font-semibold text-xs sm:text-sm text-cocoa truncate">{r.name}</p>
                     </div>
                   </motion.article>
                 ))}
@@ -1108,7 +1127,7 @@ function TestimonialsSection({ reviews, averageRating }) {
             </div>
 
             {reviews.length > perView && (
-              <div className="flex justify-center gap-1.5 mt-6">
+              <div className="flex justify-center gap-1.5 mt-5 sm:mt-6">
                 {reviews.map((_, i) => (
                   <button
                     key={i}
@@ -1124,13 +1143,13 @@ function TestimonialsSection({ reviews, averageRating }) {
           </div>
         )}
 
-        <ScrollReveal className="mt-10 flex flex-col sm:flex-row justify-center gap-3" delay={80}>
+        <ScrollReveal className="mt-6 sm:mt-10 flex flex-col sm:flex-row justify-center gap-2.5 sm:gap-3" delay={80}>
           {hasReviews && (
-            <AnimatedButton to="/reviews" variant="secondary" arrow className="justify-center">
+            <AnimatedButton to="/reviews" variant="secondary" arrow className="justify-center w-full sm:w-auto">
               Read All Reviews
             </AnimatedButton>
           )}
-          <AnimatedButton to="/reviews" arrow className="justify-center">
+          <AnimatedButton to="/reviews" arrow className="justify-center w-full sm:w-auto">
             Write a Review
           </AnimatedButton>
         </ScrollReveal>

@@ -1143,8 +1143,8 @@ export default function AdminOrders() {
     if (!form.customerName?.trim()) errs.customerName = 'Customer name is required';
     if (!form.phone?.trim()) {
       errs.phone = 'Phone number is required';
-    } else if (!/^[0-9+()\s-]{7,20}$/.test(form.phone.trim())) {
-      errs.phone = 'Please enter a valid phone number';
+    } else if (!/^\d{10}$/.test(form.phone.trim())) {
+      errs.phone = 'Phone number must be exactly 10 digits';
     }
     const validItems = orderItems.filter((it) => it.productName?.trim());
     if (validItems.length === 0) {
@@ -1645,12 +1645,15 @@ export default function AdminOrders() {
         );
         const phoneField = (
           <input
+            type="tel"
+            inputMode="numeric"
+            maxLength={10}
             value={phoneFilter}
             onChange={(e) => {
-              setPhoneFilter(e.target.value);
+              setPhoneFilter(e.target.value.replace(/\D/g, '').slice(0, 10));
               setPage(1);
             }}
-            placeholder="Phone"
+            placeholder="Phone (10 digits)"
             className="w-full rounded-xl border border-admin-border bg-admin-bg px-3 py-2.5 text-sm text-admin-text sm:w-auto sm:py-2"
           />
         );
@@ -1869,6 +1872,7 @@ export default function AdminOrders() {
               <TextField
                 label="Customer name"
                 required
+                description="Full name of the customer placing the order."
                 value={form.customerName}
                 onChange={(e) => {
                   setForm({ ...form, customerName: e.target.value });
@@ -1880,13 +1884,18 @@ export default function AdminOrders() {
               <TextField
                 label="Phone"
                 required
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                description="10-digit mobile number for order updates & WhatsApp (numbers only)."
                 value={form.phone}
                 onChange={(e) => {
-                  setForm({ ...form, phone: e.target.value });
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setForm({ ...form, phone: val });
                   if (formErrors.phone) setFormErrors({ ...formErrors, phone: null });
                 }}
                 error={formErrors.phone}
-                placeholder="95105 32922"
+                placeholder="9510532922"
               />
             </div>
           </div>
@@ -1896,7 +1905,7 @@ export default function AdminOrders() {
             <div className="flex items-center justify-between border-b border-admin-border/60 pb-2">
               <div className="flex items-center gap-2">
                 <Cake className="h-4 w-4 text-admin-primary" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">ORDER</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">ORDER PRODUCTS</h3>
               </div>
               <span className="text-xs font-semibold text-admin-primary">
                 {orderItems.length} {orderItems.length === 1 ? 'product' : 'products'} · {orderItems.reduce((s, i) => s + (Number(i.quantity) || 1), 0)} units
@@ -2018,6 +2027,7 @@ export default function AdminOrders() {
             <SelectField
               label="Order Type"
               required
+              description="Choose whether customer picks up at bakery or requires home delivery."
               value={form.orderType}
               onChange={(e) => setForm({ ...form, orderType: e.target.value })}
             >
@@ -2031,7 +2041,7 @@ export default function AdminOrders() {
             <div className="flex items-center gap-2 border-b border-admin-border/60 pb-2">
               <CalendarClock className="h-4 w-4 text-admin-primary" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-admin-text">
-                {form.orderType === 'DELIVERY' ? 'DELIVERY' : 'PICKUP'}
+                {form.orderType === 'DELIVERY' ? 'DELIVERY DETAILS' : 'PICKUP DETAILS'}
               </h3>
             </div>
             <div className="grid gap-3.5 sm:grid-cols-2">
@@ -2053,6 +2063,7 @@ export default function AdminOrders() {
                   }}
                   placeholder="Select date & time"
                 />
+                <p className="mt-1 text-[11px] text-admin-muted font-normal leading-tight">Target date and time for order fulfillment.</p>
                 {formErrors.pickupDatetime && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.pickupDatetime}</p>}
               </div>
 
@@ -2060,6 +2071,7 @@ export default function AdminOrders() {
                 <TextAreaField
                   label="Address"
                   required
+                  description="Complete street address with landmark & pincode."
                   rows={2}
                   value={form.address}
                   onChange={(e) => {
@@ -2087,6 +2099,7 @@ export default function AdminOrders() {
                 min="0"
                 step="0.01"
                 required
+                description="Total order value including products and custom charges (₹)."
                 value={form.totalAmount || itemsSubtotal}
                 onChange={(e) => {
                   setForm({ ...form, totalAmount: e.target.value });
@@ -2100,6 +2113,7 @@ export default function AdminOrders() {
                 type="number"
                 min="0"
                 step="0.01"
+                description="Advance deposit amount paid by customer upfront (₹)."
                 value={form.advancePaid}
                 onChange={(e) => setForm({ ...form, advancePaid: e.target.value })}
                 placeholder="₹200"
@@ -2116,6 +2130,7 @@ export default function AdminOrders() {
               <SelectField
                 label="Payment status"
                 required
+                description="Current payment settlement status."
                 value={form.paymentStatus}
                 onChange={(e) => setForm({ ...form, paymentStatus: e.target.value })}
               >
@@ -2127,6 +2142,7 @@ export default function AdminOrders() {
 
               <SelectField
                 label="Payment Method"
+                description="Payment mode chosen by customer."
                 value={form.paymentMethod}
                 onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
               >
@@ -2148,6 +2164,7 @@ export default function AdminOrders() {
             <TextAreaField
               label="Notes"
               rows={2}
+              description="Special baking requests, messages on cake, or internal admin notes."
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               placeholder="Message on cake, allergies, delivery instructions…"

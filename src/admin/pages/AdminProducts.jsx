@@ -668,10 +668,11 @@ export default function AdminProducts() {
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Product' : 'Edit Product'} onClose={() => setModal({ ...modal, open: false })} wide>
         <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
           {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa md:col-span-2">{error}</p>}
-          <TextField label="Name" required value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
-          <TextField label="Slug" required value={form.slug} error={formErrors.slug} onChange={(e) => updateField('slug', e.target.value)} />
+          <TextField label="Name" required description="Public display name of the product." value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
+          <TextField label="Slug" required description="URL-friendly identifier for product menu page." value={form.slug} error={formErrors.slug} onChange={(e) => updateField('slug', e.target.value)} />
           <SelectField
             label="Category"
+            description="Bakery menu category this product belongs to."
             value={form.categoryId}
             onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
           >
@@ -685,12 +686,14 @@ export default function AdminProducts() {
           <TextField
             label="Sort Order"
             type="number"
+            description="Display priority order (lower numbers appear first)."
             value={form.sortOrder}
             onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
           />
           <TextAreaField
             label="Description"
             required
+            description="Rich product summary displayed on product cards."
             containerClassName="md:col-span-2"
             value={form.description}
             error={formErrors.description}
@@ -698,9 +701,10 @@ export default function AdminProducts() {
           />
 
           <div className="md:col-span-2">
-            <span className="mb-1.5 block text-sm font-semibold text-cocoa">
+            <span className="mb-1 block text-sm font-semibold text-cocoa">
               Weights / Sizes &amp; Prices <span className="text-rose-deep">*</span>
             </span>
+            <p className="mb-2 text-[11px] text-admin-muted font-normal">Define available weight options (e.g., 500g, 1kg) and prices in ₹.</p>
             <div className="space-y-2">
               {weightRows.map((row, index) => (
                 <div key={index} className="flex gap-2">
@@ -734,7 +738,8 @@ export default function AdminProducts() {
           </div>
 
           <div className="md:col-span-2">
-            <span className="mb-1.5 block text-sm font-semibold text-cocoa">Flavours</span>
+            <span className="mb-1 block text-sm font-semibold text-cocoa">Flavours</span>
+            <p className="mb-2 text-[11px] text-admin-muted font-normal">Add available flavor choices (e.g. Chocolate Truffle, Vanilla).</p>
             <div className="flex gap-2">
               <input
                 className="w-full rounded-2xl border border-blush p-2.5 text-sm"
@@ -776,13 +781,14 @@ export default function AdminProducts() {
                 ))}
               </div>
             )}
-            <p className="mt-1 text-xs text-cocoa-soft/70">Press Enter or click Add after typing each flavour.</p>
+            <p className="mt-1 text-[11px] text-cocoa-soft/70">Press Enter or click Add after typing each flavour.</p>
           </div>
 
           <div className="md:col-span-2">
-            <span className="mb-1.5 block text-sm font-semibold text-cocoa">
+            <span className="mb-1 block text-sm font-semibold text-cocoa">
               Product Images <span className="text-rose-deep">*</span>
             </span>
+            <p className="mb-2 text-[11px] text-admin-muted font-normal">Upload high-resolution product photos (800×800 WEBP recommended). Click star icon to choose primary thumbnail.</p>
             <div className="flex flex-wrap gap-3">
               {existingImages.map((img) => {
                 const marked = removeImageIds.includes(img.id);
@@ -827,13 +833,13 @@ export default function AdminProducts() {
                 <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleNewFiles} className="hidden" />
               </label>
             </div>
-            <p className="mt-1 text-xs text-cocoa-soft/70">Recommended Size: 800 × 800 px</p>
-            <p className="text-xs text-cocoa-soft/70">Formats: JPG, PNG, WEBP · Max Size: 5 MB</p>
+            <p className="mt-1 text-[11px] text-cocoa-soft/70">Recommended Size: 800 × 800 px · Formats: JPG, PNG, WEBP · Max: 5 MB</p>
             {formErrors.images && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.images}</p>}
           </div>
 
           <div>
-            <span className="mb-1.5 block text-sm font-semibold text-cocoa">Status</span>
+            <span className="mb-1 block text-sm font-semibold text-cocoa">Status</span>
+            <p className="mb-1.5 text-[11px] text-admin-muted font-normal">Controls product visibility on public menu.</p>
             <ThemedSelect
               value={form.status}
               onChange={(v) => setForm({ ...form, status: v })}
@@ -844,9 +850,9 @@ export default function AdminProducts() {
               ]}
             />
           </div>
-          <div className="flex items-end gap-6">
-            <CheckboxField label="Featured" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
-            <CheckboxField label="Available" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} />
+          <div className="flex flex-col justify-end space-y-2">
+            <CheckboxField label="Featured" description="Display in Best Sellers section on home page." checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
+            <CheckboxField label="Available" description="Available for customers to order." checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} />
           </div>
 
           <button type="submit" disabled={saving} className="rounded-2xl bg-rose py-3 font-semibold text-white disabled:opacity-60 md:col-span-2">

@@ -306,11 +306,11 @@ export default function AdminBanners() {
             />
             {formErrors.image && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.image}</p>}
           </div>
-          <TextField label="Title" value={form.title} error={formErrors.title} onChange={(e) => updateField('title', e.target.value)} />
-          <TextField label="Subtitle" value={form.subtitle} error={formErrors.subtitle} onChange={(e) => updateField('subtitle', e.target.value)} />
-          <TextField label="CTA Text" value={form.ctaText} error={formErrors.ctaText} onChange={(e) => updateField('ctaText', e.target.value)} />
-          <TextField label="CTA Link" placeholder="/menu or https://…" value={form.ctaLink} error={formErrors.ctaLink} onChange={(e) => updateField('ctaLink', e.target.value)} />
-          <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+          <TextField label="Title" description="Main banner heading on homepage hero slider." value={form.title} error={formErrors.title} onChange={(e) => updateField('title', e.target.value)} />
+          <TextField label="Subtitle" description="Secondary tagline text for promotional context." value={form.subtitle} error={formErrors.subtitle} onChange={(e) => updateField('subtitle', e.target.value)} />
+          <TextField label="CTA Text" description="Label on call-to-action button (e.g. View Menu)." value={form.ctaText} error={formErrors.ctaText} onChange={(e) => updateField('ctaText', e.target.value)} />
+          <TextField label="CTA Link" description="Target page link or WhatsApp URL." placeholder="/menu or https://…" value={form.ctaLink} error={formErrors.ctaLink} onChange={(e) => updateField('ctaLink', e.target.value)} />
+          <SelectField label="Status" description="Only Live banners cycle in the active hero carousel." value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="LIVE">Live</option>
             <option value="DRAFT">Draft</option>
             <option value="HIDDEN">Hidden</option>

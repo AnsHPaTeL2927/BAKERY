@@ -351,11 +351,12 @@ export default function AdminCategories() {
       <Modal open={modal.open} title={modal.mode === 'create' ? 'New Category' : 'Edit Category'} onClose={() => setModal({ ...modal, open: false })}>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
-          <TextField label="Name" required value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
-          <TextField label="Slug" required value={form.slug} error={formErrors.slug} onChange={(e) => updateField('slug', e.target.value)} />
+          <TextField label="Name" required description="Category title displayed on menu filters and homepage." value={form.name} error={formErrors.name} onChange={(e) => updateField('name', e.target.value)} />
+          <TextField label="Slug" required description="URL handle used for category filtering (e.g. custom-cakes)." value={form.slug} error={formErrors.slug} onChange={(e) => updateField('slug', e.target.value)} />
           <TextAreaField
             label="Short Description"
-            placeholder="Optional — shown under the category on the homepage (e.g. 'Rich, layered, and made for celebrations')"
+            description="Optional teaser text shown below category card on homepage."
+            placeholder="e.g. Rich, layered, and handcrafted for celebrations"
             maxLength={240}
             value={form.description}
             error={formErrors.description}
@@ -372,7 +373,7 @@ export default function AdminCategories() {
             }}
           />
           {formErrors.image && <p className="-mt-2 text-[11px] font-semibold text-rose-600">{formErrors.image}</p>}
-          <SelectField label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+          <SelectField label="Status" description="Live categories appear on menu tab; Draft/Hidden remain concealed." value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="LIVE">Live</option>
             <option value="DRAFT">Draft</option>
             <option value="HIDDEN">Hidden</option>

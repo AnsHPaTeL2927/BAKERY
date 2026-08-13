@@ -2,7 +2,7 @@ import { Children, useEffect, useRef, useState } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function TextField({ label, required, error, containerClassName = '', ...props }) {
+export function TextField({ label, required, error, description, containerClassName = '', ...props }) {
   return (
     <label className={`block text-xs ${containerClassName}`}>
       {label && (
@@ -18,12 +18,13 @@ export function TextField({ label, required, error, containerClassName = '', ...
             : 'border-admin-border focus:border-admin-primary focus:ring-admin-primary/20'
         }`}
       />
+      {description && !error && <p className="mt-1 text-[11px] text-admin-muted font-normal leading-tight">{description}</p>}
       {error && <p className="mt-1 text-[11px] font-semibold text-rose-600">{error}</p>}
     </label>
   );
 }
 
-export function TextAreaField({ label, required, error, containerClassName = '', ...props }) {
+export function TextAreaField({ label, required, error, description, containerClassName = '', ...props }) {
   return (
     <label className={`block text-xs ${containerClassName}`}>
       {label && (
@@ -40,12 +41,13 @@ export function TextAreaField({ label, required, error, containerClassName = '',
             : 'border-admin-border focus:border-admin-primary focus:ring-admin-primary/20'
         }`}
       />
+      {description && !error && <p className="mt-1 text-[11px] text-admin-muted font-normal leading-tight">{description}</p>}
       {error && <p className="mt-1 text-[11px] font-semibold text-rose-600">{error}</p>}
     </label>
   );
 }
 
-export function SelectField({ label, required, error, containerClassName = '', value, onChange, disabled, children }) {
+export function SelectField({ label, required, error, description, containerClassName = '', value, onChange, disabled, children }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
 
@@ -118,16 +120,20 @@ export function SelectField({ label, required, error, containerClassName = '', v
           </motion.div>
         )}
       </AnimatePresence>
+      {description && !error && <p className="mt-1 text-[11px] text-admin-muted font-normal leading-tight">{description}</p>}
       {error && <p className="mt-1 text-[11px] font-semibold text-rose-600">{error}</p>}
     </div>
   );
 }
 
-export function CheckboxField({ label, containerClassName = '', ...props }) {
+export function CheckboxField({ label, description, containerClassName = '', ...props }) {
   return (
-    <label className={`flex items-center gap-2 text-xs text-admin-muted ${containerClassName}`}>
-      <input type="checkbox" {...props} className="h-4 w-4 rounded border-admin-border text-admin-primary focus:ring-admin-primary" />
-      {label}
-    </label>
+    <div className={containerClassName}>
+      <label className="flex items-center gap-2 text-xs font-semibold text-admin-text cursor-pointer">
+        <input type="checkbox" {...props} className="h-4 w-4 rounded border-admin-border text-admin-primary focus:ring-admin-primary cursor-pointer" />
+        <span>{label}</span>
+      </label>
+      {description && <p className="ml-6 mt-0.5 text-[11px] text-admin-muted font-normal leading-tight">{description}</p>}
+    </div>
   );
 }

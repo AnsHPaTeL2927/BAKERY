@@ -9,6 +9,8 @@ import {
   Line,
   BarChart,
   Bar,
+  Cell,
+  LabelList,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -74,6 +76,77 @@ function trendPct(curr, prevVal) {
 
 function formatShortDate(value) {
   return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function formatLongDate(value) {
+  if (!value) return '';
+  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function CustomBarYAxisTick({ x, y, payload }) {
+  const name = payload?.value || '';
+  const truncated = name.length > 20 ? `${name.slice(0, 18)}…` : name;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{name}</title>
+      <text
+        x={-8}
+        y={4}
+        textAnchor="end"
+        style={{ fontSize: '11px', fontWeight: 600, fill: '#2F2F2F' }}
+      >
+        {truncated}
+      </text>
+    </g>
+  );
+}
+
+function CustomTrafficTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  const val = payload[0].value;
+  return (
+    <div className="rounded-2xl border border-admin-border bg-white/95 p-3 shadow-xl backdrop-blur-md">
+      <p className="text-[11px] font-bold text-admin-muted uppercase tracking-wider">{formatLongDate(label)}</p>
+      <p className="mt-1 text-sm font-extrabold text-admin-primary flex items-center gap-1.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-admin-primary inline-block" />
+        <span>{val.toLocaleString()} Unique Visitors</span>
+      </p>
+    </div>
+  );
+}
+
+function CustomEngagementTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div className="rounded-2xl border border-admin-border bg-white/95 p-3.5 shadow-xl backdrop-blur-md min-w-[170px]">
+      <p className="text-[11px] font-bold text-admin-muted uppercase tracking-wider pb-1.5 border-b border-admin-border/60">{formatLongDate(label)}</p>
+      <div className="mt-2 space-y-1.5">
+        {payload.map((entry) => (
+          <div key={entry.name} className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1.5 font-medium text-admin-text">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+              {entry.name}
+            </span>
+            <span className="font-extrabold text-admin-text">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CustomProductTooltip({ active, payload }) {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0].payload;
+  return (
+    <div className="rounded-2xl border border-admin-border bg-white/95 p-3.5 shadow-xl backdrop-blur-md min-w-[180px]">
+      <p className="text-xs font-bold text-admin-text truncate max-w-[200px]">{data.name}</p>
+      <p className="mt-1.5 text-xs font-extrabold text-admin-primary flex items-center gap-1.5">
+        <Eye className="h-3.5 w-3.5 text-admin-primary" />
+        <span>{data.views.toLocaleString()} Page Views</span>
+      </p>
+    </div>
+  );
 }
 
 function formatTime(value) {
@@ -330,11 +403,11 @@ export default function AdminDashboard() {
               <AreaChart data={stats.visitorsSeries}>
                 <defs>
                   <linearGradient id="visitorsFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#D94C7B" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#D94C7B" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#D94C7B" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#D94C7B" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" vertical={false} opacity={0.7} />
                 <XAxis
                   dataKey="date"
                   tickFormatter={formatShortDate}
@@ -343,19 +416,16 @@ export default function AdminDashboard() {
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} width={isMobile ? 28 : 60} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
-                  cursor={{ stroke: '#D94C7B', strokeWidth: 1, strokeDasharray: '4 4' }}
-                />
+                <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} width={isMobile ? 28 : 50} />
+                <Tooltip content={<CustomTrafficTooltip />} cursor={{ stroke: '#D94C7B', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
                 <Area
                   type="monotone"
                   dataKey="count"
                   name="Visitors"
                   stroke="#D94C7B"
-                  strokeWidth={2.5}
+                  strokeWidth={3}
                   fill="url(#visitorsFill)"
-                  activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff', fill: '#D94C7B' }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -396,7 +466,7 @@ export default function AdminDashboard() {
           <div className="mt-4 h-72 w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={stats.clicksSeries}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" vertical={false} opacity={0.7} />
                 <XAxis
                   dataKey="date"
                   tickFormatter={formatShortDate}
@@ -405,11 +475,8 @@ export default function AdminDashboard() {
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} width={isMobile ? 28 : 60} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
-                  cursor={{ stroke: '#D94C7B', strokeWidth: 1, strokeDasharray: '4 4' }}
-                />
+                <YAxis tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} width={isMobile ? 28 : 50} />
+                <Tooltip content={<CustomEngagementTooltip />} cursor={{ stroke: '#D94C7B', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: isMobile ? 10 : 12, paddingTop: 8 }} />
                 <Line type="monotone" dataKey="orderClicks" name="Order Clicks" stroke="#D94C7B" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
                 <Line type="monotone" dataKey="whatsappClicks" name="WhatsApp" stroke="#22C55E" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
@@ -427,15 +494,57 @@ export default function AdminDashboard() {
               <EmptyState message="Not enough product views yet." />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.topProducts} layout="vertical" margin={{ left: 24 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" horizontal={false} />
+                <BarChart data={stats.topProducts} layout="vertical" margin={{ left: 10, right: 45, top: 10, bottom: 10 }}>
+                  <defs>
+                    <linearGradient id="barGrad0" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#D94C7B" />
+                      <stop offset="100%" stopColor="#F43F5E" />
+                    </linearGradient>
+                    <linearGradient id="barGrad1" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#E11D48" />
+                      <stop offset="100%" stopColor="#FB7185" />
+                    </linearGradient>
+                    <linearGradient id="barGrad2" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#BE185D" />
+                      <stop offset="100%" stopColor="#F472B6" />
+                    </linearGradient>
+                    <linearGradient id="barGrad3" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#8B5CF6" />
+                      <stop offset="100%" stopColor="#C084FC" />
+                    </linearGradient>
+                    <linearGradient id="barGrad4" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#0284C7" />
+                      <stop offset="100%" stopColor="#38BDF8" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F2D7E1" horizontal={false} opacity={0.6} />
                   <XAxis type="number" tick={{ fontSize: 11, fill: '#7B7B7B' }} allowDecimals={false} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#2F2F2F' }} width={isMobile ? 80 : 110} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: 12, borderColor: '#F2D7E1', boxShadow: '0 12px 32px -12px rgba(217,76,123,0.35)' }}
-                    cursor={{ fill: 'rgba(217,76,123,0.06)' }}
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={isMobile ? 95 : 145}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={<CustomBarYAxisTick />}
                   />
-                  <Bar dataKey="views" name="Views" fill="#D94C7B" radius={[0, 8, 8, 0]} maxBarSize={28} />
+                  <Tooltip content={<CustomProductTooltip />} cursor={{ fill: 'rgba(217,76,123,0.06)', radius: 10 }} />
+                  <Bar
+                    dataKey="views"
+                    name="Views"
+                    background={{ fill: 'rgba(242, 215, 225, 0.25)', radius: [0, 10, 10, 0] }}
+                    radius={[0, 10, 10, 0]}
+                    maxBarSize={24}
+                  >
+                    {stats.topProducts.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={`url(#barGrad${index % 5})`} />
+                    ))}
+                    <LabelList
+                      dataKey="views"
+                      position="right"
+                      formatter={(val) => `${val}`}
+                      style={{ fill: '#D94C7B', fontSize: 11, fontWeight: 800, dx: 6 }}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
