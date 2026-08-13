@@ -105,6 +105,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   color: rgba(110, 68, 54, 0.4);
 }
 
+/* ─── Prevent Mobile Auto-Zoom on Input Focus ───────────────────────── */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  .input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* ─── Signature brand element ──────────────────────────────────────── */
 
 .scallop-edge {

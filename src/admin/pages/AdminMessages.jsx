@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Mail, X, Phone, Inbox, Cake, Calendar, Scale, Eye, CheckCheck, Archive } from 'lucide-react';
+import { Mail, X, Phone, Inbox, Cake, Calendar, Scale, Eye, CheckCheck, Archive, MessageCircle } from 'lucide-react';
 import { messagesApi } from '../services/adminApi';
 import { emitMessagesUpdate } from '../utils/messagesBus';
 import { useToast } from '../components/ToastProvider';
@@ -89,44 +89,150 @@ export default function AdminMessages() {
   }
 
   function renderMessageCard(item) {
-    const dateLabel = new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const isCustomCake = item.source === 'CUSTOM_CAKE';
+    const isNew = item.status === 'NEW';
+    const dateLabel = new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeLabel = new Date(item.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    const phoneDigits = (item.phone || '').replace(/\D/g, '');
 
     return (
-      <CardListItem
-        id={item.id}
-        icon={Mail}
-        title={item.name}
-        subtitle={item.message}
-        meta={<span className="whitespace-nowrap text-xs text-admin-muted">{dateLabel}</span>}
-        badge={
-          <div className="flex flex-wrap items-center gap-1.5">
-            <SourceBadge source={item.source} />
+      <div
+        className={`overflow-hidden rounded-[22px] border bg-admin-card shadow-xs transition-all duration-200 hover:shadow-md ${
+          isNew ? 'border-admin-primary/40 ring-1 ring-admin-primary/20' : 'border-admin-border'
+        }`}
+        onClick={() => setSelected(item)}
+      >
+        {/* Header Row: Customer details + Status Badge */}
+        <div className="flex items-center justify-between gap-3 border-b border-admin-border/60 px-4 py-3.5 bg-admin-bg/30">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-admin-primary/15 to-admin-primary/5 text-admin-primary font-bold text-sm shadow-2xs">
+              {(item.name || '?').charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="truncate text-sm font-bold text-admin-text">{item.name}</p>
+                {isNew && <span className="h-2 w-2 rounded-full bg-admin-primary shrink-0" />}
+              </div>
+              <p className="truncate text-xs text-admin-muted">{item.email || 'No email provided'}</p>
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
             <MessageStatusBadge status={item.status} />
           </div>
-        }
-        primaryActions={[{ icon: Eye, label: 'View', onClick: () => setSelected(item) }]}
-        actions={[
-          ...(item.status !== 'READ' ? [{ icon: CheckCheck, label: 'Mark Read', onClick: () => updateStatus(item.id, 'READ') }] : []),
-          ...(item.status !== 'ARCHIVED' ? [{ icon: Archive, label: 'Archive', onClick: () => updateStatus(item.id, 'ARCHIVED') }] : []),
-        ]}
-        onClick={() => setSelected(item)}
-      />
+        </div>
+
+        {/* Body Details & Custom Cake Pills */}
+        <div className="flex flex-col gap-3 px-4 py-3.5" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between gap-2">
+            <SourceBadge source={item.source} />
+            <span className="text-[11px] font-semibold text-admin-muted">{dateLabel} · {timeLabel}</span>
+          </div>
+
+          {/* If Custom Cake Request: show occasion, weight, delivery date tags */}
+          {isCustomCake && (item.occasion || item.cakeWeight || item.deliveryDate) && (
+            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-rose-50/60 border border-rose-100/60 p-2.5 text-xs">
+              {item.occasion && (
+                <span className="inline-flex items-center gap-1 font-semibold text-rose-700">
+                  <Cake className="h-3.5 w-3.5 text-rose-500" /> {item.occasion}
+                </span>
+              )}
+              {item.cakeWeight && (
+                <span className="inline-flex items-center gap-1 font-semibold text-rose-700 border-l border-rose-200/80 pl-2">
+                  <Scale className="h-3.5 w-3.5 text-rose-500" /> {item.cakeWeight}
+                </span>
+              )}
+              {item.deliveryDate && (
+                <span className="inline-flex items-center gap-1 font-semibold text-rose-700 border-l border-rose-200/80 pl-2">
+                  <Calendar className="h-3.5 w-3.5 text-rose-500" /> {new Date(item.deliveryDate).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Message snippet box */}
+          <div className="rounded-xl border border-admin-border/50 bg-admin-bg/50 p-3">
+            <p className="text-xs sm:text-sm text-admin-text leading-relaxed line-clamp-2">{item.message}</p>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div
+          className="flex items-center gap-2 border-t border-admin-border/60 bg-admin-bg/40 px-4 py-2.5"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => setSelected(item)}
+            className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-admin-primary text-xs font-bold text-white transition-colors hover:bg-admin-primary-hover shadow-2xs"
+          >
+            <Eye className="h-3.5 w-3.5" /> Read Enquiry
+          </button>
+
+          {phoneDigits && (
+            <>
+              <a
+                href={`tel:${phoneDigits}`}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-admin-border text-admin-text transition-colors hover:bg-admin-bg"
+                aria-label="Call customer"
+                title="Call Customer"
+              >
+                <Phone className="h-3.5 w-3.5" />
+              </a>
+              <a
+                href={`https://wa.me/${phoneDigits}?text=${encodeURIComponent(`Hi ${item.name}, thank you for reaching out to Cakes by Tulsi!`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100"
+                aria-label="WhatsApp reply"
+                title="WhatsApp Reply"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+              </a>
+            </>
+          )}
+
+          {item.status !== 'READ' && (
+            <button
+              type="button"
+              onClick={() => updateStatus(item.id, 'READ')}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-admin-border text-admin-muted transition-colors hover:bg-admin-bg hover:text-admin-text"
+              aria-label="Mark Read"
+              title="Mark as Read"
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+            </button>
+          )}
+
+          {item.status !== 'ARCHIVED' && (
+            <button
+              type="button"
+              onClick={() => updateStatus(item.id, 'ARCHIVED')}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-admin-border text-admin-muted transition-colors hover:bg-admin-bg hover:text-admin-text"
+              aria-label="Archive"
+              title="Archive"
+            >
+              <Archive className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Inbox</p>
-        <h1 className="font-display text-3xl font-semibold text-admin-text">Messages</h1>
-        <p className="mt-1 text-sm text-admin-muted">Enquiries submitted through the public contact form.</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-admin-primary">Inbox</p>
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-admin-text">Messages</h1>
+        <p className="mt-0.5 text-xs sm:text-sm text-admin-muted">Enquiries submitted through the public contact form & custom cake requests.</p>
       </div>
 
       {error && <p className="rounded-2xl bg-admin-danger/10 p-3 text-sm text-admin-danger">{error}</p>}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <SearchInput value={search} onChange={setSearch} placeholder="Search by name or email…" />
-        <div className="flex gap-2">
+        <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
           {['', 'NEW', 'READ', 'ARCHIVED'].map((status) => (
             <button
               key={status || 'all'}
@@ -135,10 +241,10 @@ export default function AdminMessages() {
                 setStatusFilter(status);
                 setPage(1);
               }}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+              className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
                 statusFilter === status
-                  ? 'bg-admin-primary text-white'
-                  : 'border border-admin-border text-admin-muted hover:bg-admin-bg'
+                  ? 'bg-admin-primary text-white shadow-xs'
+                  : 'border border-admin-border text-admin-muted bg-admin-card hover:bg-admin-bg'
               }`}
             >
               {status || 'All'}
@@ -180,30 +286,28 @@ export default function AdminMessages() {
 
       <Pagination theme="admin" page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
 
-      {/* Mobile: bottom sheet (reuses the same BottomSheet primitive as Orders/Notifications
-          instead of a fourth one-off overlay). Desktop below is untouched, byte-for-byte —
-          duplicated rather than shared so nothing here can shift desktop spacing. */}
+      {/* Mobile: bottom sheet */}
       {selected && isMobile && (
         <BottomSheet
           open
           onClose={() => setSelected(null)}
           title={selected.name}
           footer={
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               {selected.status !== 'READ' && (
                 <button
                   type="button"
                   onClick={() => updateStatus(selected.id, 'READ')}
-                  className="rounded-xl bg-admin-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-admin-primary-hover"
+                  className="flex-1 rounded-xl bg-admin-primary py-3 text-xs font-bold text-white hover:bg-admin-primary-hover transition-colors"
                 >
-                  Mark as Read
+                  Mark Read
                 </button>
               )}
               {selected.status !== 'ARCHIVED' && (
                 <button
                   type="button"
                   onClick={() => updateStatus(selected.id, 'ARCHIVED')}
-                  className="rounded-xl border border-admin-border px-4 py-2.5 text-sm font-semibold text-admin-text hover:bg-admin-bg"
+                  className="flex-1 rounded-xl border border-admin-border bg-admin-card py-3 text-xs font-bold text-admin-text hover:bg-admin-bg transition-colors"
                 >
                   Archive
                 </button>
@@ -212,54 +316,66 @@ export default function AdminMessages() {
           }
         >
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2">
               <SourceBadge source={selected.source} />
+              <span className="text-xs text-admin-muted">{new Date(selected.createdAt).toLocaleDateString()}</span>
             </div>
-            <p className="text-sm text-admin-muted">{selected.email}</p>
+            <p className="text-xs text-admin-muted">{selected.email}</p>
 
             {selected.phone && (
-              <p className="flex items-center gap-2 text-sm text-admin-text">
-                <Phone className="h-4 w-4 text-admin-primary" /> {selected.phone}
-              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <a
+                  href={`tel:${(selected.phone || '').replace(/\D/g, '')}`}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-admin-border bg-admin-card py-2.5 text-xs font-bold text-admin-text hover:bg-admin-bg transition-colors"
+                >
+                  <Phone className="h-3.5 w-3.5 text-admin-primary" /> Call {selected.phone}
+                </a>
+                <a
+                  href={`https://wa.me/${(selected.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${selected.name}, thank you for contacting Cakes by Tulsi!`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
+                >
+                  <MessageCircle className="h-3.5 w-3.5 text-emerald-600" /> WhatsApp
+                </a>
+              </div>
             )}
 
             {selected.source === 'CUSTOM_CAKE' && (
-              <div className="grid grid-cols-2 gap-3 rounded-2xl bg-admin-bg p-4 text-sm">
+              <div className="grid grid-cols-2 gap-2.5 rounded-2xl bg-admin-bg p-3.5 text-xs">
                 {selected.occasion && (
                   <div>
-                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
-                      <Cake className="h-3.5 w-3.5" /> Occasion
+                    <p className="flex items-center gap-1 font-semibold uppercase tracking-wider text-admin-muted text-[10px]">
+                      <Cake className="h-3 w-3" /> Occasion
                     </p>
-                    <p className="mt-1 font-semibold text-admin-text">{selected.occasion}</p>
+                    <p className="mt-0.5 font-bold text-admin-text">{selected.occasion}</p>
                   </div>
                 )}
                 {selected.cakeWeight && (
                   <div>
-                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
-                      <Scale className="h-3.5 w-3.5" /> Cake Weight
+                    <p className="flex items-center gap-1 font-semibold uppercase tracking-wider text-admin-muted text-[10px]">
+                      <Scale className="h-3 w-3" /> Cake Weight
                     </p>
-                    <p className="mt-1 font-semibold text-admin-text">{selected.cakeWeight}</p>
+                    <p className="mt-0.5 font-bold text-admin-text">{selected.cakeWeight}</p>
                   </div>
                 )}
                 {selected.deliveryDate && (
                   <div>
-                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-admin-muted">
-                      <Calendar className="h-3.5 w-3.5" /> Delivery Date
+                    <p className="flex items-center gap-1 font-semibold uppercase tracking-wider text-admin-muted text-[10px]">
+                      <Calendar className="h-3 w-3" /> Delivery Date
                     </p>
-                    <p className="mt-1 font-semibold text-admin-text">{new Date(selected.deliveryDate).toLocaleDateString()}</p>
+                    <p className="mt-0.5 font-bold text-admin-text">{new Date(selected.deliveryDate).toLocaleDateString()}</p>
                   </div>
                 )}
               </div>
             )}
 
-            <div className="rounded-2xl bg-admin-bg p-4">
-              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-admin-muted">
-                <Mail className="h-3.5 w-3.5" /> Message
+            <div className="rounded-2xl bg-admin-bg p-3.5">
+              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-admin-muted mb-1.5">
+                <Mail className="h-3 w-3" /> Message
               </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-admin-text">{selected.message}</p>
+              <p className="whitespace-pre-wrap text-xs sm:text-sm text-admin-text leading-relaxed">{selected.message}</p>
             </div>
-
-            <p className="text-xs text-admin-muted">Received {new Date(selected.createdAt).toLocaleString()}</p>
           </div>
         </BottomSheet>
       )}

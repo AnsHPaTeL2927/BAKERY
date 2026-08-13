@@ -340,15 +340,16 @@ export default function AdminProducts() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Menu Management</p>
-          <h1 className="font-display text-3xl font-semibold text-admin-text">Products</h1>
+          <p className="text-xs font-semibold uppercase tracking-wider text-admin-primary">Menu Management</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold text-admin-text">Products</h1>
+          <p className="mt-0.5 text-xs sm:text-sm text-admin-muted">Manage bakery items, price options, availability, and featured displays.</p>
         </div>
         <button
           type="button"
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-admin-primary px-5 py-2.5 font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-sm"
+          className="flex items-center justify-center gap-2 rounded-xl bg-admin-primary px-4 py-2.5 text-xs sm:text-sm font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-xs w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" /> New Product
         </button>
@@ -356,31 +357,63 @@ export default function AdminProducts() {
 
       {error && <p className="rounded-2xl bg-admin-danger/10 p-3 text-sm text-admin-danger">{error}</p>}
 
-      {/* Desktop: search + inline filters. Mobile: search + Filters funnel button. */}
-      <div className="hidden flex-wrap items-center gap-3 sm:flex">
-        <SearchInput value={search} onChange={setSearch} placeholder="Search products…" />
-      </div>
-      <div className="flex items-center gap-2.5 sm:hidden">
-        <div className="flex-1">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search products…" />
+      {/* Mobile: Search + Quick Category Pill Bar + Filter Funnel button */}
+      <div className="space-y-3 sm:hidden">
+        <div className="flex items-center gap-2.5">
+          <div className="flex-1">
+            <SearchInput value={search} onChange={setSearch} placeholder="Search products…" />
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowFilters(true)}
+            className="relative flex h-10 min-w-10 shrink-0 items-center justify-center rounded-xl border border-admin-primary bg-admin-primary/10 px-3 text-admin-primary font-semibold text-xs"
+            aria-label="Filters"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {activeSheetFilterCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full border-2 border-admin-bg bg-admin-primary px-1 text-[10px] font-extrabold text-white">
+                {activeSheetFilterCount}
+              </span>
+            )}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowFilters(true)}
-          className="relative flex h-11.5 min-w-11.5 shrink-0 items-center justify-center rounded-2xl border border-admin-primary bg-admin-primary/8 px-3 text-admin-primary"
-          aria-label="Filters"
-        >
-          <SlidersHorizontal className="h-4.5 w-4.5" />
-          {activeSheetFilterCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-admin-bg bg-admin-primary px-1 text-[11px] font-extrabold text-white">
-              {activeSheetFilterCount}
-            </span>
-          )}
-        </button>
+
+        {/* 1-Tap Touch Scrollable Category Chips for Mobile */}
+        <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-4 px-4">
+          <button
+            type="button"
+            onClick={() => updateFilter('categoryId', '')}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              !filters.categoryId
+                ? 'bg-admin-primary text-white shadow-xs'
+                : 'border border-admin-border bg-admin-card text-admin-muted hover:bg-admin-bg'
+            }`}
+          >
+            All Items
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => updateFilter('categoryId', String(c.id))}
+              className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                filters.categoryId === String(c.id)
+                  ? 'bg-admin-primary text-white shadow-xs'
+                  : 'border border-admin-border bg-admin-card text-admin-muted hover:bg-admin-bg'
+              }`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Desktop inline filter bar */}
-      <div className="hidden flex-wrap items-center gap-3 rounded-2xl border border-admin-border/60 bg-admin-card p-4 sm:flex">
+      {/* Desktop Search & Inline Filter Bar */}
+      <div className="hidden flex-wrap items-center gap-3 sm:flex">
+        <SearchInput value={search} onChange={setSearch} placeholder="Search products by name or tag…" />
+      </div>
+
+      <div className="hidden flex-wrap items-center gap-3 rounded-2xl border border-admin-border/60 bg-admin-card p-4 sm:flex shadow-xs">
         <ThemedSelect
           theme="admin"
           className="w-40"
@@ -407,7 +440,7 @@ export default function AdminProducts() {
           onChange={(v) => updateFilter('featured', v)}
           options={[
             { value: '', label: 'Featured: Any' },
-            { value: 'true', label: 'Featured' },
+            { value: 'true', label: 'Featured Only' },
             { value: 'false', label: 'Not Featured' },
           ]}
         />
@@ -419,7 +452,7 @@ export default function AdminProducts() {
           options={[
             { value: '', label: 'Availability: Any' },
             { value: 'true', label: 'Available' },
-            { value: 'false', label: 'Unavailable' },
+            { value: 'false', label: 'Out of Stock' },
           ]}
         />
         <div className="flex items-center gap-1.5">
@@ -429,7 +462,7 @@ export default function AdminProducts() {
             value={filters.minPrice}
             onChange={(e) => updateFilter('minPrice', e.target.value)}
             placeholder="Min ₹"
-            className="w-20 rounded-2xl border border-admin-border px-3 py-2 text-xs text-admin-text"
+            className="w-20 rounded-xl border border-admin-border px-3 py-2 text-xs text-admin-text focus:outline-none focus:border-admin-primary bg-admin-card"
           />
           <span className="text-xs text-admin-muted">–</span>
           <input
@@ -438,7 +471,7 @@ export default function AdminProducts() {
             value={filters.maxPrice}
             onChange={(e) => updateFilter('maxPrice', e.target.value)}
             placeholder="Max ₹"
-            className="w-20 rounded-2xl border border-admin-border px-3 py-2 text-xs text-admin-text"
+            className="w-20 rounded-xl border border-admin-border px-3 py-2 text-xs text-admin-text focus:outline-none focus:border-admin-primary bg-admin-card"
           />
         </div>
         <ThemedSelect

@@ -139,17 +139,17 @@ export default function ProductCard({ product, whatsapp, viewMode = "grid" }) {
       </div>
 
       {/* Content */}
-      <div className="p-3 sm:p-5 flex flex-col gap-1.5 sm:gap-2 flex-1">
-        <h3 className="font-display font-semibold text-sm sm:text-lg text-cocoa leading-snug line-clamp-1 sm:line-clamp-2">
+      <div className="p-2.5 sm:p-5 flex flex-col gap-1 sm:gap-2 flex-1">
+        <h3 className="font-display font-semibold text-xs sm:text-base md:text-lg text-cocoa leading-tight line-clamp-1 sm:line-clamp-2">
           {product.name}
         </h3>
 
         {/* Rating / order-count */}
         {(product.rating || product.reviewCount || product.orderCount) && (
-          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-cocoa-soft/70">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-cocoa-soft/70">
             {product.rating && (
               <span className="flex items-center gap-0.5 text-gold font-bold">
-                <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-gold" />
+                <Star className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-gold" />
                 {Number(product.rating).toFixed(1)}
               </span>
             )}
@@ -161,19 +161,19 @@ export default function ProductCard({ product, whatsapp, viewMode = "grid" }) {
           </div>
         )}
 
-        <p className="text-xs sm:text-sm text-cocoa-soft/75 line-clamp-2 leading-relaxed hidden xs:line-clamp-2">
+        <p className="text-xs text-cocoa-soft/75 line-clamp-2 leading-relaxed hidden sm:block">
           {product.description}
         </p>
 
         {/* Weight selector */}
         {product.weights?.length > 1 && (
-          <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-1">
+          <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">
             {product.weights.map((w) => (
               <button
                 key={w}
                 type="button"
                 onClick={() => setWeight(w)}
-                className={`text-[10px] sm:text-xs px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-full border font-medium transition-all duration-300 ${
+                className={`text-[9px] sm:text-xs px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full border font-semibold transition-all duration-200 ${
                   w === weight
                     ? "bg-rose text-ivory border-rose shadow-2xs"
                     : "border-blush text-cocoa-soft hover:border-rose/60 hover:text-rose-deep"
@@ -186,10 +186,10 @@ export default function ProductCard({ product, whatsapp, viewMode = "grid" }) {
         )}
 
         {/* Price & availability */}
-        <div className="mt-auto pt-2 sm:pt-3 flex items-center justify-between">
-          <span className="font-display font-bold text-base sm:text-xl text-rose-deep">₹{price}</span>
+        <div className="mt-auto pt-1.5 sm:pt-3 flex items-center justify-between">
+          <span className="font-display font-extrabold text-sm sm:text-xl text-rose-deep">₹{price}</span>
           {!product.available && (
-            <span className="text-[10px] sm:text-xs font-semibold text-cocoa-soft/50 bg-cream-deep px-2.5 py-0.5 rounded-full">Unavailable</span>
+            <span className="text-[9px] sm:text-xs font-semibold text-cocoa-soft/50 bg-cream-deep px-2 py-0.5 rounded-full">Out of Stock</span>
           )}
         </div>
 
@@ -200,9 +200,9 @@ export default function ProductCard({ product, whatsapp, viewMode = "grid" }) {
           rel="noopener noreferrer"
           onClick={() => trackEvent("ORDER_CLICK", product.id)}
           aria-disabled={!product.available}
-          className={`mt-1.5 sm:mt-2 text-center rounded-full py-2 sm:py-2.5 px-3 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-300 ${
+          className={`mt-1 sm:mt-2 text-center rounded-full py-1.5 sm:py-2.5 px-2.5 sm:px-3 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all duration-300 ${
             product.available
-              ? "bg-rose text-ivory hover:bg-rose-deep hover:shadow-md hover:shadow-rose/20 hover:-translate-y-0.5 active:translate-y-0"
+              ? "bg-rose text-ivory hover:bg-rose-deep hover:shadow-md hover:shadow-rose/20 active:scale-95"
               : "bg-blush/50 text-cocoa-soft/50 pointer-events-none"
           }`}
         >

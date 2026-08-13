@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Star, MessageSquareQuote, Eye, EyeOff, Check, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, MessageSquareQuote, Eye, EyeOff, Check, X, BookOpen } from 'lucide-react';
 import { testimonialsApi } from '../services/adminApi';
 import DataTable from '../components/DataTable';
 import CardListItem from '../components/CardListItem';
 import Thumbnail from '../components/Thumbnail';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
+import BottomSheet from '../components/BottomSheet';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import SearchInput from '../components/SearchInput';
@@ -13,6 +14,7 @@ import ImageUploader from '../components/ImageUploader';
 import EmptyState from '../components/EmptyState';
 import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, TextAreaField, SelectField, CheckboxField } from '../components/FormField';
+import useIsMobile from '../hooks/useIsMobile';
 
 const EMPTY_FORM = { name: '', review: '', rating: 5, approved: true, featured: false, status: 'LIVE', sortOrder: 0 };
 
@@ -30,6 +32,7 @@ function formatDate(value) {
 }
 
 export default function AdminTestimonials() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
@@ -39,6 +42,7 @@ export default function AdminTestimonials() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [viewItem, setViewItem] = useState(null);
   const [modal, setModal] = useState({ open: false, mode: 'create', id: null });
   const [form, setForm] = useState(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState({});
@@ -135,6 +139,7 @@ export default function AdminTestimonials() {
         await testimonialsApi.create(fd);
       } else {
         await testimonialsApi.update(modal.id, fd);
+        if (viewItem && viewItem.id === modal.id) setViewItem((prev) => ({ ...prev, ...form }));
       }
       setModal({ open: false, mode: 'create', id: null });
       load();
@@ -149,6 +154,7 @@ export default function AdminTestimonials() {
     try {
       await testimonialsApi.remove(confirmDelete);
       setConfirmDelete(null);
+      setViewItem(null);
       load();
     } catch (err) {
       setError(err.message);
@@ -158,15 +164,14 @@ export default function AdminTestimonials() {
   async function handleStatusToggle(item) {
     const next = item.status === 'LIVE' ? 'HIDDEN' : 'LIVE';
     await testimonialsApi.setStatus(item.id, next);
+    if (viewItem && viewItem.id === item.id) setViewItem((prev) => ({ ...prev, status: next }));
     load();
   }
 
-  // Reviews submitted from the public site arrive unapproved and hidden.
-  // Approving publishes them in one step; rejecting leaves the row in place
-  // (searchable, deletable) but keeps it off the site.
   async function handleApproval(item, approved) {
     try {
       await testimonialsApi.setApproval(item.id, approved);
+      if (viewItem && viewItem.id === item.id) setViewItem((prev) => ({ ...prev, approved, status: approved ? 'LIVE' : prev.status }));
       load();
     } catch (err) {
       setError(err.message);
@@ -174,57 +179,124 @@ export default function AdminTestimonials() {
   }
 
   function renderTestimonialCard(item) {
+    const isPending = !item.approved;
+    const isLive = item.status === 'LIVE';
+
     return (
-      <CardListItem
-        id={item.id}
-        theme="public"
-        image={item.photo}
-        icon={MessageSquareQuote}
-        title={item.name}
-        subtitle={item.review}
-        badge={
-          <div className="flex flex-wrap items-center gap-1.5">
-            <StatusBadge status={item.status} />
-            <span className="flex items-center gap-0.5 text-gold">
-              {Array.from({ length: item.rating }).map((_, idx) => (
-                <Star key={idx} className="h-3 w-3 fill-gold" />
-              ))}
-            </span>
-            {item.featured && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-cocoa">Featured</span>}
-            {!item.approved && (
-              <span className="rounded-full bg-admin-warning/15 px-2 py-0.5 text-[10px] font-bold text-admin-warning">
-                Pending approval
+      <div
+        className={`overflow-hidden rounded-[22px] border bg-admin-card shadow-xs transition-all duration-200 hover:shadow-md ${
+          isPending ? 'border-admin-warning/50 ring-1 ring-admin-warning/20' : 'border-admin-border'
+        }`}
+        onClick={() => setViewItem(item)}
+      >
+        {/* Header: Photo / Avatar + Name + Rating + Status Badges */}
+        <div className="flex items-center justify-between gap-3 border-b border-admin-border/60 px-4 py-3.5 bg-admin-bg/30">
+          <div className="flex items-center gap-3 min-w-0">
+            {item.photo ? (
+              <img src={item.photo} alt={item.name} className="h-10 w-10 shrink-0 rounded-full object-cover border border-admin-border" />
+            ) : (
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-admin-primary/10 text-admin-primary font-bold text-sm">
+                {(item.name || '?').charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-admin-text">{item.name}</p>
+              <div className="flex items-center gap-1 text-gold mt-0.5">
+                {Array.from({ length: Math.min(5, Math.max(1, item.rating || 5)) }).map((_, idx) => (
+                  <Star key={idx} className="h-3 w-3 fill-gold" />
+                ))}
+                <span className="text-xs font-bold text-admin-text ml-1">{item.rating || 5}.0</span>
+              </div>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center gap-1.5">
+            {isPending ? (
+              <span className="rounded-full bg-admin-warning/15 px-2.5 py-0.5 text-xs font-bold text-admin-warning">
+                Pending
+              </span>
+            ) : (
+              <span className="rounded-full bg-admin-success/15 px-2.5 py-0.5 text-xs font-bold text-admin-success">
+                Approved
               </span>
             )}
+            <StatusBadge status={item.status} />
           </div>
-        }
-        actions={[
-          item.approved
-            ? { icon: X, label: 'Un-approve', onClick: () => handleApproval(item, false) }
-            : { icon: Check, label: 'Approve', onClick: () => handleApproval(item, true) },
-          {
-            icon: item.status === 'LIVE' ? EyeOff : Eye,
-            label: item.status === 'LIVE' ? 'Hide' : 'Publish',
-            onClick: () => handleStatusToggle(item),
-          },
-          { icon: Pencil, label: 'Edit', onClick: () => openEdit(item) },
-          { icon: Trash2, label: 'Delete', onClick: () => setConfirmDelete(item.id), danger: true },
-        ]}
-        onClick={() => openEdit(item)}
-      />
+        </div>
+
+        {/* Quote / Review Content */}
+        <div className="p-4" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+          <div className="relative rounded-xl border border-admin-border/50 bg-admin-bg/50 p-3.5 cursor-pointer" onClick={() => setViewItem(item)}>
+            <MessageSquareQuote className="h-4 w-4 text-admin-primary/40 mb-1" />
+            <p className="text-xs sm:text-sm text-admin-text leading-relaxed line-clamp-3 italic">"{item.review}"</p>
+          </div>
+          <div className="mt-2.5 flex items-center justify-between text-[11px] text-admin-muted font-medium px-0.5">
+            <span>Submitted: {formatDate(item.createdAt)}</span>
+            {item.featured && <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">★ Featured</span>}
+          </div>
+        </div>
+
+        {/* Footer Quick Action Buttons */}
+        <div
+          className="flex items-center gap-2 border-t border-admin-border/60 bg-admin-bg/40 px-4 py-2.5"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => setViewItem(item)}
+            className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-admin-primary text-xs font-bold text-white transition-colors hover:bg-admin-primary-hover shadow-2xs"
+          >
+            <BookOpen className="h-4 w-4" /> Full View
+          </button>
+          {isPending ? (
+            <button
+              type="button"
+              onClick={() => handleApproval(item, true)}
+              className="flex h-9 items-center justify-center gap-1 rounded-xl bg-admin-success px-3 text-xs font-bold text-white transition-colors hover:bg-emerald-600 shadow-2xs"
+            >
+              <Check className="h-3.5 w-3.5 stroke-[3]" /> Approve
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => handleApproval(item, false)}
+              className="flex h-9 items-center justify-center gap-1 rounded-xl border border-admin-border bg-admin-card px-2.5 text-xs font-semibold text-admin-muted hover:bg-admin-bg hover:text-admin-text transition-colors"
+            >
+              <X className="h-3.5 w-3.5" /> Un-approve
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => openEdit(item)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-admin-border text-admin-text transition-colors hover:bg-admin-bg"
+            title="Edit Testimonial"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(item.id)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-200 text-red-600 transition-colors hover:bg-red-50"
+            title="Delete Testimonial"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-rose-deep">Social Proof</p>
-          <h1 className="font-display text-3xl font-semibold text-cocoa">Testimonials</h1>
-          <p className="mt-1 text-sm text-admin-muted">
+          <p className="text-xs font-semibold uppercase tracking-wider text-admin-primary">Social Proof</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold text-admin-text">Testimonials</h1>
+          <p className="mt-0.5 text-xs sm:text-sm text-admin-muted">
             {pendingCount > 0 ? (
               <>
-                <span className="font-semibold text-admin-warning">{pendingCount}</span> customer review
+                <span className="font-bold text-admin-warning">{pendingCount}</span> customer review
                 {pendingCount === 1 ? '' : 's'} waiting for approval
               </>
             ) : (
@@ -235,17 +307,17 @@ export default function AdminTestimonials() {
         <button
           type="button"
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-full bg-rose px-5 py-2.5 font-semibold text-white hover:bg-rose-deep"
+          className="flex items-center justify-center gap-2 rounded-xl bg-admin-primary px-4 py-2.5 text-xs sm:text-sm font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-xs w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" /> New Testimonial
         </button>
       </div>
 
-      {error && <p className="rounded-2xl bg-blush-soft p-3 text-sm text-cocoa">{error}</p>}
+      {error && <p className="rounded-2xl bg-admin-danger/10 p-3 text-sm text-admin-danger">{error}</p>}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <SearchInput value={search} onChange={setSearch} placeholder="Search by name…" />
-        <div className="flex gap-2">
+        <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
           {APPROVAL_FILTERS.map((filter) => (
             <button
               key={filter.value || 'all'}
@@ -254,10 +326,10 @@ export default function AdminTestimonials() {
                 setApproval(filter.value);
                 setPage(1);
               }}
-              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+              className={`shrink-0 flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
                 approval === filter.value
-                  ? 'bg-admin-primary text-white'
-                  : 'border border-admin-border text-admin-muted hover:bg-admin-bg'
+                  ? 'bg-admin-primary text-white shadow-xs'
+                  : 'border border-admin-border text-admin-muted bg-admin-card hover:bg-admin-bg'
               }`}
             >
               {filter.label}
@@ -278,6 +350,7 @@ export default function AdminTestimonials() {
       <DataTable
         loading={loading}
         items={items}
+        actionsPosition="start"
         renderCard={renderTestimonialCard}
         renderEmpty={
           <EmptyState
@@ -296,7 +369,7 @@ export default function AdminTestimonials() {
             label: 'Rating',
             render: (i) => (
               <span className="flex gap-0.5 text-gold">
-                {Array.from({ length: i.rating }).map((_, idx) => (
+                {Array.from({ length: Math.min(5, Math.max(1, i.rating || 5)) }).map((_, idx) => (
                   <Star key={idx} className="h-3.5 w-3.5 fill-gold" />
                 ))}
               </span>
@@ -321,13 +394,21 @@ export default function AdminTestimonials() {
           { key: 'status', label: 'Status', render: (i) => <StatusBadge status={i.status} /> },
         ]}
         renderActions={(item) => (
-          <>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setViewItem(item)}
+              title="Read Full Review"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-admin-border bg-admin-card text-admin-primary hover:bg-admin-primary/10 transition-colors"
+            >
+              <BookOpen className="h-4 w-4" />
+            </button>
             {item.approved ? (
               <button
                 type="button"
                 onClick={() => handleApproval(item, false)}
-                title="Un-approve — removes it from the public site"
-                className="rounded-full border border-admin-border p-1.5 text-admin-muted hover:bg-admin-bg"
+                title="Un-approve Review"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-admin-border bg-admin-card text-admin-muted hover:bg-admin-bg hover:text-admin-text transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -335,34 +416,197 @@ export default function AdminTestimonials() {
               <button
                 type="button"
                 onClick={() => handleApproval(item, true)}
-                title="Approve and publish"
-                className="flex items-center gap-1 rounded-full bg-admin-success px-3 py-1 text-xs font-semibold text-white hover:opacity-90"
+                title="Approve & Publish Review"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-admin-success text-white hover:bg-emerald-600 shadow-2xs transition-colors"
               >
-                <Check className="h-3.5 w-3.5" /> Approve
+                <Check className="h-4 w-4 stroke-[3]" />
               </button>
             )}
             <button
               type="button"
               onClick={() => handleStatusToggle(item)}
-              className="rounded-full border border-blush px-3 py-1 text-xs font-semibold text-cocoa hover:bg-blush-soft"
+              title={item.status === 'LIVE' ? 'Hide from website' : 'Make live on website'}
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-admin-border text-admin-text hover:bg-admin-bg transition-colors"
             >
-              {item.status === 'LIVE' ? 'Hide' : 'Publish'}
+              {item.status === 'LIVE' ? <EyeOff className="h-4 w-4 text-admin-muted" /> : <Eye className="h-4 w-4 text-admin-primary" />}
             </button>
-            <button type="button" onClick={() => openEdit(item)} className="rounded-full border border-blush p-1.5 text-cocoa hover:bg-blush-soft">
+            <button
+              type="button"
+              onClick={() => openEdit(item)}
+              title="Edit Review"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-admin-border text-admin-text hover:bg-admin-bg transition-colors"
+            >
               <Pencil className="h-4 w-4" />
             </button>
             <button
               type="button"
               onClick={() => setConfirmDelete(item.id)}
-              className="rounded-full border border-red-200 p-1.5 text-red-600 hover:bg-red-50"
+              title="Delete Review"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
             >
               <Trash2 className="h-4 w-4" />
             </button>
-          </>
+          </div>
         )}
       />
 
       <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
+
+      {/* Full View Modal / BottomSheet for Review */}
+      {viewItem && isMobile && (
+        <BottomSheet
+          open
+          onClose={() => setViewItem(null)}
+          title={viewItem.name}
+          footer={
+            <div className="flex gap-2">
+              {!viewItem.approved ? (
+                <button
+                  type="button"
+                  onClick={() => handleApproval(viewItem, true)}
+                  className="flex-1 rounded-xl bg-admin-success py-3 text-xs font-bold text-white hover:bg-emerald-600 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Check className="h-4 w-4 stroke-[3]" /> Approve &amp; Publish
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleApproval(viewItem, false)}
+                  className="flex-1 rounded-xl border border-admin-border bg-admin-card py-3 text-xs font-bold text-admin-text hover:bg-admin-bg transition-colors"
+                >
+                  Un-approve
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const target = viewItem;
+                  setViewItem(null);
+                  openEdit(target);
+                }}
+                className="rounded-xl border border-admin-border bg-admin-card px-4 py-3 text-xs font-bold text-admin-text hover:bg-admin-bg transition-colors"
+              >
+                Edit
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              {viewItem.photo ? (
+                <img src={viewItem.photo} alt={viewItem.name} className="h-12 w-12 rounded-full object-cover border border-admin-border" />
+              ) : (
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-admin-primary/10 text-admin-primary font-bold text-base">
+                  {(viewItem.name || '?').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <p className="font-bold text-base text-admin-text">{viewItem.name}</p>
+                <div className="flex items-center gap-1 text-gold mt-0.5">
+                  {Array.from({ length: Math.min(5, Math.max(1, viewItem.rating || 5)) }).map((_, idx) => (
+                    <Star key={idx} className="h-3.5 w-3.5 fill-gold" />
+                  ))}
+                  <span className="text-xs font-bold text-admin-text ml-1">{viewItem.rating || 5}.0 Rating</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {viewItem.approved ? (
+                <span className="rounded-full bg-admin-success/15 px-3 py-1 text-xs font-bold text-admin-success">Approved</span>
+              ) : (
+                <span className="rounded-full bg-admin-warning/15 px-3 py-1 text-xs font-bold text-admin-warning">Pending Approval</span>
+              )}
+              <StatusBadge status={viewItem.status} />
+              {viewItem.featured && <span className="font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full text-xs border border-amber-200">★ Featured</span>}
+            </div>
+
+            <div className="rounded-2xl bg-admin-bg p-4 border border-admin-border/50">
+              <p className="text-xs font-bold uppercase tracking-wider text-admin-muted mb-2 flex items-center gap-1.5">
+                <MessageSquareQuote className="h-4 w-4 text-admin-primary" /> Full Customer Review
+              </p>
+              <p className="whitespace-pre-wrap text-sm text-admin-text leading-relaxed font-normal">"{viewItem.review}"</p>
+            </div>
+
+            <p className="text-xs text-admin-muted">Submitted on {formatDate(viewItem.createdAt)}</p>
+          </div>
+        </BottomSheet>
+      )}
+
+      {viewItem && !isMobile && (
+        <Modal open title="Customer Testimonial" onClose={() => setViewItem(null)}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {viewItem.photo ? (
+                  <img src={viewItem.photo} alt={viewItem.name} className="h-12 w-12 rounded-full object-cover border border-admin-border" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-admin-primary/10 text-admin-primary font-bold text-base">
+                    {(viewItem.name || '?').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-bold text-base text-admin-text">{viewItem.name}</h3>
+                  <div className="flex items-center gap-1 text-gold mt-0.5">
+                    {Array.from({ length: Math.min(5, Math.max(1, viewItem.rating || 5)) }).map((_, idx) => (
+                      <Star key={idx} className="h-3.5 w-3.5 fill-gold" />
+                    ))}
+                    <span className="text-xs font-bold text-admin-text ml-1">{viewItem.rating || 5}.0</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewItem.approved ? (
+                  <span className="rounded-full bg-admin-success/15 px-3 py-1 text-xs font-bold text-admin-success">Approved</span>
+                ) : (
+                  <span className="rounded-full bg-admin-warning/15 px-3 py-1 text-xs font-bold text-admin-warning">Pending</span>
+                )}
+                <StatusBadge status={viewItem.status} />
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-admin-bg p-4 border border-admin-border/50">
+              <p className="text-xs font-bold uppercase tracking-wider text-admin-muted mb-2 flex items-center gap-1.5">
+                <MessageSquareQuote className="h-4 w-4 text-admin-primary" /> Review Content
+              </p>
+              <p className="whitespace-pre-wrap text-sm text-admin-text leading-relaxed">"{viewItem.review}"</p>
+            </div>
+
+            <p className="text-xs text-admin-muted">Submitted on {formatDate(viewItem.createdAt)}</p>
+
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-admin-border">
+              {!viewItem.approved ? (
+                <button
+                  type="button"
+                  onClick={() => handleApproval(viewItem, true)}
+                  className="rounded-xl bg-admin-success px-4 py-2 text-xs font-bold text-white hover:bg-emerald-600 transition-colors flex items-center gap-1.5"
+                >
+                  <Check className="h-4 w-4 stroke-[3]" /> Approve &amp; Publish
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleApproval(viewItem, false)}
+                  className="rounded-xl border border-admin-border px-4 py-2 text-xs font-semibold text-admin-muted hover:bg-admin-bg hover:text-admin-text transition-colors"
+                >
+                  Un-approve
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const target = viewItem;
+                  setViewItem(null);
+                  openEdit(target);
+                }}
+                className="rounded-xl border border-admin-border px-4 py-2 text-xs font-semibold text-admin-text hover:bg-admin-bg transition-colors"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       <Modal
         open={modal.open}

@@ -200,17 +200,17 @@ export default function AdminCategories() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Menu Management</p>
-          <h1 className="font-display text-3xl font-semibold text-admin-text">Categories</h1>
+          <p className="text-xs font-semibold uppercase tracking-wider text-admin-primary">Menu Management</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold text-admin-text">Categories</h1>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
           {!search && (
             <button
               type="button"
               onClick={() => setReorderMode((v) => !v)}
-              className={`flex h-11 items-center gap-1.5 rounded-2xl border px-3.5 text-sm font-semibold transition-colors sm:hidden ${
+              className={`flex-1 sm:flex-initial flex h-10 items-center justify-center gap-1.5 rounded-xl border px-3.5 text-xs font-semibold transition-colors sm:hidden ${
                 reorderMode
                   ? 'border-admin-primary bg-admin-primary text-white'
                   : 'border-admin-border bg-admin-card text-admin-text hover:bg-admin-bg'
@@ -222,7 +222,7 @@ export default function AdminCategories() {
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-2 rounded-xl bg-admin-primary px-5 py-2.5 font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-sm"
+            className="flex-1 sm:flex-initial flex h-10 items-center justify-center gap-2 rounded-xl bg-admin-primary px-4 text-xs font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-xs"
           >
             <Plus className="h-4 w-4" /> New Category
           </button>

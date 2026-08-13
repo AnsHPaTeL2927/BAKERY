@@ -1513,16 +1513,16 @@ export default function AdminOrders() {
           harmless to render unconditionally since it collapses to nothing when idle. */}
       <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} progress={progress} />
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-admin-primary">Operations</p>
-          <h1 className="font-display text-3xl font-semibold text-admin-text">Orders</h1>
-          <p className="mt-1 text-sm text-admin-muted">Manage daily bakery orders, cooking lifecycles, and invoices.</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-admin-primary">Operations</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold text-admin-text">Orders</h1>
+          <p className="mt-0.5 text-xs sm:text-sm text-admin-muted">Manage daily bakery orders, cooking lifecycles, and invoices.</p>
         </div>
         <button
           type="button"
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-admin-primary px-5 py-2.5 font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-sm"
+          className="flex items-center justify-center gap-2 rounded-xl bg-admin-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-admin-primary-hover transition-colors shadow-xs w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" /> New Order
         </button>
@@ -1609,23 +1609,54 @@ export default function AdminOrders() {
         )}
       </div>
 
-      <div className="flex items-center gap-2.5 sm:hidden">
-        <div className="flex-1">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search name, phone, invoice…" />
+      <div className="space-y-3 sm:hidden">
+        <div className="flex items-center gap-2.5">
+          <div className="flex-1">
+            <SearchInput value={search} onChange={setSearch} placeholder="Search name, phone, invoice…" />
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowMoreFilters(true)}
+            className="relative flex h-10 min-w-10 shrink-0 items-center justify-center rounded-xl border border-admin-primary bg-admin-primary/10 px-3 text-admin-primary font-semibold text-xs"
+            aria-label="Filters"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {activeSheetFilterCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full border-2 border-admin-bg bg-admin-primary px-1 text-[10px] font-extrabold text-white">
+                {activeSheetFilterCount}
+              </span>
+            )}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowMoreFilters(true)}
-          className="relative flex h-11.5 min-w-11.5 shrink-0 items-center justify-center rounded-2xl border border-admin-primary bg-admin-primary/8 px-3 text-admin-primary"
-          aria-label="Filters"
-        >
-          <SlidersHorizontal className="h-4.5 w-4.5" />
-          {activeSheetFilterCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-admin-bg bg-admin-primary px-1 text-[11px] font-extrabold text-white">
-              {activeSheetFilterCount}
-            </span>
-          )}
-        </button>
+
+        {/* 1-Tap Touch Scrollable Order Status Chips for Mobile */}
+        <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-4 px-4">
+          {[
+            { value: '', label: 'All Orders' },
+            { value: 'PENDING', label: 'Pending' },
+            { value: 'CONFIRMED', label: 'Confirmed' },
+            { value: 'PREPARING', label: 'Preparing' },
+            { value: 'READY', label: 'Ready' },
+            { value: 'COMPLETED', label: 'Completed' },
+            { value: 'CANCELLED', label: 'Cancelled' },
+          ].map((st) => (
+            <button
+              key={st.value || 'all'}
+              type="button"
+              onClick={() => {
+                setStatusFilter(st.value);
+                setPage(1);
+              }}
+              className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                statusFilter === st.value
+                  ? 'bg-admin-primary text-white shadow-xs'
+                  : 'border border-admin-border bg-admin-card text-admin-muted hover:bg-admin-bg'
+              }`}
+            >
+              {st.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Secondary Filters — desktop keeps the inline expanding panel of plain
@@ -2310,32 +2341,32 @@ export default function AdminOrders() {
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2 border-t border-admin-border pt-4">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 border-t border-admin-border pt-4">
               <button
                 type="button"
                 onClick={() => handleInvoiceDownload(viewing)}
-                className="flex items-center gap-2 rounded-xl bg-admin-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-admin-primary-hover transition-colors"
+                className="flex items-center justify-center gap-2 rounded-xl bg-admin-primary px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-white hover:bg-admin-primary-hover transition-colors"
               >
                 <Download className="h-4 w-4" /> Download Invoice
               </button>
               <button
                 type="button"
                 onClick={() => handleDirectWhatsApp(viewing)}
-                className="flex items-center gap-2 rounded-xl border border-admin-border px-4 py-2.5 text-sm font-semibold text-admin-text hover:bg-admin-bg transition-colors"
+                className="flex items-center justify-center gap-2 rounded-xl border border-admin-border px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-admin-text hover:bg-admin-bg transition-colors"
               >
-                <MessageCircle className="h-4 w-4 text-emerald-600" /> Send WhatsApp
+                <MessageCircle className="h-4 w-4 text-emerald-600" /> WhatsApp
               </button>
               <button
                 type="button"
                 onClick={() => handlePrintInvoice(viewing)}
-                className="flex items-center gap-2 rounded-xl border border-admin-border px-4 py-2.5 text-sm font-semibold text-admin-text hover:bg-admin-bg transition-colors"
+                className="flex items-center justify-center gap-2 rounded-xl border border-admin-border px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-admin-text hover:bg-admin-bg transition-colors"
               >
                 <Printer className="h-4 w-4" /> Print
               </button>
               <button
                 type="button"
                 onClick={() => handleShareInvoice(viewing)}
-                className="flex items-center gap-2 rounded-xl border border-admin-border px-4 py-2.5 text-sm font-semibold text-admin-text hover:bg-admin-bg transition-colors"
+                className="flex items-center justify-center gap-2 rounded-xl border border-admin-border px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-admin-text hover:bg-admin-bg transition-colors"
               >
                 <Share2 className="h-4 w-4" /> Share
               </button>

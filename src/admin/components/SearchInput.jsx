@@ -8,7 +8,7 @@ export default function SearchInput({ value, onChange, placeholder = 'Search…'
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-blush py-2.5 pl-9 pr-3 text-sm"
+        className="w-full rounded-2xl border border-blush py-2.5 pl-9 pr-3 text-base sm:text-sm font-medium text-admin-text placeholder:text-admin-muted bg-admin-card focus:outline-none"
       />
     </div>
   );
