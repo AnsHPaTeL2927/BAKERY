@@ -69,14 +69,15 @@ export default function ProductCard({ product, whatsapp, viewMode = "grid" }) {
             </p>
 
             {/* Weights */}
-            {product.weights?.length > 1 && (
+            {product.weights?.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {product.weights.map((w) => (
                   <button
                     key={w}
                     type="button"
+                    disabled={product.weights.length === 1}
                     onClick={() => setWeight(w)}
-                    className={`text-[10px] sm:text-xs px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border font-semibold transition-all duration-200 ${
+                    className={`text-[10px] sm:text-xs px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border font-semibold transition-all duration-200 disabled:cursor-default ${
                       w === weight
                         ? "bg-rose text-ivory border-rose shadow-2xs"
                         : "border-blush text-cocoa-soft hover:border-rose/60 hover:text-rose-deep"
@@ -166,14 +167,15 @@ export default function ProductCard({ product, whatsapp, viewMode = "grid" }) {
         </p>
 
         {/* Weight selector */}
-        {product.weights?.length > 1 && (
+        {product.weights?.length > 0 && (
           <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">
             {product.weights.map((w) => (
               <button
                 key={w}
                 type="button"
+                disabled={product.weights.length === 1}
                 onClick={() => setWeight(w)}
-                className={`text-[9px] sm:text-xs px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full border font-semibold transition-all duration-200 ${
+                className={`text-[9px] sm:text-xs px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full border font-semibold transition-all duration-200 disabled:cursor-default ${
                   w === weight
                     ? "bg-rose text-ivory border-rose shadow-2xs"
                     : "border-blush text-cocoa-soft hover:border-rose/60 hover:text-rose-deep"
