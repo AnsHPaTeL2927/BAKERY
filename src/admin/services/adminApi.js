@@ -3,6 +3,18 @@ const ADMIN_BASE_URL = `${API_BASE_URL}/admin`;
 
 let refreshPromise = null;
 
+// CSRF double-submit token (see server/middleware/csrf.js). Held in memory
+// rather than read from document.cookie, because the API can live on a
+// different origin than the admin SPA, and cookies set there are unreadable
+// from here. The server hands it back on verify/refresh/me.
+let csrfToken = null;
+
+export function setCsrfToken(token) {
+  csrfToken = token || null;
+}
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
 // Validation failures come back as { message: 'Validation failed', details: { field: [msg, ...] } }
 // (see server/middleware/validate.js) — the generic top-level message is useless on its own,
 // so surface the actual field-level reasons whenever they're present.
@@ -22,6 +34,10 @@ async function rawRequest(path, options = {}) {
   if (!(options.body instanceof FormData) && options.body) {
     headers['Content-Type'] = 'application/json';
   }
+  const method = (options.method || 'GET').toUpperCase();
+  if (!SAFE_METHODS.has(method) && csrfToken) {
+    headers['x-csrf-token'] = csrfToken;
+  }
 
   const response = await fetch(`${ADMIN_BASE_URL}${path}`, {
     credentials: 'include',
@@ -39,7 +55,8 @@ async function tryRefresh() {
       refreshPromise = null;
     });
   }
-  const { response } = await refreshPromise;
+  const { response, data } = await refreshPromise;
+  if (response.ok && data?.csrfToken) setCsrfToken(data.csrfToken);
   return response.ok;
 }
 
@@ -69,12 +86,15 @@ async function request(path, options = {}) {
 export const login = (email, password) =>
   request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
 
-export const verifyOtp = (otp, otpSessionToken) =>
-  request('/auth/verify', {
+export const verifyOtp = async (otp, otpSessionToken) => {
+  const result = await request('/auth/verify', {
     method: 'POST',
     body: JSON.stringify({ otp, otpSessionToken }),
     otpSessionToken,
   });
+  setCsrfToken(result?.csrfToken);
+  return result;
+};
 
 export const resendOtp = (otpSessionToken) =>
   request('/auth/resend-otp', { method: 'POST', body: JSON.stringify({ otpSessionToken }), otpSessionToken });
@@ -85,9 +105,19 @@ export const forgotPassword = (email) =>
 export const resetPassword = ({ email, code, newPassword }) =>
   request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, code, newPassword }) });
 
-export const getMe = () => request('/auth/me');
+export const getMe = async () => {
+  const result = await request('/auth/me');
+  setCsrfToken(result?.csrfToken);
+  return result;
+};
 
-export const logout = () => request('/auth/logout', { method: 'POST' });
+export const logout = async () => {
+  try {
+    return await request('/auth/logout', { method: 'POST' });
+  } finally {
+    setCsrfToken(null);
+  }
+};
 
 // ---- Dashboard ----
 export const getDashboard = () => request('/dashboard');
@@ -149,5 +179,14 @@ export const ordersApi = {
   updatePaymentStatus: (id, payload) => request(`/orders/${id}/payment-status`, { method: 'PATCH', body: JSON.stringify(payload) }),
   remove: (id) => request(`/orders/${id}`, { method: 'DELETE' }),
   generateInvoice: (id) => request(`/orders/${id}/invoice`, { method: 'POST' }),
+  // Invoices are PII and are streamed from the auth-gated endpoint, so the URL
+  // is always derived from the order id here rather than from the stored
+  // `invoicePath` (which may still hold a legacy /uploads/... value).
+  invoiceUrl: (id) => `${ADMIN_BASE_URL}/orders/${id}/invoice`,
+  downloadInvoice: async (id) => {
+    const response = await fetch(`${ADMIN_BASE_URL}/orders/${id}/invoice`, { credentials: 'include' });
+    if (!response.ok) throw new Error('Could not download the invoice.');
+    return response.blob();
+  },
   getTimeline: (id) => request(`/orders/${id}/timeline`),
 };

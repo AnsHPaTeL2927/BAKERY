@@ -1264,10 +1264,9 @@ export default function AdminOrders() {
     }
   }
 
-  async function downloadFile(url, filename) {
+  async function downloadFile(orderId, filename) {
     try {
-      const response = await fetch(url, { credentials: 'include' });
-      const blob = await response.blob();
+      const blob = await ordersApi.downloadInvoice(orderId);
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
@@ -1277,19 +1276,19 @@ export default function AdminOrders() {
       a.remove();
       URL.revokeObjectURL(blobUrl);
     } catch {
-      window.open(url, '_blank', 'noopener,noreferrer');
+      showToast('Could not download the invoice.', 'error');
     }
   }
 
   async function handleInvoiceDownload(item) {
     const order = await ensureInvoice(item);
-    if (order) downloadFile(order.invoicePath, `${order.orderNumber.replace('ORD-', 'INV-')}.pdf`);
+    if (order) downloadFile(order.id, `${order.orderNumber.replace('ORD-', 'INV-')}.pdf`);
   }
 
   async function handlePrintInvoice(item) {
     const order = await ensureInvoice(item);
     if (!order) return;
-    const win = window.open(order.invoicePath, '_blank');
+    const win = window.open(ordersApi.invoiceUrl(order.id), '_blank');
     if (!win) return;
     setTimeout(() => {
       try {
@@ -1298,24 +1297,36 @@ export default function AdminOrders() {
     }, 700);
   }
 
+  // Shares the PDF itself rather than a link: the invoice URL is now behind
+  // admin auth, so a shared link would 401 for whoever receives it.
   async function handleShareInvoice(item) {
     const order = await ensureInvoice(item);
     if (!order) return;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Invoice ${order.orderNumber}`,
-          text: `Invoice for ${order.customerName}`,
-          url: order.invoicePath,
-        });
-      } catch {}
-    } else {
-      try {
-        await navigator.clipboard.writeText(order.invoicePath);
-        showToast('Invoice link copied to clipboard.', 'success');
-      } catch {
-        showToast('Could not copy invoice link.', 'error');
+
+    const filename = `${order.orderNumber.replace('ORD-', 'INV-')}.pdf`;
+    try {
+      const blob = await ordersApi.downloadInvoice(order.id);
+      const file = new File([blob], filename, { type: 'application/pdf' });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `Invoice ${order.orderNumber}`, text: `Invoice for ${order.customerName}` });
+        return;
       }
+
+      // No file-share support (most desktop browsers) — fall back to saving it,
+      // which the admin can then attach wherever they like.
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+      showToast('Invoice downloaded — attach it to your message.', 'success');
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+      showToast('Could not share the invoice.', 'error');
     }
   }
 
