@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600" width="900" height="1600" role="img" aria-labelledby="mTitle">
+  <title id="mTitle">A candle-lit three-tier celebration cake, freshly baked</title>
+
+  <defs>
+    <linearGradient id="mBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FCE9EE"/>
+      <stop offset="0.40" stop-color="#F7D6DF"/>
+      <stop offset="0.74" stop-color="#F2C8D6"/>
+      <stop offset="1" stop-color="#E7B0C4"/>
+    </linearGradient>
+    <radialGradient id="mGlow" cx="0.5" cy="0.34" r="0.62">
+      <stop offset="0" stop-color="#FFFCF7" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#FFFCF7" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mPlate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFCF7"/>
+      <stop offset="1" stop-color="#EFDAC6"/>
+    </linearGradient>
+    <linearGradient id="mT1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FBEDF2"/>
+    </linearGradient>
+    <linearGradient id="mT2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F9DEE6"/>
+      <stop offset="1" stop-color="#EDB9CA"/>
+    </linearGradient>
+    <linearGradient id="mT3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C6567A"/>
+      <stop offset="1" stop-color="#93304F"/>
+    </linearGradient>
+    <linearGradient id="mFlame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF6D2"/>
+      <stop offset="0.55" stop-color="#E9B84A"/>
+      <stop offset="1" stop-color="#C79A3E"/>
+    </linearGradient>
+    <filter id="mSoft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+    <filter id="mHalo" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur stdDeviation="11"/>
+    </filter>
+  </defs>
+
+  <style>
+    .bob     { animation: bob 7s ease-in-out infinite; }
+    .flame   { animation: flicker 1.15s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+    .halo    { animation: halo 1.15s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+    .tw      { animation: twinkle 3.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    .steam   { animation: steam 5s ease-in-out infinite; }
+    .drift   { animation: drift 11s linear infinite; }
+
+    @keyframes bob     { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes flicker { 0%,100% { transform: scale(1,1); } 35% { transform: scale(0.92,1.1); } 70% { transform: scale(1.06,0.94); } }
+    @keyframes halo    { 0%,100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.18); } }
+    @keyframes twinkle { 0%,100% { opacity: 0.15; transform: scale(0.6) rotate(0deg); } 50% { opacity: 0.9; transform: scale(1) rotate(45deg); } }
+    @keyframes steam   { 0%   { opacity: 0;   transform: translateY(20px) scaleX(0.9); }
+                         30%  { opacity: 0.5; }
+                         100% { opacity: 0;   transform: translateY(-90px) scaleX(1.25); } }
+    @keyframes drift   { 0%   { opacity: 0;   transform: translateY(40px); }
+                         12%  { opacity: 0.85; }
+                         88%  { opacity: 0.6; }
+                         100% { opacity: 0;   transform: translateY(-220px); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bob, .flame, .halo, .tw, .steam, .drift { animation: none; }
+      .steam, .drift { opacity: 0.45; }
+    }
+  </style>
+
+  <rect width="900" height="1600" fill="url(#mBg)"/>
+  <rect width="900" height="1600" fill="url(#mGlow)"/>
+
+  <!-- Soft bokeh. Sits low as well as high so the area under the copy scrim
+       still has texture rather than reading as flat colour. -->
+  <g filter="url(#mSoft)">
+    <circle cx="130" cy="300" r="115" fill="#FFFCF7" opacity="0.5"/>
+    <circle cx="800" cy="520" r="140" fill="#FFFCF7" opacity="0.4"/>
+    <circle cx="120" cy="1180" r="150" fill="#FFFCF7" opacity="0.30"/>
+    <circle cx="790" cy="1340" r="170" fill="#FFFCF7" opacity="0.26"/>
+    <circle cx="450" cy="1520" r="185" fill="#C6567A" opacity="0.07"/>
+  </g>
+
+  <!-- Drifting confetti sprinkles -->
+  <g>
+    <g class="drift"><rect x="200" y="620" width="9" height="24" rx="4.5" fill="#C79A3E" opacity="0.75" transform="rotate(24 204 632)"/></g>
+    <g class="drift" style="animation-delay:1.6s"><rect x="690" y="700" width="9" height="24" rx="4.5" fill="#FFFCF7" opacity="0.85" transform="rotate(-32 694 712)"/></g>
+    <g class="drift" style="animation-delay:3.2s"><rect x="150" y="880" width="8" height="21" rx="4" fill="#FFFCF7" opacity="0.8" transform="rotate(-14 154 890)"/></g>
+    <g class="drift" style="animation-delay:4.6s"><rect x="742" y="960" width="8" height="21" rx="4" fill="#C6567A" opacity="0.7" transform="rotate(40 746 970)"/></g>
+    <circle class="drift" cx="270" cy="760" r="7" fill="#C6567A" opacity="0.6" style="animation-delay:2.4s"/>
+    <circle class="drift" cx="640" cy="840" r="6" fill="#C79A3E" opacity="0.7" style="animation-delay:5.8s"/>
+    <circle class="drift" cx="360" cy="1000" r="5" fill="#FFFCF7" opacity="0.85" style="animation-delay:7.1s"/>
+  </g>
+
+  <!-- Twinkling sparkles -->
+  <g fill="#C79A3E">
+    <path class="tw" d="M690 300 l9 22 22 9 -22 9 -9 22 -9 -22 -22 -9 22 -9 z"/>
+    <path class="tw" d="M186 470 l7 17 17 7 -17 7 -7 17 -7 -17 -17 -7 17 -7 z" style="animation-delay:1.2s"/>
+    <path class="tw" d="M770 760 l6 15 15 6 -15 6 -6 15 -6 -15 -15 -6 15 -6 z" style="animation-delay:2.4s" fill="#FFFCF7"/>
+  </g>
+
+  <!-- Cake scene, scaled and lifted into the upper band of the frame — the
+       lower ~45% of this artwork sits behind the headline and CTA scrim. -->
+  <g transform="translate(-45,-150) scale(1.1)">
+
+  <!-- Rising steam — the cake is fresh out of the oven -->
+  <g stroke="#FFFCF7" stroke-width="9" stroke-linecap="round" fill="none">
+    <path class="steam" d="M392 372 q-22 -34 0 -68 q22 -34 0 -68"/>
+    <path class="steam" d="M450 356 q-24 -38 0 -76 q24 -38 0 -76" style="animation-delay:1.5s"/>
+    <path class="steam" d="M508 372 q-22 -34 0 -68 q22 -34 0 -68" style="animation-delay:3s"/>
+  </g>
+
+  <g class="bob">
+    <!-- Candles -->
+    <g>
+      <rect x="374" y="404" width="17" height="60" rx="8" fill="#FFFCF7"/>
+      <rect x="374" y="404" width="17" height="60" rx="8" fill="#C6567A" opacity="0.22"/>
+      <rect x="441" y="392" width="17" height="72" rx="8" fill="#FFFCF7"/>
+      <rect x="441" y="392" width="17" height="72" rx="8" fill="#C79A3E" opacity="0.2"/>
+      <rect x="508" y="404" width="17" height="60" rx="8" fill="#FFFCF7"/>
+      <rect x="508" y="404" width="17" height="60" rx="8" fill="#C6567A" opacity="0.22"/>
+    </g>
+    <g filter="url(#mHalo)" fill="#F5D77E">
+      <ellipse class="halo" cx="382" cy="392" rx="26" ry="32"/>
+      <ellipse class="halo" cx="449" cy="380" rx="28" ry="35" style="animation-delay:0.4s"/>
+      <ellipse class="halo" cx="516" cy="392" rx="26" ry="32" style="animation-delay:0.8s"/>
+    </g>
+    <g fill="url(#mFlame)">
+      <path class="flame" d="M382 366 q16 20 0 38 q-16 -18 0 -38 z"/>
+      <path class="flame" d="M449 350 q17 22 0 42 q-17 -20 0 -42 z" style="animation-delay:0.4s"/>
+      <path class="flame" d="M516 366 q16 20 0 38 q-16 -18 0 -38 z" style="animation-delay:0.8s"/>
+    </g>
+
+    <!-- Top tier -->
+    <rect x="352" y="462" width="196" height="124" rx="16" fill="url(#mT1)"/>
+    <path d="M352 480 q98 -18 196 0 l0 16 q-98 -16 -196 0 z" fill="#F7D6DF" opacity="0.75"/>
+    <path d="M352 462 q11 34 25 6 q11 30 25 4 q11 28 25 6 q11 26 25 4 q11 30 25 6 q11 26 25 4 q11 28 25 -4 l0 -46 z" fill="#FFFFFF"/>
+
+    <!-- Middle tier -->
+    <rect x="306" y="586" width="288" height="136" rx="18" fill="url(#mT2)"/>
+    <path d="M306 606 q144 -20 288 0 l0 17 q-144 -18 -288 0 z" fill="#FFFFFF" opacity="0.62"/>
+    <g fill="#FFFCF7" opacity="0.75">
+      <circle cx="352" cy="672" r="7"/><circle cx="404" cy="686" r="6"/>
+      <circle cx="456" cy="668" r="7"/><circle cx="508" cy="686" r="6"/><circle cx="556" cy="672" r="7"/>
+    </g>
+
+    <!-- Bottom tier -->
+    <rect x="262" y="722" width="376" height="158" rx="20" fill="url(#mT3)"/>
+    <path d="M262 744 q188 -26 376 0 l0 19 q-188 -22 -376 0 z" fill="#FFFCF7" opacity="0.48"/>
+    <g fill="#FFFCF7" opacity="0.55">
+      <path d="M318 810 q16 -26 32 0 q-16 26 -32 0 z"/>
+      <path d="M434 826 q16 -26 32 0 q-16 26 -32 0 z"/>
+      <path d="M550 810 q16 -26 32 0 q-16 26 -32 0 z"/>
+    </g>
+
+    <!-- Cake stand -->
+    <ellipse cx="450" cy="884" rx="212" ry="22" fill="#4A2A20" opacity="0.10"/>
+    <ellipse cx="450" cy="878" rx="238" ry="26" fill="url(#mPlate)"/>
+    <ellipse cx="450" cy="870" rx="238" ry="24" fill="#FFFCF7"/>
+    <path d="M424 890 q26 52 0 76 l52 0 q-26 -24 0 -76 z" fill="#F5E5D6"/>
+    <ellipse cx="450" cy="972" rx="96" ry="17" fill="#F0DCC9"/>
+    <ellipse cx="450" cy="966" rx="96" ry="15" fill="#FFFCF7"/>
+    <ellipse cx="450" cy="994" rx="120" ry="18" fill="#4A2A20" opacity="0.08"/>
+  </g>
+  </g>
+</svg>

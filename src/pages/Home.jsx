@@ -16,8 +16,12 @@ import ScrollReveal from "../components/ScrollReveal";
 import ParallaxLayer from "../components/ParallaxLayer";
 import AnimatedButton from "../components/AnimatedButton";
 import HeroCakeAccent from "../components/HeroCakeAccent";
+import CinematicParticles from "../components/CinematicParticles";
 import useCountdown from "../hooks/useCountdown";
-import heroDefault from "../assets/hero-default.svg";
+import heroMobile from "../assets/hero-mobile.svg";
+import heroDesktop from "../assets/hero-desktop.svg";
+import cinematicHeroMobile from "../assets/cinematic-hero-mobile.jpg";
+import cinematicHeroDesktop from "../assets/cinematic-hero-desktop.jpg";
 import customCakeDefault from "../assets/custom-cake-default.svg";
 
 // An internal path (starts with "/") should route through React Router;
@@ -125,6 +129,8 @@ export default function Home() {
         settings={settings}
         waLink={waLink}
         loading={loading}
+        averageRating={averageRating}
+        reviewCount={reviewCount}
       />
 
       {/* ═══ TRUST BAR ═══ */}
@@ -780,7 +786,7 @@ function OfferFallbackBanner({ products }) {
 }
 
 /* ═══ HERO SECTION ═══ */
-function HeroSection({ banners, settings, waLink, loading }) {
+function HeroSection({ banners, settings, waLink, loading, averageRating, reviewCount }) {
   const [current, setCurrent] = useState(0);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const heroRef = useRef(null);
@@ -790,7 +796,7 @@ function HeroSection({ banners, settings, waLink, loading }) {
   const hasBanners = banners.length > 0;
   const hasMultiple = banners.length > 1;
   const activeBanner = hasBanners ? banners[current] : null;
-  const heroImage = hasBanners ? activeBanner?.image : heroDefault;
+  const bannerImage = hasBanners ? (activeBanner?.image || null) : null;
   const heroTitle = activeBanner?.title;
   const heroSubtitle = activeBanner?.subtitle;
   // Only treat the banner's own CTA as the primary hero action when the
@@ -815,21 +821,32 @@ function HeroSection({ banners, settings, waLink, loading }) {
     }, 5000);
   }, [banners.length]);
 
-  // Mouse parallax (desktop only)
+  // Mouse parallax — desktop only, and tracked live rather than read once at
+  // mount, so rotating/resizing down to the mobile hero actually unbinds it.
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) return;
+    const mql = window.matchMedia("(min-width: 768px)");
+    const el = heroRef.current;
+    if (!el) return;
     const handler = (e) => {
-      if (!heroRef.current) return;
-      const rect = heroRef.current.getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
       const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
       setMousePos({ x, y });
     };
-    const el = heroRef.current;
-    if (el) el.addEventListener("mousemove", handler);
-    return () => { if (el) el.removeEventListener("mousemove", handler); };
+    const apply = () => {
+      el.removeEventListener("mousemove", handler);
+      if (mql.matches) el.addEventListener("mousemove", handler);
+      else setMousePos({ x: 0, y: 0 });
+    };
+    apply();
+    mql.addEventListener("change", apply);
+    return () => {
+      mql.removeEventListener("change", apply);
+      el.removeEventListener("mousemove", handler);
+    };
   }, []);
+
+
 
   // Touch/swipe for mobile carousel
   const onTouchStart = (e) => { touchRef.current.startX = e.touches[0].clientX; };
@@ -845,17 +862,140 @@ function HeroSection({ banners, settings, waLink, loading }) {
   return (
     <section
       ref={heroRef}
-      className="relative overflow-hidden bg-cream"
+      // -mt-16 cancels <main>'s pt-16 so the mobile photo runs edge-to-edge
+      // behind the fixed navbar. Desktop keeps its original offset.
+      className="relative overflow-hidden bg-cream -mt-16 md:mt-0"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Decorative background elements — desktop only; on mobile the
+          full-bleed photo occupies this space instead. */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-blush/30 blur-3xl animate-gentle-pulse" />
         <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-rose/10 blur-3xl" style={{ animationDelay: "1.5s" }} />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-12 sm:pt-14 sm:pb-20 md:pt-24 md:pb-32 grid md:grid-cols-2 gap-8 md:gap-10 items-center relative">
+      {/* ═══ MOBILE HERO — cinematic full-bleed ════════════════════════
+          Deliberately NOT the desktop two-column layout scaled down. On a
+          phone the cake photo IS the pitch, so it runs edge-to-edge behind
+          the navbar and the copy sits on top of it. This is also the first
+          time the admin's uploaded hero banners render on mobile at all —
+          the old markup hid the entire image column below md.            */}
+      <div className="md:hidden relative h-[90svh] min-h-[560px] max-h-[880px] w-full overflow-hidden">
+        {/* Cinematic Particle & Bokeh Overlay */}
+        <CinematicParticles particleCount={16} />
+
+        {/* Dynamic Light Spotlight Beam Sweep */}
+        <div className="cinematic-spotlight" aria-hidden="true" />
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current}
+            initial={{ opacity: 0, scale: 1.12 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-0 overflow-hidden"
+          >
+            {/* Ken-Burns subtle panning visual container */}
+            <div className="w-full h-full animate-ken-burns">
+              <SafeImage
+                src={bannerImage || cinematicHeroMobile}
+                fallback={cinematicHeroMobile}
+                alt={heroTitle || "Freshly baked homemade cake"}
+                className="w-full h-full object-cover"
+                fetchPriority="high"
+                decoding="async"
+              />
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Multilayered cinematic dark scrims for rich mood & maximum text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-cocoa via-cocoa/70 via-45% to-cocoa/15 pointer-events-none" aria-hidden="true" />
+        <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-cream/90 via-cream/50 to-transparent pointer-events-none" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(199,154,62,0.15),transparent_60%)] pointer-events-none" aria-hidden="true" />
+
+        <div className="absolute inset-x-0 bottom-0 px-5 pb-7 pt-20 z-20">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Cinematic Glassmorphic Tag */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ivory/15 backdrop-blur-md border border-gold/30 text-gold text-[11px] font-semibold tracking-wide mb-2 shadow-xs">
+              <Sparkles className="w-3 h-3 text-gold animate-gentle-pulse" />
+              <span>{heroSubtitle || "Freshly Baked Daily • 100% Homemade"}</span>
+            </div>
+
+            <h1 className="mt-1 font-display font-semibold text-[2.1rem] leading-[1.12] text-ivory drop-shadow-md">
+              {heroTitle || (<>
+                Homemade Cakes
+                <br />
+                Crafted with{" "}
+                <span className="relative inline-block text-blush">
+                  Love
+                  <svg aria-hidden="true" viewBox="0 0 200 20" className="absolute -bottom-1 left-0 w-full h-3 text-rose">
+                    <path d="M2 15 Q 50 2, 100 12 T 198 10" stroke="currentColor" strokeWidth="6" fill="none" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </>)}
+            </h1>
+            <p className="mt-2.5 text-sm leading-relaxed text-ivory/85 line-clamp-2 drop-shadow-xs">
+              {settings.description || 'Freshly baked cakes, brownies, chocolates and desserts made for every celebration.'}
+            </p>
+
+            {/* WhatsApp & Navigation CTAs */}
+            <div className="mt-5 flex flex-col gap-2.5">
+              <a
+                href={waLink("Hi! I'd like to place an order with Cakes by Tulsi.")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-rose text-ivory font-semibold text-sm py-3.5 shadow-lg shadow-cocoa/40 active:scale-[0.98] transition-transform duration-200"
+              >
+                <MessageCircle className="w-4 h-4" aria-hidden="true" />
+                Order on WhatsApp
+              </a>
+
+              {campaignCta ? (
+                isInternalLink(campaignCta.ctaLink) ? (
+                  <Link to={campaignCta.ctaLink} className="w-full inline-flex items-center justify-center gap-1.5 rounded-full border border-ivory/35 bg-ivory/15 backdrop-blur-md text-ivory font-semibold text-sm py-3.5 active:scale-[0.98] transition-transform duration-200">
+                    {campaignCta.ctaText}
+                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                  </Link>
+                ) : (
+                  <a href={campaignCta.ctaLink} target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center gap-1.5 rounded-full border border-ivory/35 bg-ivory/15 backdrop-blur-md text-ivory font-semibold text-sm py-3.5 active:scale-[0.98] transition-transform duration-200">
+                    {campaignCta.ctaText}
+                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                  </a>
+                )
+              ) : (
+                <Link to="/menu" className="w-full inline-flex items-center justify-center gap-1.5 rounded-full border border-ivory/35 bg-ivory/15 backdrop-blur-md text-ivory font-semibold text-sm py-3.5 active:scale-[0.98] transition-transform duration-200">
+                  Explore Cakes
+                  <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                </Link>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Carousel indicators */}
+          {hasMultiple && (
+            <div className="mt-5 flex items-center justify-center gap-1.5">
+              {banners.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  aria-label={`Go to banner ${i + 1}`}
+                  aria-current={i === current}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? "w-6 bg-gold shadow-xs" : "w-1.5 bg-ivory/45"}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 md:pt-24 md:pb-32 hidden md:grid md:grid-cols-2 gap-8 md:gap-10 items-center relative">
         {/* Text content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -966,8 +1106,8 @@ function HeroSection({ banners, settings, waLink, loading }) {
                 className="absolute inset-0"
               >
                 <SafeImage
-                  src={heroImage || heroDefault}
-                  fallback={heroDefault}
+                  src={bannerImage || cinematicHeroDesktop}
+                  fallback={cinematicHeroDesktop}
                   alt="Premium homemade cake"
                   className="w-full h-full object-cover"
                 />

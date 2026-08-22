@@ -13,7 +13,8 @@ import ImageUploader from '../components/ImageUploader';
 import EmptyState from '../components/EmptyState';
 import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, SelectField } from '../components/FormField';
-import heroDefault from '../../assets/hero-default.svg';
+import heroDesktop from '../../assets/cinematic-hero-desktop.jpg';
+import heroMobile from '../../assets/cinematic-hero-mobile.jpg';
 
 const EMPTY_FORM = { title: '', subtitle: '', ctaText: '', ctaLink: '', status: 'LIVE' };
 
@@ -235,11 +236,19 @@ export default function AdminBanners() {
 
       {!loading && !search && items.length === 0 && (
         <div className="flex flex-col gap-4 rounded-3xl border border-blush/70 bg-white p-5 sm:flex-row sm:items-center">
-          <img src={heroDefault} alt="Default hero banner preview" className="h-32 w-full rounded-2xl object-cover sm:w-56" />
+          <div className="flex shrink-0 gap-3">
+            <img src={heroDesktop} alt="Default desktop hero preview" className="h-32 w-44 rounded-2xl object-cover" />
+            <img src={heroMobile} alt="Default mobile hero preview" className="h-32 w-[4.5rem] rounded-2xl object-cover" />
+          </div>
           <div>
             <p className="font-display font-semibold text-cocoa">No custom banner yet</p>
             <p className="mt-1 text-sm text-cocoa-soft/80">
-              Your homepage is currently showing this built-in default hero image. Upload a banner below to replace it.
+              Your homepage is showing these built-in default hero illustrations — a wide one on desktop and tablet, a tall
+              one on phones. Upload a banner below and it replaces both.
+            </p>
+            <p className="mt-1.5 text-xs text-cocoa-soft/65">
+              Tip: an uploaded banner is used at every screen size, so keep the cake near the centre — phones crop the sides,
+              and the lower third sits behind the headline.
             </p>
           </div>
         </div>

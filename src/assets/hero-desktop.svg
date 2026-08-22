@@ -1,0 +1,227 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-labelledby="dTitle">
+  <title id="dTitle">A bakery counter laid out with a tiered cake, cupcakes, macarons and a slice</title>
+
+  <defs>
+    <linearGradient id="dWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FCE9EE"/>
+      <stop offset="0.55" stop-color="#F7D6DF"/>
+      <stop offset="1" stop-color="#F1C4D3"/>
+    </linearGradient>
+    <radialGradient id="dGlow" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#FFFCF7" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFFCF7" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="dCounter" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5E5D6"/>
+      <stop offset="1" stop-color="#E3C9B2"/>
+    </linearGradient>
+    <linearGradient id="dTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FBEDF2"/>
+    </linearGradient>
+    <linearGradient id="dBottom" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C6567A"/>
+      <stop offset="1" stop-color="#93304F"/>
+    </linearGradient>
+    <linearGradient id="dFrost" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F9DEE6"/>
+      <stop offset="1" stop-color="#E8AEC1"/>
+    </linearGradient>
+    <linearGradient id="dFlame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF6D2"/>
+      <stop offset="0.55" stop-color="#E9B84A"/>
+      <stop offset="1" stop-color="#C79A3E"/>
+    </linearGradient>
+    <filter id="dSoft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="34"/>
+    </filter>
+    <filter id="dHalo" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <style>
+    .sway    { animation: sway 6.5s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0%; }
+    .flame   { animation: flicker 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+    .halo    { animation: halo 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+    .tw      { animation: twinkle 3.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    .steam   { animation: steam 5.4s ease-in-out infinite; }
+    .drift   { animation: drift 13s linear infinite; }
+    .pop     { animation: pop 5.5s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+
+    @keyframes sway    { 0%,100% { transform: rotate(-1.1deg); } 50% { transform: rotate(1.1deg); } }
+    @keyframes flicker { 0%,100% { transform: scale(1,1); } 35% { transform: scale(0.92,1.1); } 70% { transform: scale(1.06,0.94); } }
+    @keyframes halo    { 0%,100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.88; transform: scale(1.2); } }
+    @keyframes twinkle { 0%,100% { opacity: 0.15; transform: scale(0.6) rotate(0deg); } 50% { opacity: 0.9; transform: scale(1) rotate(45deg); } }
+    @keyframes pop     { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-7px) scale(1.015); } }
+    @keyframes steam   { 0%   { opacity: 0;   transform: translateY(16px) scaleX(0.9); }
+                         30%  { opacity: 0.5; }
+                         100% { opacity: 0;   transform: translateY(-78px) scaleX(1.25); } }
+    @keyframes drift   { 0%   { opacity: 0;   transform: translateY(30px); }
+                         12%  { opacity: 0.8; }
+                         88%  { opacity: 0.55; }
+                         100% { opacity: 0;   transform: translateY(-190px); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sway, .flame, .halo, .tw, .steam, .drift, .pop { animation: none; }
+      .steam, .drift { opacity: 0.45; }
+    }
+  </style>
+
+  <rect width="1200" height="900" fill="url(#dWall)"/>
+  <rect width="1200" height="900" fill="url(#dGlow)"/>
+
+  <g filter="url(#dSoft)">
+    <circle cx="150" cy="250" r="130" fill="#FFFCF7" opacity="0.55"/>
+    <circle cx="1060" cy="330" r="150" fill="#FFFCF7" opacity="0.45"/>
+    <circle cx="600" cy="640" r="210" fill="#FFFCF7" opacity="0.35"/>
+  </g>
+
+  <!-- Bunting. The whole garland sways as one, which reads as a room with
+       air in it rather than a flat illustration. -->
+  <g class="sway">
+    <path d="M40 118 Q600 232 1160 118" stroke="#C6567A" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.65"/>
+    <g>
+      <path d="M126 140 L176 148 L146 200 Z" fill="#C6567A" opacity="0.9"/>
+      <path d="M236 164 L286 172 L256 226 Z" fill="#FFFCF7"/>
+      <path d="M346 184 L396 190 L366 246 Z" fill="#C79A3E" opacity="0.85"/>
+      <path d="M456 198 L506 203 L476 259 Z" fill="#FFFCF7"/>
+      <path d="M566 206 L616 207 L586 264 Z" fill="#C6567A" opacity="0.9"/>
+      <path d="M676 204 L726 200 L696 257 Z" fill="#FFFCF7"/>
+      <path d="M786 192 L836 186 L806 242 Z" fill="#C79A3E" opacity="0.85"/>
+      <path d="M896 174 L946 165 L916 220 Z" fill="#FFFCF7"/>
+      <path d="M1006 148 L1056 137 L1026 191 Z" fill="#C6567A" opacity="0.9"/>
+    </g>
+  </g>
+
+  <!-- Drifting confetti -->
+  <g>
+    <g class="drift"><rect x="300" y="430" width="10" height="26" rx="5" fill="#C79A3E" opacity="0.7" transform="rotate(24 305 443)"/></g>
+    <g class="drift" style="animation-delay:2s"><rect x="880" y="480" width="10" height="26" rx="5" fill="#FFFCF7" opacity="0.85" transform="rotate(-30 885 493)"/></g>
+    <g class="drift" style="animation-delay:4.2s"><rect x="180" y="560" width="9" height="22" rx="4.5" fill="#FFFCF7" opacity="0.8" transform="rotate(-12 184 571)"/></g>
+    <g class="drift" style="animation-delay:6.5s"><rect x="1010" y="600" width="9" height="22" rx="4.5" fill="#C6567A" opacity="0.65" transform="rotate(38 1014 611)"/></g>
+    <circle class="drift" cx="400" cy="520" r="7" fill="#C6567A" opacity="0.55" style="animation-delay:3.1s"/>
+    <circle class="drift" cx="800" cy="560" r="6" fill="#C79A3E" opacity="0.65" style="animation-delay:8.4s"/>
+  </g>
+
+  <!-- Sparkles -->
+  <g fill="#C79A3E">
+    <path class="tw" d="M262 330 l9 22 22 9 -22 9 -9 22 -9 -22 -22 -9 22 -9 z"/>
+    <path class="tw" d="M934 396 l8 19 19 8 -19 8 -8 19 -8 -19 -19 -8 19 -8 z" style="animation-delay:1.3s"/>
+    <path class="tw" d="M690 296 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6 z" style="animation-delay:2.6s" fill="#FFFCF7"/>
+  </g>
+
+  <!-- Counter -->
+  <rect x="0" y="790" width="1200" height="110" fill="url(#dCounter)"/>
+  <rect x="0" y="790" width="1200" height="7" fill="#FFFCF7" opacity="0.8"/>
+
+  <!-- Steam off the centre cake -->
+  <g stroke="#FFFCF7" stroke-width="8" stroke-linecap="round" fill="none">
+    <path class="steam" d="M556 322 q-20 -30 0 -60 q20 -30 0 -60"/>
+    <path class="steam" d="M600 310 q-22 -34 0 -68 q22 -34 0 -68" style="animation-delay:1.7s"/>
+    <path class="steam" d="M644 322 q-20 -30 0 -60 q20 -30 0 -60" style="animation-delay:3.4s"/>
+  </g>
+
+  <!-- ── Centre: tiered cake on a pedestal stand ── -->
+  <g class="pop">
+    <g>
+      <rect x="528" y="352" width="15" height="54" rx="7" fill="#FFFCF7"/>
+      <rect x="528" y="352" width="15" height="54" rx="7" fill="#C6567A" opacity="0.22"/>
+      <rect x="592" y="342" width="15" height="64" rx="7" fill="#FFFCF7"/>
+      <rect x="592" y="342" width="15" height="64" rx="7" fill="#C79A3E" opacity="0.2"/>
+      <rect x="656" y="352" width="15" height="54" rx="7" fill="#FFFCF7"/>
+      <rect x="656" y="352" width="15" height="54" rx="7" fill="#C6567A" opacity="0.22"/>
+    </g>
+    <g filter="url(#dHalo)" fill="#F5D77E">
+      <ellipse class="halo" cx="535" cy="344" rx="23" ry="29"/>
+      <ellipse class="halo" cx="599" cy="334" rx="25" ry="31" style="animation-delay:0.4s"/>
+      <ellipse class="halo" cx="663" cy="344" rx="23" ry="29" style="animation-delay:0.8s"/>
+    </g>
+    <g fill="url(#dFlame)">
+      <path class="flame" d="M535 320 q14 18 0 34 q-14 -16 0 -34 z"/>
+      <path class="flame" d="M599 308 q15 20 0 38 q-15 -18 0 -38 z" style="animation-delay:0.4s"/>
+      <path class="flame" d="M663 320 q14 18 0 34 q-14 -16 0 -34 z" style="animation-delay:0.8s"/>
+    </g>
+
+    <!-- Top tier -->
+    <rect x="500" y="404" width="200" height="118" rx="16" fill="url(#dTop)"/>
+    <path d="M500 422 q100 -18 200 0 l0 15 q-100 -16 -200 0 z" fill="#F7D6DF" opacity="0.75"/>
+    <path d="M500 404 q11 32 25 6 q11 28 25 4 q11 26 25 6 q11 24 25 4 q11 28 25 6 q11 24 25 4 q11 26 25 -4 l0 -44 z" fill="#FFFFFF"/>
+
+    <!-- Bottom tier -->
+    <rect x="452" y="522" width="296" height="166" rx="20" fill="url(#dBottom)"/>
+    <path d="M452 546 q148 -26 296 0 l0 19 q-148 -22 -296 0 z" fill="#FFFCF7" opacity="0.48"/>
+    <g fill="#FFFCF7" opacity="0.55">
+      <path d="M506 614 q16 -26 32 0 q-16 26 -32 0 z"/>
+      <path d="M584 630 q16 -26 32 0 q-16 26 -32 0 z"/>
+      <path d="M662 614 q16 -26 32 0 q-16 26 -32 0 z"/>
+    </g>
+
+    <!-- Pedestal -->
+    <ellipse cx="600" cy="692" rx="176" ry="20" fill="#4A2A20" opacity="0.10"/>
+    <ellipse cx="600" cy="686" rx="196" ry="24" fill="#FFFCF7"/>
+    <path d="M576 700 q24 46 0 68 l48 0 q-24 -22 0 -68 z" fill="#F5E5D6"/>
+    <ellipse cx="600" cy="778" rx="82" ry="15" fill="#F0DCC9"/>
+    <ellipse cx="600" cy="772" rx="82" ry="14" fill="#FFFCF7"/>
+  </g>
+
+  <!-- ── Left: cupcake ── -->
+  <g class="pop" style="animation-delay:1.2s">
+    <ellipse cx="235" cy="792" rx="60" ry="12" fill="#4A2A20" opacity="0.09"/>
+    <path d="M183 700 L287 700 L272 786 Q235 796 198 786 Z" fill="#F5E5D6"/>
+    <g stroke="#E3C9B2" stroke-width="5" stroke-linecap="round">
+      <path d="M203 706 L213 782"/><path d="M228 706 L231 788"/>
+      <path d="M253 706 L249 788"/><path d="M276 706 L266 782"/>
+    </g>
+    <ellipse cx="235" cy="694" rx="57" ry="28" fill="url(#dFrost)"/>
+    <ellipse cx="235" cy="664" rx="45" ry="26" fill="#F9DEE6"/>
+    <ellipse cx="235" cy="638" rx="32" ry="22" fill="#FFFFFF"/>
+    <circle cx="235" cy="612" r="14" fill="#C6567A"/>
+    <path d="M235 598 q6 -16 20 -20" stroke="#6E4436" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <g fill="#C79A3E" opacity="0.8">
+      <circle cx="210" cy="676" r="4"/><circle cx="258" cy="670" r="4"/><circle cx="236" cy="652" r="4"/>
+    </g>
+  </g>
+
+  <!-- ── Right: cupcake ── -->
+  <g class="pop" style="animation-delay:2.6s">
+    <ellipse cx="965" cy="792" rx="60" ry="12" fill="#4A2A20" opacity="0.09"/>
+    <path d="M913 700 L1017 700 L1002 786 Q965 796 928 786 Z" fill="#F5E5D6"/>
+    <g stroke="#E3C9B2" stroke-width="5" stroke-linecap="round">
+      <path d="M933 706 L943 782"/><path d="M958 706 L961 788"/>
+      <path d="M983 706 L979 788"/><path d="M1006 706 L996 782"/>
+    </g>
+    <ellipse cx="965" cy="694" rx="57" ry="28" fill="#F9DEE6"/>
+    <ellipse cx="965" cy="664" rx="45" ry="26" fill="url(#dFrost)"/>
+    <ellipse cx="965" cy="638" rx="32" ry="22" fill="#FFFFFF"/>
+    <circle cx="965" cy="612" r="14" fill="#C6567A"/>
+    <path d="M965 598 q6 -16 20 -20" stroke="#6E4436" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <g fill="#C6567A" opacity="0.65">
+      <circle cx="940" cy="676" r="4"/><circle cx="988" cy="670" r="4"/><circle cx="966" cy="652" r="4"/>
+    </g>
+  </g>
+
+  <!-- ── Far left: macarons ── -->
+  <g class="pop" style="animation-delay:3.8s">
+    <ellipse cx="108" cy="792" rx="56" ry="11" fill="#4A2A20" opacity="0.08"/>
+    <rect x="58" y="754" width="100" height="30" rx="15" fill="#F7D6DF"/>
+    <rect x="62" y="738" width="92" height="20" rx="10" fill="#FFFCF7"/>
+    <rect x="58" y="710" width="100" height="30" rx="15" fill="#EDB9CA"/>
+    <rect x="72" y="682" width="72" height="22" rx="11" fill="#C79A3E" opacity="0.55"/>
+    <rect x="76" y="670" width="64" height="15" rx="7.5" fill="#FFFCF7"/>
+    <rect x="72" y="650" width="72" height="22" rx="11" fill="#C79A3E" opacity="0.55"/>
+  </g>
+
+  <!-- ── Far right: a cut slice on a plate ── -->
+  <g class="pop" style="animation-delay:5s">
+    <ellipse cx="1102" cy="788" rx="86" ry="16" fill="#4A2A20" opacity="0.09"/>
+    <ellipse cx="1102" cy="780" rx="86" ry="16" fill="#FFFCF7"/>
+    <path d="M1048 772 L1066 700 L1156 700 L1156 772 Z" fill="#C6567A"/>
+    <path d="M1053 752 L1156 752 L1156 762 L1050 762 Z" fill="#FFFCF7" opacity="0.92"/>
+    <path d="M1059 726 L1156 726 L1156 736 L1057 736 Z" fill="#FFFCF7" opacity="0.92"/>
+    <path d="M1066 700 L1156 700 L1156 712 L1063 712 Z" fill="#FFFFFF"/>
+    <path d="M1063 700 q10 -16 22 -4 q10 -14 22 -2 q10 -12 22 -2 q8 -8 27 2 l0 6 l-93 0 z" fill="#FFFFFF"/>
+    <circle cx="1128" cy="684" r="11" fill="#C6567A"/>
+    <path d="M1128 673 q5 -13 16 -16" stroke="#6E4436" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

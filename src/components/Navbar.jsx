@@ -61,10 +61,8 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "navbar-glass shadow-md shadow-cocoa/5 border-b border-blush/30"
-          : "navbar-transparent"
+      className={`fixed top-0 left-0 right-0 z-50 navbar-shell ${
+        scrolled ? "navbar-glass" : "navbar-transparent"
       }`}
     >
       <nav className="max-w-6xl mx-auto px-5 md:px-8 flex items-center justify-between h-16 md:h-20">
