@@ -79,7 +79,7 @@ export default function ImageUploader({ label, hint, dimensions, initialUrl, onC
         <div className="text-xs text-cocoa-soft">
           <p>Click to {preview ? 'replace' : 'upload'} an image</p>
           {recommendedSize && <p className="mt-0.5 text-cocoa-soft/70">Recommended Size: {recommendedSize}</p>}
-          <p className="mt-0.5 text-cocoa-soft/70">Formats: JPG, PNG, WEBP · Max Size: 5 MB</p>
+          <p className="mt-0.5 text-cocoa-soft/70">Formats: JPG, PNG, WEBP · Max Size: 4 MB</p>
         </div>
       </div>
       <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} className="hidden" />

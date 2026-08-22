@@ -866,7 +866,7 @@ export default function AdminProducts() {
                 <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleNewFiles} className="hidden" />
               </label>
             </div>
-            <p className="mt-1 text-[11px] text-cocoa-soft/70">Recommended Size: 800 × 800 px · Formats: JPG, PNG, WEBP · Max: 5 MB</p>
+            <p className="mt-1 text-[11px] text-cocoa-soft/70">Recommended Size: 800 × 800 px · Formats: JPG, PNG, WEBP · Max: 4 MB</p>
             {formErrors.images && <p className="mt-1 text-[11px] font-semibold text-rose-600">{formErrors.images}</p>}
           </div>
 
