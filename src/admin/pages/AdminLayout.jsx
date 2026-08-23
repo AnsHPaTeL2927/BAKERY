@@ -11,6 +11,7 @@ import {
   BadgePercent,
   MessageSquareQuote,
   Mail,
+  BookOpen,
   Settings,
   LogOut,
   Menu,
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { to: '/admin/offers', label: 'Offers', icon: BadgePercent },
   { to: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
   { to: '/admin/messages', label: 'Messages', icon: Mail },
+  { to: '/admin/about', label: 'About Page', icon: BookOpen },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 

@@ -160,6 +160,9 @@ export const testimonialsApi = {
 };
 
 // ---- Settings (singleton) ----
+export const getAbout = () => request('/about');
+export const updateAbout = (formData) => request('/about', { method: 'PUT', body: formData });
+
 export const getSettings = () => request('/settings');
 export const updateSettings = (formData) => request('/settings', { method: 'PUT', body: formData });
 

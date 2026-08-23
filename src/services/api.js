@@ -62,6 +62,17 @@ export async function getSiteSettings() {
   }
 }
 
+// Content for the /about page. Returns null when nothing has been customised
+// in the admin panel yet (or the request fails), which the page reads as
+// "use the built-in copy".
+export async function getAboutContent() {
+  try {
+    return await request('/about');
+  } catch {
+    return null;
+  }
+}
+
 export async function getGallery() {
   try {
     return await request('/gallery');

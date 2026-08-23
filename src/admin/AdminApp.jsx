@@ -15,6 +15,7 @@ import AdminBanners from './pages/AdminBanners';
 import AdminOffers from './pages/AdminOffers';
 import AdminTestimonials from './pages/AdminTestimonials';
 import AdminMessages from './pages/AdminMessages';
+import AdminAbout from './pages/AdminAbout';
 import AdminSettings from './pages/AdminSettings';
 
 function protectedPage(Page) {
@@ -45,6 +46,7 @@ export default function AdminApp() {
           <Route path="/offers" element={protectedPage(AdminOffers)} />
           <Route path="/testimonials" element={protectedPage(AdminTestimonials)} />
           <Route path="/messages" element={protectedPage(AdminMessages)} />
+          <Route path="/about" element={protectedPage(AdminAbout)} />
           <Route path="/settings" element={protectedPage(AdminSettings)} />
         </Routes>
       </ToastProvider>
