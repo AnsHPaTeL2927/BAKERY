@@ -138,7 +138,7 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile & Tablet menu */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -149,23 +149,23 @@ export default function Navbar() {
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             className="lg:hidden overflow-hidden"
           >
-            <ul className="bg-ivory/95 backdrop-blur-md border-t border-blush px-5 py-5 flex flex-col gap-1 font-semibold text-cocoa-soft">
+            <ul className="bg-ivory/95 backdrop-blur-md border-t border-blush px-5 md:px-8 py-5 md:py-6 flex flex-col md:grid md:grid-cols-2 gap-1 md:gap-2 font-semibold text-cocoa-soft">
               {links.map((l, i) => (
                 <motion.li
                   key={l.to}
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.3 }}
+                  transition={{ delay: i * 0.04, duration: 0.25 }}
                 >
                   <NavLink
                     to={l.to}
                     end={l.to === "/"}
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
-                      `block py-2.5 px-3 rounded-xl transition-all duration-200 ${
+                      `block py-2.5 md:py-3 px-3.5 md:px-4 rounded-xl transition-all duration-200 ${
                         isActive
-                          ? "text-rose-deep bg-blush-soft/50"
-                          : "hover:bg-blush-soft/30"
+                          ? "text-rose-deep bg-blush-soft/60 font-bold shadow-2xs"
+                          : "hover:bg-blush-soft/40"
                       }`
                     }
                   >

@@ -87,7 +87,7 @@ function EvergreenFestivalFallback({ bestSellers, upcoming, whatsapp }) {
       {upcoming.length > 0 && (
         <div>
           <p className="text-center font-script text-xl sm:text-2xl text-rose-deep mb-4 sm:mb-6">Coming Soon</p>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-5">
             {upcoming.map((offer, i) => (
               <ScrollReveal key={offer.id} delay={i * 60} distance={12}>
                 <div className="relative rounded-xl sm:rounded-2xl overflow-hidden border border-blush/50 bg-ivory card-hover h-full flex flex-col">
@@ -122,7 +122,7 @@ function EvergreenFestivalFallback({ bestSellers, upcoming, whatsapp }) {
         <div>
           <p className="text-center font-script text-xl sm:text-2xl text-rose-deep mb-1">Customer Favourites</p>
           <h3 className="text-center font-display font-semibold text-xl sm:text-2xl text-cocoa mb-6 sm:mb-8">Our Most Loved Cakes</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6">
             {bestSellers.map((p, i) => (
               <ScrollReveal key={p.id} delay={i * 60}>
                 <ProductCard product={p} whatsapp={whatsapp} />
@@ -218,7 +218,7 @@ function FestivalBlock({ offer, products, whatsapp }) {
       {relatedProducts.length > 0 && (
         <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-blush/40">
           <p className="text-xs font-semibold uppercase tracking-wider text-cocoa-soft/60 mb-3">Featured Highlights</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4">
             {relatedProducts.map((p, i) => (
               <ScrollReveal key={p.id} delay={i * 60} distance={12}>
                 <div className="rounded-xl sm:rounded-2xl overflow-hidden bg-ivory border border-blush/50 card-hover">

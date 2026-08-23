@@ -22,7 +22,7 @@ import heroMobile from "../assets/hero-mobile.svg";
 import heroDesktop from "../assets/hero-desktop.svg";
 import cinematicHeroMobile from "../assets/cinematic-hero-mobile.webp";
 import cinematicHeroDesktop from "../assets/cinematic-hero-desktop.webp";
-import customCakeDefault from "../assets/custom-cake-default.svg";
+import customCakeDefault from "../assets/custom-cake-hero.jpg";
 
 // An internal path (starts with "/") should route through React Router;
 // anything else (wa.me links, tel:, external URLs) is a plain anchor.
@@ -149,11 +149,11 @@ export default function Home() {
         </div>
       ) : activeOffer ? (
         <ScrollReveal className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 md:py-14">
-          <div className="relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-rose-deep via-rose-deep to-[#7E2844] text-ivory grid lg:grid-cols-12 items-center group shadow-md border border-rose/30">
+          <div className="relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-rose-deep via-rose-deep to-[#7E2844] text-ivory grid md:grid-cols-12 items-center group shadow-md border border-rose/30">
             {/* Ambient backdrop */}
             <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-gold/15 blur-3xl pointer-events-none" />
 
-            <div className="p-6 sm:p-9 lg:p-12 lg:col-span-7 relative z-10">
+            <div className="p-6 sm:p-9 md:p-10 lg:p-12 md:col-span-7 relative z-10">
               <p className="font-script text-2xl sm:text-3xl text-blush mb-1 tracking-wide">{activeOffer.festival}</p>
               <h2 className="font-display font-semibold text-2xl sm:text-3xl md:text-4xl leading-tight">{activeOffer.title}</h2>
               <p className="mt-2.5 sm:mt-3 text-ivory/85 text-xs sm:text-sm md:text-base max-w-lg leading-relaxed">{activeOffer.description}</p>
@@ -177,7 +177,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="h-52 sm:h-64 lg:h-full lg:min-h-[280px] lg:col-span-5 img-zoom-container relative">
+            <div className="h-52 sm:h-64 md:h-full md:min-h-[280px] md:col-span-5 img-zoom-container relative">
               <SafeImage src={activeOffer.banner} alt="" className="w-full h-full object-cover opacity-90 img-zoom-target" />
               <div className="absolute inset-0 bg-gradient-to-t from-cocoa/40 via-transparent to-transparent lg:hidden" />
             </div>
@@ -193,7 +193,7 @@ export default function Home() {
           <SectionTitle eyebrow="What We Bake" title="Explore Our Categories" />
         </ScrollReveal>
         {loading ? (
-          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mt-6 sm:mt-10">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5 sm:gap-4 mt-6 sm:mt-10">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="rounded-xl sm:rounded-2xl border border-blush/60 bg-ivory p-2.5 sm:p-4 text-center">
                 <Skeleton className="mb-2 aspect-square w-full rounded-lg sm:rounded-xl" />
@@ -202,7 +202,7 @@ export default function Home() {
             ))}
           </div>
         ) : categories.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mt-6 sm:mt-10">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5 sm:gap-4 mt-6 sm:mt-10">
             {categories.map((c, i) => (
               <ScrollReveal key={c.slug || c.id} delay={i * 50} distance={16}>
                 <Link
@@ -255,11 +255,11 @@ export default function Home() {
           </ScrollReveal>
 
           {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 mt-6 sm:mt-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6 mt-6 sm:mt-10">
               {Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : bestSellersDisplay.length > 0 ? (
-            <div className="mt-6 sm:mt-10 grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
+            <div className="mt-6 sm:mt-10 grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6">
               {bestSellersDisplay.map((p, i) => (
                 <ScrollReveal key={p.id} delay={i * 60} distance={16}>
                   <ProductCard product={p} whatsapp={settings.whatsapp} />
@@ -299,7 +299,7 @@ export default function Home() {
         <ScrollReveal>
           <SectionTitle eyebrow="The Tulsi Difference" title="Why Choose Us" />
         </ScrollReveal>
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5 mt-6 sm:mt-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-5 mt-6 sm:mt-10">
           {whyChooseUs.map((item, i) => {
             const Icon = icons[i % icons.length];
             return (
@@ -328,7 +328,7 @@ export default function Home() {
         <ScrollReveal>
           <SectionTitle eyebrow="A Peek Inside" title="Gallery" />
         </ScrollReveal>
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-4 mt-6 sm:mt-10">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 mt-6 sm:mt-10">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl sm:rounded-2xl" />)
             : galleryImages.slice(0, 6).map((g, i) => (
@@ -426,7 +426,7 @@ function TrustBar({ averageRating, reviewCount, loading }) {
     <section className="py-6 sm:py-9 bg-blush-soft/25 relative z-10 overflow-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
         {loading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4.5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4.5">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="bg-ivory/80 rounded-2xl p-4 border border-blush/40">
                 <Skeleton className="h-4 w-24 mb-2" />
@@ -435,7 +435,7 @@ function TrustBar({ averageRating, reviewCount, loading }) {
             ))}
           </div>
         ) : (
-          <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4.5">
+          <ul className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4.5">
             {items.map(({ key, Icon, title, detail, to }, i) => {
               const body = (
                 <>
@@ -506,20 +506,20 @@ function ProcessSection() {
             className="absolute left-[21px] sm:left-[27px] top-4 bottom-4 w-px bg-cream/15 lg:left-0 lg:right-0 lg:top-7 lg:bottom-auto lg:h-px lg:w-auto lg:mx-[10%]"
           />
 
-          <ol className="relative grid gap-6 sm:gap-8 lg:grid-cols-5 lg:gap-6">
+          <ol className="relative grid gap-6 sm:gap-8 md:grid-cols-5 md:gap-4 lg:gap-6">
             {processSteps.map((step, i) => (
               <ScrollReveal as="li" key={step.title} delay={i * 70} distance={16} className="relative">
-                <div className="flex gap-4 sm:gap-5 lg:flex-col lg:items-center lg:text-center lg:gap-0">
+                <div className="flex gap-4 sm:gap-5 md:flex-col md:items-center md:text-center md:gap-0">
                   {/* Numbered icon medallion */}
-                  <span className="relative shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-cocoa border border-cream/15 flex items-center justify-center lg:mx-auto shadow-2xs">
+                  <span className="relative shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-cocoa border border-cream/15 flex items-center justify-center md:mx-auto shadow-2xs">
                     <step.Icon className="w-5 h-5 sm:w-6 sm:h-6 text-blush" strokeWidth={1.5} aria-hidden="true" />
                     <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-rose text-ivory text-[10px] sm:text-[11px] font-bold flex items-center justify-center tabular-nums shadow-2xs">
                       {i + 1}
                     </span>
                   </span>
-                  <div className="pt-0.5 lg:pt-5">
+                  <div className="pt-0.5 md:pt-4">
                     <p className="font-display font-semibold text-cream text-sm sm:text-base mb-1">{step.title}</p>
-                    <p className="text-cream/65 text-xs sm:text-sm leading-relaxed lg:px-1">{step.desc}</p>
+                    <p className="text-cream/65 text-xs sm:text-sm leading-relaxed md:px-1">{step.desc}</p>
                   </div>
                 </div>
               </ScrollReveal>
@@ -552,9 +552,9 @@ function CustomCakeSection({ waLink }) {
             <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-gold/10 blur-2xl" />
           </ParallaxLayer>
 
-          <div className="relative grid lg:grid-cols-2">
+          <div className="relative grid md:grid-cols-2">
             {/* Copy + journey */}
-            <div className="p-5 sm:p-8 lg:p-12 order-1 lg:order-1">
+            <div className="p-5 sm:p-8 md:p-10 lg:p-12 order-1 md:order-1">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blush mb-2 sm:mb-3">Custom Orders</p>
               <h2 className="font-display font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight">
                 Your Occasion, Baked to Your Brief
@@ -609,7 +609,7 @@ function CustomCakeSection({ waLink }) {
             </div>
 
             {/* Image */}
-            <div className="relative h-52 sm:h-72 lg:h-auto lg:min-h-[520px] img-zoom-container order-2 lg:order-2">
+            <div className="relative h-52 sm:h-72 md:h-auto md:min-h-[480px] lg:min-h-[520px] img-zoom-container order-2 md:order-2">
               <SafeImage
                 src={customCakeDefault}
                 fallback={customCakeDefault}
@@ -618,7 +618,7 @@ function CustomCakeSection({ waLink }) {
                 className="w-full h-full object-cover img-zoom-target"
               />
               <div
-                className="absolute inset-0 bg-gradient-to-t from-cocoa/70 via-cocoa/10 to-transparent lg:bg-gradient-to-r lg:from-cocoa lg:via-cocoa/25 lg:to-transparent"
+                className="absolute inset-0 bg-gradient-to-t from-cocoa/70 via-cocoa/10 to-transparent md:bg-gradient-to-r md:from-cocoa md:via-cocoa/25 md:to-transparent"
                 aria-hidden="true"
               />
             </div>
@@ -722,13 +722,13 @@ function OfferFallbackBanner({ products }) {
   const hasProducts = products.length > 0;
   return (
     <ScrollReveal className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 md:py-14">
-      <div className="relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-rose-deep via-rose-deep to-[#7E2844] text-ivory grid lg:grid-cols-12 items-center gap-2 sm:gap-6 shadow-md border border-rose/30">
+      <div className="relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-rose-deep via-rose-deep to-[#7E2844] text-ivory grid md:grid-cols-12 items-center gap-2 sm:gap-6 shadow-md border border-rose/30">
         {/* Ambient background glow */}
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-rose/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-gold/10 blur-2xl pointer-events-none" />
 
         {/* Text Content */}
-        <div className="p-6 sm:p-9 lg:p-12 lg:col-span-7 relative z-10">
+        <div className="p-6 sm:p-9 md:p-10 lg:p-12 md:col-span-7 relative z-10">
           <p className="font-script text-2xl sm:text-3xl text-blush mb-1 tracking-wide">
             Something Sweet Is Always Baking
           </p>
@@ -751,7 +751,7 @@ function OfferFallbackBanner({ products }) {
         </div>
 
         {/* Product Image Grid */}
-        <div className="p-6 pt-0 sm:p-8 lg:p-10 lg:pl-0 lg:col-span-5 relative z-10 flex items-center justify-center">
+        <div className="p-6 pt-0 sm:p-8 md:p-10 md:pl-0 md:col-span-5 relative z-10 flex items-center justify-center">
           {hasProducts ? (
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 w-full max-w-md lg:max-w-none">
               {products.slice(0, 3).map((p) => (
@@ -1009,7 +1009,7 @@ function HeroSection({ banners, settings, waLink, loading, averageRating, review
           <p className="font-script text-xl sm:text-2xl md:text-3xl text-rose-deep mb-1 sm:mb-2">
             {heroSubtitle || 'Freshly Baked Every Day'}
           </p>
-          <h1 className="font-display font-semibold text-3xl sm:text-5xl md:text-6xl leading-[1.1] text-cocoa">
+          <h1 className="font-display font-semibold text-3xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl leading-[1.1] text-cocoa">
             {heroTitle || (<>
               Homemade Cakes
               <br />

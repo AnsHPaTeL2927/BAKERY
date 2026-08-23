@@ -31,10 +31,10 @@ export default function Footer() {
       </div>
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-10 sm:py-14">
-        {/* Main Grid: Brand bio top on mobile, 2 cols for Links/Categories on mobile, Contact at bottom */}
-        <div className="grid gap-8 sm:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Main Grid: Brand bio top on mobile, 2 cols for Links/Categories on mobile, 4 cols on tablet & desktop */}
+        <div className="grid gap-8 sm:gap-10 grid-cols-1 md:grid-cols-4">
           {/* Brand Info */}
-          <ScrollReveal distance={16} className="sm:col-span-2 lg:col-span-1">
+          <ScrollReveal distance={16} className="md:col-span-1">
             <div>
               {showLogoImage ? (
                 <img
@@ -88,8 +88,8 @@ export default function Footer() {
             </div>
           </ScrollReveal>
 
-          {/* Quick Links & Categories — Side-by-side (2 columns) on mobile! */}
-          <div className="grid grid-cols-2 gap-6 sm:contents">
+          {/* Quick Links & Categories — Side-by-side on mobile, standalone columns on tablet & desktop */}
+          <div className="grid grid-cols-2 gap-6 md:contents">
             <ScrollReveal distance={16} delay={40}>
               <div>
                 <p className="font-display font-semibold text-blush text-sm sm:text-base mb-2.5 sm:mb-3">Quick Links</p>

@@ -250,7 +250,7 @@ export default function CustomCake() {
                   name="shape"
                   control={control}
                   render={({ field }) => (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {SHAPES.map((s) => (
                         <button
                           key={s.value}

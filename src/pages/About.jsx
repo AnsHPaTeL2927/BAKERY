@@ -93,7 +93,7 @@ export default function About() {
       <IcingDivider className="text-blush" />
 
       <section className="bg-blush-soft/50 py-10 sm:py-16 md:py-24">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-6">
           {[
             { title: "Our Mission", text: "To make every celebration a little sweeter with desserts that taste homemade — because they are." },
             { title: "Quality Promise", text: "No preservatives, no shortcuts. If we wouldn't serve it to our own family, it doesn't leave the kitchen." },

@@ -17,6 +17,7 @@ export default function Menu() {
   const [content, setContent] = useState({ categories: [], products: [], settings: {} });
   const [loading, setLoading] = useState(true);
   const navContainerRef = useRef(null);
+  const menuSectionRef = useRef(null);
 
   useEffect(() => {
     getPublicContent()
@@ -69,6 +70,12 @@ export default function Menu() {
     // Scroll active pill into view on mobile sticky category bar
     if (targetBtnElement && targetBtnElement.scrollIntoView) {
       targetBtnElement.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+    // Auto-scroll window to start of category products menu
+    if (menuSectionRef.current) {
+      const yOffset = -125; // Offset for navbar and sticky category bar
+      const y = menuSectionRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
     }
   }
 
@@ -130,7 +137,7 @@ export default function Menu() {
         </div>
       </div>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-12">
+      <section ref={menuSectionRef} className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-12">
         {/* MOBILE SEARCH & TOOLBAR BAR */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 sm:mb-10 bg-ivory/90 border border-blush/60 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xs">
           {/* Search Input */}
@@ -195,7 +202,7 @@ export default function Menu() {
 
         {/* PRODUCTS SECTION */}
         {loading ? (
-          <div className={viewMode === "grid" ? "grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6" : "flex flex-col gap-3.5"}>
+          <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6" : "flex flex-col gap-3.5"}>
             {Array.from({ length: 6 }).map((_, i) => (
               <CardSkeleton key={i} />
             ))}
@@ -210,7 +217,7 @@ export default function Menu() {
               transition={{ duration: 0.3 }}
               className={
                 viewMode === "grid"
-                  ? "grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6"
+                  ? "grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6"
                   : "flex flex-col gap-3.5 sm:gap-5"
               }
             >
