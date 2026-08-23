@@ -13,8 +13,8 @@ import ImageUploader from '../components/ImageUploader';
 import EmptyState from '../components/EmptyState';
 import ButtonLoader from '../../components/loading/ButtonLoader';
 import { TextField, SelectField } from '../components/FormField';
-import heroDesktop from '../../assets/cinematic-hero-desktop.jpg';
-import heroMobile from '../../assets/cinematic-hero-mobile.jpg';
+import heroDesktop from '../../assets/cinematic-hero-desktop.webp';
+import heroMobile from '../../assets/cinematic-hero-mobile.webp';
 
 const EMPTY_FORM = { title: '', subtitle: '', ctaText: '', ctaLink: '', status: 'LIVE' };
 

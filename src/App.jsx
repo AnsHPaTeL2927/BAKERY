@@ -1,20 +1,24 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import GlobalLoader from "./components/loading/GlobalLoader";
 import Home from "./pages/Home";
-import About from "./pages/About";
-import Menu from "./pages/Menu";
-import CustomCake from "./pages/CustomCake";
-import FestivalSpecials from "./pages/FestivalSpecials";
-import Gallery from "./pages/Gallery";
-import Reviews from "./pages/Reviews";
-import Contact from "./pages/Contact";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import AdminApp from "./admin/AdminApp";
+
+// Split out of the initial bundle. The admin panel matters most: it pulls in
+// Recharts and every admin screen, none of which a public visitor ever runs,
+// yet all of it used to ship in the same single chunk as the storefront.
+const About = lazy(() => import("./pages/About"));
+const Menu = lazy(() => import("./pages/Menu"));
+const CustomCake = lazy(() => import("./pages/CustomCake"));
+const FestivalSpecials = lazy(() => import("./pages/FestivalSpecials"));
+const Gallery = lazy(() => import("./pages/Gallery"));
+const Reviews = lazy(() => import("./pages/Reviews"));
+const Contact = lazy(() => import("./pages/Contact"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const AdminApp = lazy(() => import("./admin/AdminApp"));
 import { trackEvent, getSiteSettings } from "./services/api";
 import { applyFavicon } from "./utils/favicon";
 
@@ -48,17 +52,19 @@ function AnimatedRoutes() {
         exit={pageTransition.exit}
         transition={pageTransition.transition}
       >
-        <Routes location={location}>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/custom-cake" element={<CustomCake />} />
-          <Route path="/festival-specials" element={<FestivalSpecials />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/reviews" element={<Reviews />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        </Routes>
+        <Suspense fallback={<div className="min-h-[60vh]" />}>
+          <Routes location={location}>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/menu" element={<Menu />} />
+            <Route path="/custom-cake" element={<CustomCake />} />
+            <Route path="/festival-specials" element={<FestivalSpecials />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/reviews" element={<Reviews />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          </Routes>
+        </Suspense>
       </motion.div>
     </AnimatePresence>
   );
@@ -67,8 +73,12 @@ function AnimatedRoutes() {
 export default function App() {
   const [initialLoading, setInitialLoading] = useState(true);
 
+  // A fixed delay before the site is revealed, so the branded splash does not
+  // flash by. It is pure added latency on every visit, so it is kept to the
+  // shortest span that still reads as intentional rather than as a glitch —
+  // adjust to taste, or drop the loader entirely to reveal content instantly.
   useEffect(() => {
-    const id = setTimeout(() => setInitialLoading(false), 700);
+    const id = setTimeout(() => setInitialLoading(false), 350);
     return () => clearTimeout(id);
   }, []);
 
@@ -86,7 +96,14 @@ export default function App() {
       <GlobalLoader visible={initialLoading} />
       <ScrollToTop />
       <Routes>
-        <Route path="/admin/*" element={<AdminApp />} />
+        <Route
+          path="/admin/*"
+          element={
+            <Suspense fallback={<GlobalLoader visible />}>
+              <AdminApp />
+            </Suspense>
+          }
+        />
         <Route
           path="*"
           element={

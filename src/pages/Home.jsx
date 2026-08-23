@@ -20,8 +20,8 @@ import CinematicParticles from "../components/CinematicParticles";
 import useCountdown from "../hooks/useCountdown";
 import heroMobile from "../assets/hero-mobile.svg";
 import heroDesktop from "../assets/hero-desktop.svg";
-import cinematicHeroMobile from "../assets/cinematic-hero-mobile.jpg";
-import cinematicHeroDesktop from "../assets/cinematic-hero-desktop.jpg";
+import cinematicHeroMobile from "../assets/cinematic-hero-mobile.webp";
+import cinematicHeroDesktop from "../assets/cinematic-hero-desktop.webp";
 import customCakeDefault from "../assets/custom-cake-default.svg";
 
 // An internal path (starts with "/") should route through React Router;
