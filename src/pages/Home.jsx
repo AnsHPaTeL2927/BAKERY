@@ -22,7 +22,7 @@ import heroMobile from "../assets/hero-mobile.svg";
 import heroDesktop from "../assets/hero-desktop.svg";
 import cinematicHeroMobile from "../assets/cinematic-hero-mobile.webp";
 import cinematicHeroDesktop from "../assets/cinematic-hero-desktop.webp";
-import customCakeDefault from "../assets/custom-cake-hero.jpg";
+import customCakeDefault from "../assets/custom-cake-hero.webp";
 import { buildPublicWhatsAppLink } from "../utils/whatsapp";
 
 // An internal path (starts with "/") should route through React Router;
@@ -611,12 +611,16 @@ function CustomCakeSection({ waLink }) {
 
             {/* Image */}
             <div className="relative h-52 sm:h-72 md:h-auto md:min-h-[480px] lg:min-h-[520px] img-zoom-container order-2 md:order-2">
+              {/* The cake sits at the right edge of the photo, and beside a tall
+                  copy column this box is much narrower than the image is wide, so
+                  a centred crop keeps the empty bench and throws the cake away.
+                  Anchoring right keeps the subject in frame at every width. */}
               <SafeImage
                 src={customCakeDefault}
                 fallback={customCakeDefault}
-                alt="Custom tiered celebration cake"
+                alt="Decorated celebration cake on a stand beside piping tools in the bakery kitchen"
                 containerClassName="w-full h-full"
-                className="w-full h-full object-cover img-zoom-target"
+                className="w-full h-full object-cover object-right img-zoom-target"
               />
               <div
                 className="absolute inset-0 bg-gradient-to-t from-cocoa/70 via-cocoa/10 to-transparent md:bg-gradient-to-r md:from-cocoa md:via-cocoa/25 md:to-transparent"
