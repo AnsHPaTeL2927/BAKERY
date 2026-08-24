@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { getPublicContent, trackEvent } from "../services/api";
+import { buildPublicWhatsAppLink } from "../utils/whatsapp";
 
 export default function WhatsAppFloat() {
   const [settings, setSettings] = useState({});
@@ -14,7 +15,7 @@ export default function WhatsAppFloat() {
     return () => clearTimeout(id);
   }, []);
 
-  const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
+  const waLink = (message) => buildPublicWhatsAppLink(settings.whatsapp, message);
 
   if (!visible) return null;
 

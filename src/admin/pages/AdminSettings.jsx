@@ -272,7 +272,7 @@ export default function AdminSettings() {
           <TextField label="Phone" description="Store phone number for customer contact." value={form.phone} onChange={(e) => updateField('phone', e.target.value)} />
           <TextField
             label="WhatsApp Number"
-            description="WhatsApp number for order notifications (digits with country code)."
+            description="Must start with the country code, digits only — no + or spaces. Without the country code, WhatsApp rejects the link."
             placeholder="e.g. 918780652597"
             value={form.whatsapp}
             error={formErrors.whatsapp}

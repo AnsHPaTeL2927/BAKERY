@@ -4,6 +4,7 @@ import { InstagramIcon, FacebookIcon } from "../components/SocialIcons";
 import PageHeader from "../components/PageHeader";
 import ScrollReveal from "../components/ScrollReveal";
 import { getPublicContent, trackEvent } from "../services/api";
+import { buildPublicWhatsAppLink } from "../utils/whatsapp";
 
 export default function Contact() {
   const [settings, setSettings] = useState({});
@@ -12,7 +13,7 @@ export default function Contact() {
     getPublicContent().then((data) => setSettings(data.settings || {})).catch(() => {});
   }, []);
 
-  const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
+  const waLink = (message) => buildPublicWhatsAppLink(settings.whatsapp, message);
 
   return (
     <>

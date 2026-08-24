@@ -5,6 +5,7 @@ import { InstagramIcon, FacebookIcon } from "./SocialIcons";
 import { getPublicContent } from "../services/api";
 import { resolveBrand } from "../utils/brand";
 import ScrollReveal from "./ScrollReveal";
+import { buildPublicWhatsAppLink } from "../utils/whatsapp";
 
 export default function Footer() {
   const [content, setContent] = useState({ settings: {}, categories: [] });
@@ -19,7 +20,7 @@ export default function Footer() {
   const brand = resolveBrand(siteConfig);
   const showLogoImage = brand.type === "image" && !logoFailed;
   const brandName = brand.type === "image" ? brand.alt : brand.text;
-  const waPhone = siteConfig.whatsapp || siteConfig.phone || "918780652597";
+  const waPhone = siteConfig.whatsapp || siteConfig.phone;
   const cleanPhone = (siteConfig.phone || "").replace(/\D/g, "");
 
   return (
@@ -53,7 +54,7 @@ export default function Footer() {
               {/* Social & WhatsApp Buttons */}
               <div className="flex items-center gap-2.5 mt-4">
                 <a
-                  href={`https://wa.me/${waPhone.replace(/\D/g, "")}`}
+                  href={buildPublicWhatsAppLink(waPhone)}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"

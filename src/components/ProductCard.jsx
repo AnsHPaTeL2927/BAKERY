@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Sparkles, Star, MessageCircle } from "lucide-react";
 import { getPublicContent, trackEvent } from "../services/api";
 import SafeImage from "./SafeImage";
+import { buildPublicWhatsAppLink } from "../utils/whatsapp";
 
 // `whatsapp` should be passed down from the page that renders this card —
 // every page already loads it via its own getPublicContent() call. The
@@ -25,7 +26,7 @@ export default function ProductCard({ product, whatsapp, viewMode = "grid" }) {
   }, []);
 
   const orderMessage = `Hi! I'd like to order:\n${product.name} (${weight}) - ₹${price}`;
-  const waLink = (message) => `https://wa.me/${whatsapp || fetchedWhatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
+  const waLink = (message) => buildPublicWhatsAppLink(whatsapp || fetchedWhatsapp, message);
 
   if (viewMode === "list") {
     return (

@@ -135,6 +135,24 @@ export function normalizePhone(phone) {
   return { valid: true, phone: digits };
 }
 
+// Fallback number used when site settings have not loaded (or have no WhatsApp
+// number saved). Previously copy-pasted into half a dozen public pages.
+export const DEFAULT_WHATSAPP_NUMBER = "918780652597";
+
+// The one way the public site should build a wa.me link.
+//
+// wa.me needs a bare international number: digits only, country code included,
+// no "+", no spaces. A number that is merely *stored* differently — "+91 87806
+// 52597", or a bare 10-digit national number — produces WhatsApp's
+// "link is not supported" error rather than any useful failure, so the number
+// is normalised here instead of being interpolated as typed.
+export function buildPublicWhatsAppLink(phone, message) {
+  const norm = normalizePhone(phone);
+  const digits = norm.valid ? norm.phone : DEFAULT_WHATSAPP_NUMBER;
+  const url = `https://wa.me/${digits}`;
+  return message ? `${url}?text=${encodeURIComponent(message)}` : url;
+}
+
 // Ensures full absolute URL for invoice link
 export function getFullInvoiceUrl(path) {
   if (!path) return "";

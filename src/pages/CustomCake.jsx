@@ -9,6 +9,7 @@ import ThemedSelect from "../components/ThemedSelect";
 import DatePicker from "../components/DatePicker";
 import ScrollReveal from "../components/ScrollReveal";
 import { getPublicContent, submitContactMessage } from "../services/api";
+import { buildPublicWhatsAppLink } from "../utils/whatsapp";
 
 const OCCASIONS = ["Birthday", "Anniversary", "Wedding", "Baby Shower", "Corporate Event", "Other"];
 const CAKE_WEIGHTS = ["500g", "1kg", "1.5kg", "2kg+"];
@@ -73,7 +74,7 @@ export default function CustomCake() {
     getPublicContent().then((data) => setSettings(data.settings || {})).catch(() => {});
   }, []);
 
-  const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
+  const waLink = (message) => buildPublicWhatsAppLink(settings.whatsapp, message);
 
   function onSubmit(data) {
     const message = [

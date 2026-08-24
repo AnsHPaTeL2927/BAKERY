@@ -8,6 +8,7 @@ import AnimatedButton from "../components/AnimatedButton";
 import ProductCard from "../components/ProductCard";
 import Skeleton from "../components/loading/Skeleton";
 import useCountdown from "../hooks/useCountdown";
+import { buildPublicWhatsAppLink } from "../utils/whatsapp";
 
 export default function FestivalSpecials() {
   const [content, setContent] = useState({ offers: [], products: [], settings: {} });
@@ -70,7 +71,7 @@ export default function FestivalSpecials() {
 
 /* ═══ NO ACTIVE CAMPAIGN — EVERGREEN DISCOVERY ═══ */
 function EvergreenFestivalFallback({ bestSellers, upcoming, whatsapp }) {
-  const waLink = (message) => `https://wa.me/${whatsapp || "918780652597"}?text=${encodeURIComponent(message)}`;
+  const waLink = (message) => buildPublicWhatsAppLink(whatsapp, message);
 
   return (
     <div className="space-y-10 sm:space-y-16">
@@ -164,7 +165,7 @@ function EvergreenFestivalFallback({ bestSellers, upcoming, whatsapp }) {
 function FestivalBlock({ offer, products, whatsapp }) {
   const countdown = useCountdown(offer.endDate);
   const relatedProducts = products.filter((p) => p.featured).slice(0, 3);
-  const waLink = (message) => `https://wa.me/${whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
+  const waLink = (message) => buildPublicWhatsAppLink(whatsapp, message);
 
   return (
     <div className="bg-ivory rounded-2xl sm:rounded-3xl border border-blush/50 p-4 sm:p-6 md:p-8 shadow-2xs">

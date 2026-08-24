@@ -23,6 +23,7 @@ import heroDesktop from "../assets/hero-desktop.svg";
 import cinematicHeroMobile from "../assets/cinematic-hero-mobile.webp";
 import cinematicHeroDesktop from "../assets/cinematic-hero-desktop.webp";
 import customCakeDefault from "../assets/custom-cake-hero.jpg";
+import { buildPublicWhatsAppLink } from "../utils/whatsapp";
 
 // An internal path (starts with "/") should route through React Router;
 // anything else (wa.me links, tel:, external URLs) is a plain anchor.
@@ -119,7 +120,7 @@ export default function Home() {
   // always has something worth showing.
   const bestSellersDisplay = bestSellers.length > 0 ? bestSellers : products.slice(0, 6);
   const bestSellerTeaser = bestSellers.slice(0, 3);
-  const waLink = (message) => `https://wa.me/${settings.whatsapp || '918780652597'}?text=${encodeURIComponent(message)}`;
+  const waLink = (message) => buildPublicWhatsAppLink(settings.whatsapp, message);
 
   return (
     <>
